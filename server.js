@@ -8,7 +8,7 @@ const { Telegraf } = require('telegraf');
 const bot = new Telegraf('7375312751:AAFMKJD636gDurhLxBW7haVKVnvLP9ez86c');
 // WebApp URL
 const webAppUrl = 'https://litwin-tap.ru';
-
+//sfasf
 // Обработчик команды /start
 bot.command('start', (ctx) => {
     ctx.reply('Привет! Я бот для игры "LIT⚡️WIN Tap". Нажми на кнопку ниже, чтобы начать игру:', {
