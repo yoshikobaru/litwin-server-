@@ -28,7 +28,6 @@ const options = {
     key: fs.readFileSync('/etc/letsencrypt/live/litwin-tap.ru/privkey.pem'),
     cert: fs.readFileSync('/etc/letsencrypt/live/litwin-tap.ru/fullchain.pem')
 };
-// создаем сервер
 const server = https.createServer(options, (req, res) => {
   let filePath = path.join(__dirname, '..', 'litwin-server', req.url === '/' ? 'tutorial.html' : req.url);
   
