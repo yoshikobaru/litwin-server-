@@ -30,7 +30,7 @@ const options = {
 };
 
 const server = https.createServer(options, (req, res) => {
-  let filePath = path.join(__dirname, '..', 'client', req.url === '/' ? 'tutorial.html' : req.url);
+  let filePath = path.join(__dirname, '..', 'litwin-server', req.url === '/' ? 'tutorial.html' : req.url);
   
   const extname = String(path.extname(filePath)).toLowerCase();
   const contentType = {
