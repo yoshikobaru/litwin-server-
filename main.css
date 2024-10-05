@@ -1,0 +1,101 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #3498db;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+.container {
+    text-align: center;
+    position: relative;
+}
+.balance {
+    font-size: 48px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+.progress-bar {
+    width: 80%;
+    height: 20px;
+    background-color: #2980b9;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    position: relative;
+}
+.progress {
+    width: 0;
+    height: 100%;
+    background-color: #2ecc71;
+    border-radius: 10px;
+    transition: width 0.3s ease-in-out;
+    position: relative;
+}
+.lightning {
+    position: absolute;
+    right: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+}
+.can-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    overflow: hidden; /* Добавлено */
+}
+.can-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(52,152,219,0) 70%);
+    border-radius: 50%;
+}
+.can {
+    width: 150px;
+    height: 150px;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.1s;
+}
+.can.shake {
+    animation: shake 0.2s ease-in-out;
+}
+@keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-5deg); }
+    75% { transform: rotate(5deg); }
+}
+.bubbles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.bubble {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    animation: float 1s ease-in-out;
+}
+@keyframes float {
+    0% { transform: translate(0, 0) scale(0); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(1); opacity: 0; }
+}
+.energy {
+    font-size: 24px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.battery-icon {
+    margin-right: 5px;
+    font-size: 28px;
+}
