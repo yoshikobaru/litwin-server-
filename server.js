@@ -20,7 +20,7 @@ bot.command('start', (ctx) => {
       }
     });
   });
-
+//asdasd
 // Запускаем бота
 bot.launch();
 
