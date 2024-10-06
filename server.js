@@ -3,9 +3,10 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { Telegraf } = require('telegraf');
+require('dotenv').config();
 
 // Создаем экземпляр бота с вашим токеном
-const bot = new Telegraf('7375312751:AAFMKJD636gDurhLxBW7haVKVnvLP9ez86c');
+const bot = new Telegraf(process.env.BOT_TOKEN);
 // WebApp URL
 const webAppUrl = 'https://litwin-tap.ru';
 
