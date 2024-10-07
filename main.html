@@ -6,10 +6,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Lit WIN Tap</title>
     <link rel="stylesheet" href="main.css">
+    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <div id="content">
+    
         <div class="container">
             <div class="top-info">
                 <div class="profile">
@@ -22,12 +23,12 @@
                 <div class="profit-info">
                     <div class="profit-item">
                         <span class="profit-label">Прибыль за тап</span>
-                        <span class="profit-value"><img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+1</span>
+                        <span class="profit-value"><img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="tapProfit">1</span></span>
                     </div>
                     <div class="profit-divider"></div>
                     <div class="profit-item">
                         <span class="profit-label">Прибыль в час</span>
-                        <span class="profit-value"><img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+1</span>
+                        <span class="profit-value"><img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="hourlyProfit">0</span></span>
                     </div>
                 </div>
             </div>
@@ -44,6 +45,7 @@
                     </div>
                 </div>
                 <span class="can-type">Classic</span>
+                <span id="levelDisplay">Liga 1</span>
             </div>
             <div class="can-container">
                 <div class="can-background"></div>
@@ -55,12 +57,12 @@
                 <span id="energy">100/100</span>
             </div>
         </div>
-    </div>
+    
 
     <footer class="footer">
         <nav>
             <ul>
-                <li><button class="footer-btn" data-page="main">🏠 Главная</button></li>
+                <li><button class="footer-btn active" data-page="main">🏠 Главная</button></li>
                 <li><button class="footer-btn" data-page="collection">🖼️ Коллекция</button></li>
                 <li><button class="footer-btn" data-page="tasks">✅ Задания</button></li>
                 <li><button class="footer-btn" data-page="friends">👥 Друзья</button></li>
@@ -68,5 +70,6 @@
         </nav>
     </footer>
     <script src="main.js"></script>
+    
 </body>
 </html>

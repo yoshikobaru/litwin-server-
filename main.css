@@ -304,4 +304,14 @@ body {
 }
 
 /* Остальные стили остаются без измененй */
-/* Остальные стили остаются без изменен��й */
+/* Остальные стили остаются без измененй */
+
+.tap-profit {
+    position: absolute;
+    font-size: 16px;
+    color: #ffd700;
+    font-weight: bold;
+    pointer-events: none;
+    transition: opacity 0.5s, transform 0.5s;
+    z-index: 1000;
+}

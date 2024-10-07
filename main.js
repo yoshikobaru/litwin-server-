@@ -1,6 +1,12 @@
 let progressBar, balanceElement, canElement, energyElement, bubblesContainer;
-let progress, balance, energy;
+let progress, balance, energy, hourlyProfit, tapProfit;
 const clicksToFill = 10;
+
+let lastExitTime, accumulatedCoins;
+let totalEarnedCoins;
+const progressLevels = [100000, 500000, 1000000, 5000000, 10000000];
+
+let isOnline = true;
 
 function initializeMainPage() {
     progressBar = document.getElementById('progressBar');
@@ -10,25 +16,92 @@ function initializeMainPage() {
     bubblesContainer = document.querySelector('.bubbles');
 
     // Загрузка данных из localStorage
-    progress = parseFloat(localStorage.getItem('progress')) || 0;
     balance = parseInt(localStorage.getItem('balance')) || 0;
     energy = parseInt(localStorage.getItem('energy')) || 100;
+    hourlyProfit = parseInt(localStorage.getItem('hourlyProfit')) || 0;
+    tapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
 
-    updateProgressBar();
+    lastExitTime = parseInt(localStorage.getItem('lastExitTime')) || Date.now();
+    accumulatedCoins = parseFloat(localStorage.getItem('accumulatedCoins')) || 0;
+    totalEarnedCoins = parseInt(localStorage.getItem('totalEarnedCoins')) || 0;
+
+    calculateOfflineEarnings();
+    startOfflineEarningInterval();
+
+    // Устанавливаем флаг, что пользователь онлайн
+    isOnline = true;
+
+    updateProgress();
     updateBalance();
     updateEnergy();
+    updateHourlyProfit();
+    updateTapProfit();
 
     canElement.addEventListener('click', handleCanClick);
+
+    // Добавляем обработчик событий для кнопок футера
+    document.querySelectorAll('.footer-btn').forEach(btn => {
+        btn.addEventListener('click', handleFooterButtonClick);
+    });
 }
 
-function updateProgressBar() {
-    progressBar.style.width = `${progress}%`;
-    localStorage.setItem('progress', progress.toString());
+function updateProgress() {
+    let currentLevel = 0;
+    for (let i = 0; i < progressLevels.length; i++) {
+        if (totalEarnedCoins >= progressLevels[i]) {
+            currentLevel = i + 1;
+        } else {
+            break;
+        }
+    }
+
+    let progressPercentage;
+    if (currentLevel === progressLevels.length) {
+        progressPercentage = 100;
+    } else {
+        const levelStart = currentLevel > 0 ? progressLevels[currentLevel - 1] : 0;
+        const levelEnd = progressLevels[currentLevel];
+        progressPercentage = ((totalEarnedCoins - levelStart) / (levelEnd - levelStart)) * 100;
+    }
+
+    progressBar.style.width = `${progressPercentage}%`;
+    
+    // Обновляем отображение текущего уровня прогресса
+    const levelDisplay = document.getElementById('levelDisplay');
+    if (levelDisplay) {
+        levelDisplay.textContent = `Liga ${currentLevel + 1}`;
+    }
+
+    localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
 }
 
 function updateBalance() {
     balanceElement.textContent = balance.toLocaleString();
     localStorage.setItem('balance', balance.toString());
+}
+
+function updateHourlyProfit() {
+    const hourlyProfitElement = document.getElementById('hourlyProfit');
+    if (hourlyProfitElement) {
+        hourlyProfitElement.textContent = hourlyProfit;
+    }
+    localStorage.setItem('hourlyProfit', hourlyProfit.toString());
+}
+
+function updateTapProfit() {
+    // Обновляем значение в профиле
+    const tapProfitProfileElement = document.querySelector('.profit-item:first-child .profit-value');
+    if (tapProfitProfileElement) {
+        tapProfitProfileElement.innerHTML = `<img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span>${tapProfit}</span>`;
+    }
+
+    // Обновляем значение, которое отображается при нажатии на банку
+    const tapProfitElement = document.getElementById('tapProfit');
+    if (tapProfitElement) {
+        tapProfitElement.textContent = tapProfit;
+    }
+
+    localStorage.setItem('tapProfit', tapProfit.toString());
 }
 
 function updateEnergy() {
@@ -72,20 +145,40 @@ function handleCanClick() {
         canElement.classList.add('shake');
         setTimeout(() => canElement.classList.remove('shake'), 200);
 
-        for (let i = 0; i < 15; i++) { // Увеличено количество пузырьков
+        for (let i = 0; i < 15; i++) {
             setTimeout(() => createBubble(), Math.random() * 200);
         }
 
-        progress += 100 / clicksToFill;
-        if (progress >= 100) {
-            progress = 0;
-            balance += 1;
-            updateBalance();
-        }
+        totalEarnedCoins += tapProfit;
+        balance += tapProfit;
+        updateProgress();
+        updateBalance();
+
         energy -= 1;
-        updateProgressBar();
         updateEnergy();
+
+        showTapProfit();
     }
+}
+
+function showTapProfit() {
+    const profitElement = document.createElement('div');
+    profitElement.className = 'tap-profit';
+    profitElement.textContent = `+${tapProfit}`; // Используем tapProfit
+
+    // Позиционируем элемент рядом с банкой
+    const canRect = canElement.getBoundingClientRect();
+    profitElement.style.left = `${canRect.left + canRect.width / 2}px`;
+    profitElement.style.top = `${canRect.top - 20}px`;
+
+    document.body.appendChild(profitElement);
+
+    // Анимация исчезновения
+    setTimeout(() => {
+        profitElement.style.opacity = '0';
+        profitElement.style.transform = 'translateY(-20px)';
+        setTimeout(() => profitElement.remove(), 500);
+    }, 10);
 }
 
 function regenerateEnergy() {
@@ -95,44 +188,107 @@ function regenerateEnergy() {
     }
 }
 
-function loadPage(page) {
-    const contentElement = document.getElementById('content');
-    fetch(`${page}.html`)
+function handleFooterButtonClick(event) {
+    const page = event.target.dataset.page;
+    if (page === 'collection') {
+        loadCollectionPage();
+    } else if (page === 'main') {
+        loadMainPage();
+    } else {
+        // Обработка других страниц (если необходимо)
+        console.log(`Перход на страницу: ${page}`);
+    }
+
+    // Обновляем активную кнопку
+    document.querySelectorAll('.footer-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+}
+
+function loadCollectionPage() {
+    fetch('collection.html')
         .then(response => response.text())
         .then(html => {
-            contentElement.innerHTML = html;
-            if (page === 'collection') {
-                loadScript('collection.js');
-            } else if (page === 'friends') {
-                loadScript('friends.js');
-            } else if (page === 'tasks') {
-                loadScript('task.js');
-            } else if (page === 'main') {
-                initializeMainPage();
-            }
+            document.querySelector('.container').innerHTML = html;
+            const script = document.createElement('script');
+            script.src = 'collection.js';
+            document.body.appendChild(script);
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'collection.css';
+            document.head.appendChild(link);
         })
-        .catch(error => console.error('Ошибка загрузки страницы:', error));
+        .catch(error => console.error('Ошибка загрузки страницы коллекции:', error));
 }
 
-function loadScript(scriptName) {
-    const script = document.createElement('script');
-    script.src = scriptName;
-    document.body.appendChild(script);
+function loadMainPage() {
+    fetch('main.html')
+        .then(response => response.text())
+        .then(html => {
+            document.querySelector('.container').innerHTML = html;
+            initializeMainPage();
+        })
+        .catch(error => console.error('Ошибка загрузки главной страницы:', error));
 }
 
-// Обработчик для кнопок футера
-const footerButtons = document.querySelectorAll('.footer-btn');
-footerButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        const page = button.getAttribute('data-page');
-        loadPage(page);
-    });
-});
-
-// Инициализация главной страницы при загрузке
-document.addEventListener('DOMContentLoaded', () => {
-    loadPage('main');
-});
+// Инициализация главной страницы при згрузке
+document.addEventListener('DOMContentLoaded', initializeMainPage);
 
 // Запуск регенерации энергии
 setInterval(regenerateEnergy, 5000);
+
+function calculateOfflineEarnings() {
+    const currentTime = Date.now();
+    const timeDiff = (currentTime - lastExitTime) / 1000; // разница в секундах
+    const maxOfflineTime = 5 * 60 * 60; // 5 часов в секундах
+
+    if (timeDiff > 0) {
+        const earnedCoins = Math.min(timeDiff, maxOfflineTime) * (hourlyProfit / 3600);
+        accumulatedCoins += earnedCoins;
+        balance += Math.floor(accumulatedCoins);
+        totalEarnedCoins += Math.floor(accumulatedCoins);
+        accumulatedCoins -= Math.floor(accumulatedCoins);
+        updateBalance();
+        updateProgress();
+    }
+
+    lastExitTime = currentTime;
+    localStorage.setItem('lastExitTime', lastExitTime.toString());
+    localStorage.setItem('accumulatedCoins', accumulatedCoins.toString());
+}
+
+function startOfflineEarningInterval() {
+    setInterval(() => {
+        if (!isOnline) {
+            const earnedCoins = (hourlyProfit / 3600) * (1 / 60); // монеты за 1 секунду
+            accumulatedCoins += earnedCoins;
+            if (accumulatedCoins >= 1) {
+                const earnedWholeCoins = Math.floor(accumulatedCoins);
+                balance += earnedWholeCoins;
+                totalEarnedCoins += earnedWholeCoins;
+                accumulatedCoins -= earnedWholeCoins;
+                updateBalance();
+                updateProgress();
+            }
+            localStorage.setItem('accumulatedCoins', accumulatedCoins.toString());
+        }
+    }, 1000); // обновляем каждую секунду
+}
+
+// Добавьте эту функцию для сохранения времени выхода
+function saveExitTime() {
+    isOnline = false;
+    localStorage.setItem('lastExitTime', Date.now().toString());
+}
+
+// Вызывайте эту функцию при закрытии страницы
+window.addEventListener('beforeunload', saveExitTime);
+
+// Добавьте эту функцию для обработки возвращения в игру
+window.addEventListener('focus', () => {
+    if (!isOnline) {
+        isOnline = true;
+        calculateOfflineEarnings();
+    }
+});
