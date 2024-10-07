@@ -5,24 +5,46 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    height: 100vh;
+    justify-content: flex-start; /* Изменено с center на flex-start */
+    min-height: 100vh;
     margin: 0;
+    padding-top: 20px; /* Добавляем отступ сверху */
 }
 .container {
-    text-align: center;
     position: relative;
+    text-align: center;
+    padding-bottom: 60px; /* Добавляем отступ снизу для футера */
+    width: 100%;
+    max-width: 600px;
 }
 .balance {
     font-size: 48px;
     font-weight: bold;
-    margin-bottom: 20px;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.lit-coin {
+    width: 40px;  /* Уменьшено с 50px */
+    height: 40px; /* Уменьшено с 50px */
+    margin-right: 10px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.progress-container {
+    background-color: rgba(41, 128, 185, 0.5);
+    border-radius: 15px;
+    padding: 10px;
+    margin: 0 20px;
+    position: relative;
 }
 .progress-bar {
-    width: 80%;
-    height: 20px;
+    width: 100%;
+    height: 10px; /* Уменьшено с 20px */
     background-color: #2980b9;
-    border-radius: 10px;
+    border-radius: 5px; /* Уменьшено с 10px для соответствия новой высоте */
+    overflow: hidden;
     margin-bottom: 20px;
     position: relative;
 }
@@ -30,36 +52,49 @@ body {
     width: 0;
     height: 100%;
     background-color: #2ecc71;
-    border-radius: 10px;
+    border-radius: 5px; /* Уменьшено с 10px для соответствия новой высоте */
     transition: width 0.3s ease-in-out;
     position: relative;
 }
 .lightning {
     position: absolute;
-    right: -2px;
+    right: -10px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 16px;
+    font-size: 12px; /* Уменьшено с 16px для соответствия новой высоте прогресс-бара */
+}
+.can-type {
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
 }
 .can-container {
     position: relative;
-    width: 200px;
-    height: 200px;
-    overflow: hidden; /* Добавлено */
+    width: 100%; 
+    height: 400px;
+    display: flex;  
+    justify-content: center; 
+    align-items: center; 
+    overflow: visible;
 }
 .can-background {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    width: 300px;  
+    height: 300px;  
     background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(52,152,219,0) 70%);
     border-radius: 50%;
+    transform: translateY(-30px);
 }
 .can {
-    width: 150px;
-    height: 150px;
+    width: 250px;  /* Установите желаемую ширину */
+    height: auto;  /* Это позволит сохранить пропорции изображения */
     position: relative;
     z-index: 1;
     transition: transform 0.1s;
+    object-fit: contain;  /* Это гарантирует, что изображение поместится в контейнер без обрезки */
+    transform: translateY(-30px); 
 }
 .can.shake {
     animation: shake 0.2s ease-in-out;
@@ -76,6 +111,9 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .bubble {
@@ -89,13 +127,171 @@ body {
     100% { transform: translate(var(--tx), var(--ty)) scale(1); opacity: 0; }
 }
 .energy {
-    font-size: 24px;
-    margin-top: 10px;
+    position: absolute;
+    left: 20px;
+    bottom: 80px;
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    z-index: 10;
+}
+
+.energy-icon {
+    width: 44px; /* Настройте размер по вашему усмо��рению */
+    height: 44px;
+    margin-right: 1px; /* Уменьшено с 5px до 2px */
+    object-fit: contain;
+    transform: rotate(15deg);
+    transition: transform 0.3s ease;
+}
+
+.energy-icon:hover {
+    transform: rotate(0deg);
+}
+
+#energy {
+    color: white; /* Добавляем цвет текста, так как убрали фон */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* Добавляем тень для лучшей читаемости */
+}
+
+.battery-icon {
+    margin-right: 5px;
+    font-size: 20px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #2980b9;
+    padding: 10px 0;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    border-top-left-radius: 20px;  /* Добавлено закругление верхнего левого угла */
+    border-top-right-radius: 20px; /* Добавлено закругление врхнего правог угла */
+}
+
+.footer nav ul {
+    display: flex;
+    justify-content: space-around;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px 10px;
+}
+
+.footer-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.top-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch; /* Изменено с center на stretch */
+    margin-bottom: 20px;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+    background-color: rgba(41, 128, 185, 0.5);
+    border-radius: 15px;
+    padding: 10px;
+    flex: 2; /* Изменено с 1 на 2 */
+    margin-right: 10px; /* Добавлен отступ справа */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.profile-info {
+    text-align: left;
+}
+
+.profile-name {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.profile-username {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.profit-info {
+    display: flex;
+    align-items: center;
+    background-color: rgba(41, 128, 185, 0.5);
+    border-radius: 15px;
+    padding: 10px;
+    flex: 3; /* Изменено с 1 на 3 */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.profit-item {
+    text-align: center;
+}
+
+.profit-label {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.8);
+    display: block;
+}
+
+.profit-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.lit-coin-small {
+    width: 16px;
+    height: 16px;
+    margin-right: 3px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.profit-divider {
+    width: 1px;
+    background-color: rgba(255, 255, 255, 0.3);
+    margin: 0 10px;
+    align-self: stretch;
+}
+
+.balance {
+    font-size: 48px;
+    font-weight: bold;
+    margin-top: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
-.battery-icon {
-    margin-right: 5px;
-    font-size: 28px;
+
+.lit-coin {
+    width: 40px;  /* Уменьшено с 50px */
+    height: 40px; /* Уменьшено с 50px */
+    margin-right: 10px;
+    object-fit: cover;
+    border-radius: 50%;
 }
+
+/* Остальные стили остаются без изменений */

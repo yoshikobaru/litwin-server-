@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
     const progressBar = document.getElementById('progressBar');
     const balanceElement = document.getElementById('balance');
@@ -35,14 +34,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const startRadius = 75; // Половина ширины банки
         const endRadius = 100 + Math.random() * 50;
         
-        const startX = Math.cos(startAngle) * startRadius + 100;
-        const startY = Math.sin(startAngle) * startRadius + 100;
+        const startX = Math.cos(startAngle) * startRadius;
+        const startY = Math.sin(startAngle) * startRadius;
         
-        bubble.style.left = `${startX}px`;
-        bubble.style.top = `${startY}px`;
+        bubble.style.left = `calc(50% + ${startX}px)`;
+        bubble.style.top = `calc(50% + ${startY}px)`;
         
-        const endX = Math.cos(startAngle) * endRadius + 100;
-        const endY = Math.sin(startAngle) * endRadius + 100;
+        const endX = Math.cos(startAngle) * endRadius;
+        const endY = Math.sin(startAngle) * endRadius;
         
         const tx = endX - startX;
         const ty = endY - startY;
