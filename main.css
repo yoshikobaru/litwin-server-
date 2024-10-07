@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #3498db;
+    background-color: rgb(18,131,255);
     color: white;
     display: flex;
     flex-direction: column;
@@ -33,18 +33,25 @@ body {
     border-radius: 50%;
 }
 .progress-container {
-    background-color: rgba(41, 128, 185, 0.5);
+    background: radial-gradient(
+        ellipse at center,
+        rgb(70,151,240) 0%,
+        rgb(60,145,240) 25%,
+        rgb(50,140,240) 50%,
+        rgb(7,119,240) 75%,
+        rgb(7,119,240) 100%
+    );
     border-radius: 15px;
-    padding: 10px;
-    margin: 0 20px;
+    padding: 15px;
+    margin: 0 15px;
     position: relative;
 }
 .progress-bar {
     width: 100%;
     height: 10px; /* Уменьшено с 20px */
-    background-color: #2980b9;
+    background-color: rgb(0,81,170);
     border-radius: 5px; /* Уменьшено с 10px для соответствия новой высоте */
-    overflow: hidden;
+    overflow: visible; /* Изменено с hidden на visible */
     margin-bottom: 20px;
     position: relative;
 }
@@ -58,10 +65,11 @@ body {
 }
 .lightning {
     position: absolute;
-    right: -10px;
+    right: -15px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 12px; /* Уменьшено с 16px для соответствия новой высоте прогресс-бара */
+    font-size: 24px; /* Увеличено до 24px для большего размера */
+    z-index: 1; /* Добавлено, чтобы иконка была поверх других элементов */
 }
 .can-type {
     position: absolute;
@@ -137,7 +145,7 @@ body {
 }
 
 .energy-icon {
-    width: 44px; /* Настройте размер по вашему усмо��рению */
+    width: 44px; /* Настройте размер по вашему усморению */
     height: 44px;
     margin-right: 1px; /* Уменьшено с 5px до 2px */
     object-fit: contain;
@@ -164,7 +172,7 @@ body {
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: #2980b9;
+    background-color: rgb(10,114,226);
     padding: 10px 0;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     border-top-left-radius: 20px;  /* Добавлено закругление верхнего левого угла */
@@ -192,7 +200,8 @@ body {
 }
 
 .footer-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgb(42,144,255);
+    border-radius: 15px;
 }
 
 .top-info {
@@ -205,7 +214,7 @@ body {
 .profile {
     display: flex;
     align-items: center;
-    background-color: rgba(41, 128, 185, 0.5);
+    background-color: rgb(7,119,240);
     border-radius: 15px;
     padding: 10px;
     flex: 2; /* Изменено с 1 на 2 */
@@ -237,7 +246,7 @@ body {
 .profit-info {
     display: flex;
     align-items: center;
-    background-color: rgba(41, 128, 185, 0.5);
+    background-color: rgb(7,119,240);
     border-radius: 15px;
     padding: 10px;
     flex: 3; /* Изменено с 1 на 3 */
@@ -294,4 +303,5 @@ body {
     border-radius: 50%;
 }
 
-/* Остальные стили остаются без изменений */
+/* Остальные стили остаются без измененй */
+/* Остальные стили остаются без изменен��й */

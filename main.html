@@ -9,61 +9,61 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    
-    <div class="container">
-        <div class="top-info">
-            <div class="profile">
-                <img src="assets/profile-pic.png" alt="Профиль" class="profile-pic">
-                <div class="profile-info">
-                    <div class="profile-name">Evve</div>
-                    <div class="profile-username">@evve_rigell</div>
+    <div id="content">
+        <div class="container">
+            <div class="top-info">
+                <div class="profile">
+                    <img src="assets/profile-pic.png" alt="Профиль" class="profile-pic">
+                    <div class="profile-info">
+                        <div class="profile-name">Evve</div>
+                        <div class="profile-username">@evve_rigell</div>
+                    </div>
+                </div>
+                <div class="profit-info">
+                    <div class="profit-item">
+                        <span class="profit-label">Прибыль за тап</span>
+                        <span class="profit-value"><img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+1</span>
+                    </div>
+                    <div class="profit-divider"></div>
+                    <div class="profit-item">
+                        <span class="profit-label">Прибыль в час</span>
+                        <span class="profit-value"><img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+1</span>
+                    </div>
                 </div>
             </div>
-            <div class="profit-info">
-                <div class="profit-item">
-                    <span class="profit-label">Прибыль за тап</span>
-                    <span class="profit-value"><img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+3</span>
-                </div>
-                <div class="profit-divider"></div>
-                <div class="profit-item">
-                    <span class="profit-label">Прибыль в час</span>
-                    <span class="profit-value"><img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+3</span>
-                </div>
+            
+            <div class="balance">
+                <img src="assets/litcoin.png" alt="LIT coin" class="lit-coin">
+                <span id="balance"></span>
             </div>
-        </div>
-        
-        <div class="balance">
-            <img src="assets/litcoin.png" alt="LIT coin" class="lit-coin">
-            <span id="balance"></span>
-        </div>
-        
-        <div class="progress-container">
-            <div class="progress-bar">
-                <div class="progress" id="progressBar">
-                    <span class="lightning">⚡</span>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progressBar">
+                        <span class="lightning">⚡</span>
+                    </div>
                 </div>
+                <span class="can-type">Classic</span>
             </div>
-            <span class="can-type">Classic</span>
-        </div>
-        <div class="can-container">
-            <div class="can-background"></div>
-            <img src="assets/bankaClassic.png" alt="Энергетический напиток" class="can" id="can">
-            <div class="bubbles"></div>
-        </div>
-        <div class="energy">
-            <img src="assets/enegry.png" alt="" class="energy-icon">
-            <span id="energy">100/100</span>
+            <div class="can-container">
+                <div class="can-background"></div>
+                <img src="assets/bankaClassic.png" alt="Энергетический напиток" class="can" id="can">
+                <div class="bubbles"></div>
+            </div>
+            <div class="energy">
+                <img src="assets/enegry.png" alt="" class="energy-icon">
+                <span id="energy">100/100</span>
+            </div>
         </div>
     </div>
-
 
     <footer class="footer">
         <nav>
             <ul>
-                <li><button class="footer-btn">🏠 Главная</button></li>
-                <li><button class="footer-btn">🖼️ Коллекция</button></li>
-                <li><button class="footer-btn">✅ Задания</button></li>
-                <li><button class="footer-btn">👥 Друзья</button></li>
+                <li><button class="footer-btn" data-page="main">🏠 Главная</button></li>
+                <li><button class="footer-btn" data-page="collection">🖼️ Коллекция</button></li>
+                <li><button class="footer-btn" data-page="tasks">✅ Задания</button></li>
+                <li><button class="footer-btn" data-page="friends">👥 Друзья</button></li>
             </ul>
         </nav>
     </footer>
