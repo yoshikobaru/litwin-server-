@@ -18,16 +18,6 @@ function updateBalanceDisplay() {
 }
 
 function initializeMainPage() {
-    if (window.Telegram && window.Telegram.WebApp) {
-        const user = window.Telegram.WebApp.initDataUnsafe.user;
-        if (user) {
-            document.getElementById('profileName').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-            document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '';
-            if (user.photo_url) {
-                document.getElementById('profilePic').src = user.photo_url;
-            }
-        }
-    }
     progressBar = document.getElementById('progressBar');
     balanceElement = document.getElementById('balance');
     canElement = document.getElementById('can');
@@ -55,6 +45,7 @@ function initializeMainPage() {
     updateEnergy();
     updateHourlyProfit();
     updateTapProfit();
+    updateUserProfile();
 
     canElement.addEventListener('click', handleCanClick);
 
@@ -66,7 +57,18 @@ function initializeMainPage() {
     // В функции initializeMainPage() добавьте вызов этой функции
     updateBalanceDisplay();
 }
-
+function updateUserProfile() {
+    if (window.Telegram && window.Telegram.WebApp) {
+        const user = window.Telegram.WebApp.initDataUnsafe.user;
+        if (user) {
+            document.getElementById('profileName').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+            document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '';
+            if (user.photo_url) {
+                document.getElementById('profilePic').src = user.photo_url;
+            }
+        }
+    }
+}
 function updateProgress() {
     let currentLevel = 0;
     for (let i = 0; i < progressLevels.length; i++) {
@@ -264,7 +266,7 @@ function addFooter() {
                     <span>Главная</span>
                 </button></li>
                 <li><button class="footer-btn" data-page="collection">
-                    <img src="assets/metal can-icon.svg" alt="Коллекция" class="footer-icon">
+                    <img src="assets/metalcan-icon.svg" alt="Коллекция" class="footer-icon">
                     <span>Коллекция</span>
                 </button></li>
                 <li><button class="footer-btn" data-page="task">
@@ -392,4 +394,7 @@ window.addEventListener('storage', function(event) {
     if (event.key === 'balance') {
         updateBalanceDisplay();
     }
+});
+window.Telegram.WebApp.onEvent('viewportChanged', function() {
+    updateUserProfile();
 });
