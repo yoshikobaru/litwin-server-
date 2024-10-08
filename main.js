@@ -8,6 +8,15 @@ const progressLevels = [100000, 500000, 1000000, 5000000, 10000000];
 
 let isOnline = true;
 
+// В начале файла main.js добавьте эту функцию
+function updateBalanceDisplay() {
+    const balance = parseInt(localStorage.getItem('balance')) || 0;
+    const balanceElement = document.getElementById('balance');
+    if (balanceElement) {
+        balanceElement.textContent = balance.toLocaleString();
+    }
+}
+
 function initializeMainPage() {
     progressBar = document.getElementById('progressBar');
     balanceElement = document.getElementById('balance');
@@ -43,6 +52,9 @@ function initializeMainPage() {
     document.querySelectorAll('.footer-btn').forEach(btn => {
         btn.addEventListener('click', handleFooterButtonClick);
     });
+
+    // В функции initializeMainPage() добавьте вызов этой функции
+    updateBalanceDisplay();
 }
 
 function updateProgress() {
@@ -146,8 +158,12 @@ function handleCanClick() {
         setTimeout(() => canElement.classList.remove('shake'), 200);
 
         for (let i = 0; i < 15; i++) {
-            setTimeout(() => createBubble(), Math.random() * 200);
+            setTimeout(() => {
+                createBubble();
+            }, Math.random() * 200);
         }
+
+        showTapProfit(); // Вызываем только один раз
 
         totalEarnedCoins += tapProfit;
         balance += tapProfit;
@@ -156,24 +172,28 @@ function handleCanClick() {
 
         energy -= 1;
         updateEnergy();
-
-        showTapProfit();
     }
 }
 
 function showTapProfit() {
     const profitElement = document.createElement('div');
     profitElement.className = 'tap-profit';
-    profitElement.textContent = `+${tapProfit}`; // Используем tapProfit
+    profitElement.textContent = `+${tapProfit}`;
 
-    // Позиционируем элемент рядом с банкой
     const canRect = canElement.getBoundingClientRect();
-    profitElement.style.left = `${canRect.left + canRect.width / 2}px`;
-    profitElement.style.top = `${canRect.top - 20}px`;
+    const canCenterX = canRect.left + canRect.width / 2;
+    const canCenterY = canRect.top + canRect.height / 2;
+
+    const angle = Math.random() * Math.PI * 2;
+    const radius = Math.random() * (canRect.width / 2);
+    const x = canCenterX + Math.cos(angle) * radius;
+    const y = canCenterY + Math.sin(angle) * radius;
+
+    profitElement.style.left = `${x}px`;
+    profitElement.style.top = `${y}px`;
 
     document.body.appendChild(profitElement);
 
-    // Анимация исчезновения
     setTimeout(() => {
         profitElement.style.opacity = '0';
         profitElement.style.transform = 'translateY(-20px)';
@@ -189,51 +209,98 @@ function regenerateEnergy() {
 }
 
 function handleFooterButtonClick(event) {
-    const page = event.target.dataset.page;
-    if (page === 'collection') {
-        loadCollectionPage();
-    } else if (page === 'main') {
-        loadMainPage();
-    } else {
-        // Обработка других страниц (если необходимо)
-        console.log(`Перход на страницу: ${page}`);
-    }
+    const page = event.target.closest('.footer-btn').dataset.page;
+    loadPage(page);
 
     // Обновляем активную кнопку
     document.querySelectorAll('.footer-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    event.target.classList.add('active');
+    event.target.closest('.footer-btn').classList.add('active');
 }
 
-function loadCollectionPage() {
-    fetch('collection.html')
+function loadPage(pageName) {
+    const fileName = pageName === 'tasks' ? 'task' : pageName;
+    
+    fetch(`${fileName}.html`)
         .then(response => response.text())
         .then(html => {
             document.querySelector('.container').innerHTML = html;
-            const script = document.createElement('script');
-            script.src = 'collection.js';
-            document.body.appendChild(script);
+            if (pageName === 'main') {
+                initializeMainPage();
+            } else {
+                const script = document.createElement('script');
+                script.src = `${fileName}.js`;
+                document.body.appendChild(script);
+            }
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = 'collection.css';
+            link.href = `${fileName}.css`;
             document.head.appendChild(link);
+            
+            addFooter();
         })
-        .catch(error => console.error('Ошибка загрузки страницы коллекции:', error));
+        .catch(error => console.error(`Ошибка загрузки страницы ${fileName}:`, error));
+}
+
+function addFooter() {
+    const footer = document.createElement('footer');
+    footer.className = 'footer';
+    footer.innerHTML = `
+        <nav>
+            <ul>
+                <li><button class="footer-btn" data-page="main">
+                    <img src="assets/icon.svg" alt="Главная" class="footer-icon">
+                    <span>Главная</span>
+                </button></li>
+                <li><button class="footer-btn" data-page="collection">
+                    <img src="assets/metal can-icon.svg" alt="Коллекция" class="footer-icon">
+                    <span>Коллекция</span>
+                </button></li>
+                <li><button class="footer-btn" data-page="task">
+                    <img src="assets/diamond-sharp.svg" alt="Задания" class="footer-icon">
+                    <span>Задания</span>
+                </button></li>
+                <li><button class="footer-btn" data-page="friends">
+                    <img src="assets/users.svg" alt="Друзья" class="footer-icon">
+                    <span>Друзья</span>
+                </button></li>
+            </ul>
+        </nav>
+    `;
+    document.body.appendChild(footer);
+    
+    // Добавляем обработчики событий для кнопок футера
+    document.querySelectorAll('.footer-btn').forEach(btn => {
+        btn.addEventListener('click', handleFooterButtonClick);
+    });
+}
+
+// Заменяем существующие функции loadCollectionPage, loadMainPage, loadTasksPage, loadFriendsPage
+function loadCollectionPage() {
+    loadPage('collection');
 }
 
 function loadMainPage() {
-    fetch('main.html')
-        .then(response => response.text())
-        .then(html => {
-            document.querySelector('.container').innerHTML = html;
-            initializeMainPage();
-        })
-        .catch(error => console.error('Ошибка загрузки главной страницы:', error));
+    loadPage('main');
+}
+
+function loadTasksPage() {
+    loadPage('task');
+}
+
+function loadFriendsPage() {
+    loadPage('friends');
 }
 
 // Инициализация главной страницы при згрузке
-document.addEventListener('DOMContentLoaded', initializeMainPage);
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.querySelector('.container').children.length === 0) {
+        loadPage('main');
+    } else {
+        initializeMainPage();
+    }
+});
 
 // Запуск регенерации энергии
 setInterval(regenerateEnergy, 5000);
@@ -290,5 +357,29 @@ window.addEventListener('focus', () => {
     if (!isOnline) {
         isOnline = true;
         calculateOfflineEarnings();
+    }
+});
+
+// Добавьте этот код в конец файла main.js
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'updateBalance') {
+        const newBalance = event.data.balance;
+        updateBalanceDisplay(newBalance);
+    }
+});
+
+function updateBalanceDisplay(newBalance) {
+    const balanceElement = document.getElementById('balance');
+    if (balanceElement) {
+        balanceElement.textContent = newBalance.toLocaleString();
+    }
+    // Обновляем значение в localStorage
+    localStorage.setItem('balance', newBalance.toString());
+}
+
+// Добавьте обработчик события storage
+window.addEventListener('storage', function(event) {
+    if (event.key === 'balance') {
+        updateBalanceDisplay();
     }
 });

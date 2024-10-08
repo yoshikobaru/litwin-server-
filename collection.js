@@ -6,7 +6,7 @@
     for (let i = 0; i < 8; i++) {
         const itemElement = document.createElement('div');
         itemElement.className = 'collection-item locked';
-        itemElement.innerHTML = '<img src="assets/locked.png" alt="Замок" class="lock-icon">';
+        itemElement.innerHTML = '<img src="assets/lock.svg" alt="Замок" class="lock-icon">';
         collectionGrid.appendChild(itemElement);
     }
     

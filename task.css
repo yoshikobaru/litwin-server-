@@ -1,0 +1,148 @@
+.tasks-page {
+    padding: 20px;
+    background-color: rgb(18,131,255);
+    color: white;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+.tasks-page h1, .tasks-page h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.tasks-page .daily-bonus {
+    margin-bottom: 30px;
+}
+
+.tasks-page .bonus-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    justify-content: center;
+}
+
+.tasks-page .bonus-item {
+    background-color: rgba(0, 116, 240, 0.2);
+    border: none;
+    border-radius: 10px;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 5px;
+    width: 100%;
+}
+
+.tasks-page .bonus-item.locked {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.tasks-page .bonus-item.unlocked {
+    background-color: rgba(0, 116, 240, 0.4);
+    cursor: pointer;
+}
+
+.tasks-page .bonus-item.unlocked:hover {
+    transform: scale(1.05);
+}
+
+.tasks-page .bonus-item.claimed {
+    background-color: rgba(0, 116, 240, 0.2);
+    cursor: not-allowed;
+}
+
+.tasks-page .bonus-item.claimed .bonus-coin {
+    filter: grayscale(100%);
+}
+
+.tasks-page .bonus-value {
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 5px;
+    text-align: center;
+}
+
+.tasks-page .bonus-item img {
+    width: 32px; /* Немного увеличим размер для бонусных монет */
+    height: 32px;
+}
+
+.tasks-page .bonus-item .locked-coin {
+    filter: grayscale(100%);
+}
+
+.tasks-page .bonus-item.unlocked .locked-coin {
+    filter: none;
+}
+
+.tasks-page #tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tasks-page .task-item {
+    background: linear-gradient(to right, rgb(39,142,255), rgb(41,142,255), rgb(76,161,255));
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tasks-page .task-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tasks-page .task-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: white;
+}
+
+.tasks-page .task-reward {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tasks-page .reward-value {
+    color: white;
+    font-weight: bold;
+}
+
+.tasks-page .reward-coin {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #FFD700; /* Золотой цвет фона */
+    padding: 2px;
+    box-sizing: border-box;
+}
+
+/* Общие стили для всех изображений LitCoin */
+.tasks-page img[src*="litCoin.png"] {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #FFD700; /* Золотой цвет фона */
+    padding: 2px;
+    box-sizing: border-box;
+}
+
+/* Новые стили для центрирования нижних квадратов */
+.tasks-page .bonus-grid:last-child {
+    grid-template-columns: repeat(3, 1fr);
+    width: 75%;
+    margin: 10px auto 0;
+}

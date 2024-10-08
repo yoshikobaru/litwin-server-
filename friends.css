@@ -1,0 +1,54 @@
+.friends-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    background-color: rgb(18,131,255);
+    min-height: 100vh;
+}
+
+.cans-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: 0; /* Убрали отступ снизу */
+}
+
+.invite-button {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 15px;
+    font-size: 18px;
+    margin-top: 10px; /* Добавили небольшой отступ сверху */
+    margin-bottom: 20px;
+    cursor: pointer;
+    width: 80%;
+    max-width: 300px;
+}
+
+.friends-list {
+    width: 100%;
+    max-width: 400px;
+}
+
+.friend-item {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.friend-name {
+    color: #fff;
+    font-size: 16px;
+}
+
+.friend-xp {
+    color: #FFD700;
+    font-size: 14px;
+}

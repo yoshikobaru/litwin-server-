@@ -141,7 +141,7 @@ body {
     display: flex;
     align-items: center;
     font-size: 18px;
-    z-index: 10;
+    z-index: 1; /* Изменяем с 10 на 1 */
 }
 
 .energy-icon {
@@ -177,6 +177,7 @@ body {
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     border-top-left-radius: 20px;  /* Добавлено закругление верхнего левого угла */
     border-top-right-radius: 20px; /* Добавлено закругление врхнего правог угла */
+    z-index: 10; /* Добавляем z-index больше, чем у .energy */
 }
 
 .footer nav ul {
@@ -308,10 +309,27 @@ body {
 
 .tap-profit {
     position: absolute;
-    font-size: 16px;
-    color: #ffd700;
+    font-size: 14px;
+    color: #1aabfa; /* Более яркий голубой цвет */
     font-weight: bold;
     pointer-events: none;
+    opacity: 0;
     transition: opacity 0.5s, transform 0.5s;
     z-index: 1000;
+    text-shadow: 0 0 10px rgba(30, 146, 255, 0.8), 1px 1px 2px rgba(0,0,0,0.5);
+    animation: fadeUpAndOut 0.5s ease-out forwards;
+}
+
+@keyframes fadeUpAndOut {
+    0% {
+        opacity: 0;
+        transform: translateY(0);
+    }
+    20% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
 }
