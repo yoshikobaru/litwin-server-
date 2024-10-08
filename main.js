@@ -18,6 +18,16 @@ function updateBalanceDisplay() {
 }
 
 function initializeMainPage() {
+    if (window.Telegram && window.Telegram.WebApp) {
+        const user = window.Telegram.WebApp.initDataUnsafe.user;
+        if (user) {
+            document.getElementById('profileName').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+            document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '';
+            if (user.photo_url) {
+                document.getElementById('profilePic').src = user.photo_url;
+            }
+        }
+    }
     progressBar = document.getElementById('progressBar');
     balanceElement = document.getElementById('balance');
     canElement = document.getElementById('can');
