@@ -277,6 +277,101 @@ function regenerateEnergy() {
         updateEnergy();
     }
 }
+let isShaking = false;
+let lastShakeTime = 0;
+const shakeThreshold = 15;
+const shakeCooldown = 1000;
+
+function requestMotionPermission() {
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+        // iOS 13+ устройства
+        DeviceMotionEvent.requestPermission()
+            .then(permissionState => {
+                if (permissionState === 'granted') {
+                    window.addEventListener('devicemotion', handleShake);
+                }
+            })
+            .catch(console.error);
+    } else {
+        // Устройства, не требующие разрешения
+        window.addEventListener('devicemotion', handleShake);
+    }
+}
+
+function handleShake(event) {
+    const currentTime = new Date().getTime();
+    if (currentTime - lastShakeTime < shakeCooldown) return;
+
+    let acceleration = event.acceleration;
+    
+    // Для устройств, которые не предоставляют event.acceleration
+    if (!acceleration || acceleration.x === null) {
+        acceleration = event.accelerationIncludingGravity;
+    }
+
+    const { x, y, z } = acceleration;
+    const accelerationMagnitude = Math.sqrt(x*x + y*y + z*z);
+
+    if (accelerationMagnitude > shakeThreshold) {
+        if (!isShaking) {
+            isShaking = true;
+            shakeReward();
+        }
+    } else {
+        isShaking = false;
+    }
+
+    lastShakeTime = currentTime;
+}
+
+function shakeReward() {
+    if (energy > 0) {
+        const shakeProfit = Math.floor(tapProfit / 2);
+        totalEarnedCoins += shakeProfit;
+        updateBalance(shakeProfit);
+        updateProgress();
+
+        energy -= 1;
+        updateEnergy();
+
+        showShakeProfit(shakeProfit);
+    }
+}
+
+function showShakeProfit(profit) {
+    const profitElement = document.createElement('div');
+    profitElement.className = 'shake-profit';
+    profitElement.textContent = `+${profit}`;
+
+    const containerRect = document.querySelector('.container').getBoundingClientRect();
+    const x = Math.random() * (containerRect.width - 50);
+    const y = Math.random() * (containerRect.height - 50);
+
+    profitElement.style.left = `${x}px`;
+    profitElement.style.top = `${y}px`;
+
+    document.querySelector('.container').appendChild(profitElement);
+
+    setTimeout(() => {
+        profitElement.style.opacity = '0';
+        profitElement.style.transform = 'translateY(-20px)';
+        setTimeout(() => profitElement.remove(), 500);
+    }, 10);
+}
+
+// Добавляем обработчик события тряски
+if (window.DeviceMotionEvent) {
+    window.addEventListener('devicemotion', handleShake, false);
+} else {
+    console.log('DeviceMotionEvent не поддерживается на этом устройстве');
+}
+// Инициализация обработчика тряски
+document.addEventListener('DOMContentLoaded', () => {
+    const shakeButton = document.createElement('button');
+    shakeButton.textContent = 'Разрешить тряску устройства';
+    shakeButton.addEventListener('click', requestMotionPermission);
+    document.body.appendChild(shakeButton);
+});
 
 function handleFooterButtonClick(event) {
     const page = event.target.closest('.footer-btn').dataset.page;

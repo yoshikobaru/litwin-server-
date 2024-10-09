@@ -1,24 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&display=swap');
+
+body, button, input, textarea, select {
+    font-family: 'Exo 2', sans-serif;
+}
+h1, h2, h3 {
+    font-weight: 600;
+}
+
+.balance {
+    font-weight: 700;
+}
+
+.footer-btn {
+    font-weight: 500;
+}
 body {
-    font-family: Arial, sans-serif;
     background-color: rgb(18,131,255);
     color: white;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* Изменено с center на flex-start */
+    justify-content: flex-start;
     min-height: 100vh;
     margin: 0;
-    padding-top: 20px; /* Добавляем отступ сверху */
+    padding-top: 20px;
+    overflow-x: hidden;
+    width: 100%;
 }
 .container {
     position: relative;
     text-align: center;
-    padding-bottom: 60px; /* Добавляем отступ снизу для футера */
+    padding-bottom: 60px;
     width: 100%;
     max-width: 600px;
+    box-sizing: border-box; /* Учитываем padding в общей ширине */
+    padding-left: 15px; /* Добавляем отступы слева и справа */
+    padding-right: 15px;
 }
+.container > * {
+    max-width: 100%;
+}
+.footer-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    vertical-align: middle;
+    margin-bottom: 4px;
+}
+
+.footer-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 5px;
+    width: 100%;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.footer-btn:hover, .footer-btn.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+.footer-btn span {
+    margin-top: 4px;
+}
+
+/* Специфичные стили для иконки коллекции */
+.footer-btn[data-page="collection"] .footer-icon {
+    object-fit: cover;
+    border-radius: 4px;
+}
+
 .balance {
-    font-size: 48px;
+    font-size: 36px;
     font-weight: bold;
     margin-top: 20px;
     display: flex;
@@ -166,7 +228,18 @@ body {
     margin-right: 5px;
     font-size: 20px;
 }
-
+.shake-profit {
+    position: absolute;
+    font-size: 14px;
+    color: #FFD700; /* Золотой цвет для отличия от обычного тапа */
+    font-weight: bold;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+    z-index: 1000;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 1px 1px 2px rgba(0,0,0,0.5);
+    animation: fadeUpAndOut 0.5s ease-out forwards;
+}
 .footer {
     position: fixed;
     bottom: 0;
@@ -175,9 +248,10 @@ body {
     background-color: rgb(10,114,226);
     padding: 10px 0;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-    border-top-left-radius: 20px;  /* Добавлено закругление верхнего левого угла */
-    border-top-right-radius: 20px; /* Добавлено закругление врхнего правог угла */
-    z-index: 10; /* Добавляем z-index больше, чем у .energy */
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    z-index: 10;
+    box-sizing: border-box; /* Учитываем padding в общей ширине */
 }
 
 .footer nav ul {
@@ -236,11 +310,11 @@ body {
 
 .profile-name {
     font-weight: bold;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .profile-username {
-    font-size: 12px;
+    font-size: 10px; 
     color: rgba(255, 255, 255, 0.8);
 }
 

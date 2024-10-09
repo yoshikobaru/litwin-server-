@@ -4,16 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lit WIN Tap - Обучение</title>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="main.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        body, button, input, textarea, select {
+            font-family: 'Exo 2', sans-serif !important;
+        }
       .slider-container {
         width: 100%;
         overflow: hidden;
-        height: 100vh; /* Ограничиваем высоту контейнера высотой экрана */
+        height: 80vh; /* Ограничиваем высоту контейнера высотой экрана */
         display: flex;
         flex-direction: column;
     }
+    .slide-content h2 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .slide-content p {
+            font-size: 18px;
+            font-weight: 400;
+        }
+
+        .next-button {
+            font-size: 16px;
+            font-weight: 500;
+        }
     .slider {
         display: flex;
         transition: transform 0.3s ease-in-out;
