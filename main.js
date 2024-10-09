@@ -327,7 +327,7 @@ function addFooter() {
                     <span>Главная</span>
                 </button></li>
                 <li><button class="footer-btn" data-page="collection">
-                    <img src="assets/koll.svg" alt="Коллекция" class="footer-icon">
+                    <img src="assets/koll.png" alt="Коллекция" class="footer-icon">
                     <span>Коллекция</span>
                 </button></li>
                 <li><button class="footer-btn" data-page="task">
