@@ -7,42 +7,72 @@ let totalEarnedCoins;
 const progressLevels = [100000, 500000, 1000000, 5000000, 10000000];
 
 let isOnline = true;
-if (window.Telegram && window.Telegram.WebApp) {
-    window.Telegram.WebApp.ready();
-    console.log('WebApp инициализирован:', window.Telegram.WebApp.initDataUnsafe);
-} else {
-    console.error('Telegram WebApp не доступен');
-}
-// В начале файла main.js добавьте эту функцию
-function updateBalanceDisplay() {
-    const balance = parseInt(localStorage.getItem('balance')) || 0;
-    const balanceElement = document.getElementById('balance');
-    if (balanceElement) {
-        balanceElement.textContent = balance.toLocaleString();
+
+function initializeVariables() {
+    console.log('Инициализация переменных');
+    balance = parseInt(localStorage.getItem('balance')) || 0;
+    if (isNaN(balance)) {
+        console.warn('Баланс в localStorage некорректен, сбрасываем на 0');
+        balance = 0;
+        localStorage.setItem('balance', '0');
     }
+    energy = parseInt(localStorage.getItem('energy')) || 100;
+    hourlyProfit = parseInt(localStorage.getItem('hourlyProfit')) || 0;
+    tapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
+    lastExitTime = parseInt(localStorage.getItem('lastExitTime')) || Date.now();
+    accumulatedCoins = parseFloat(localStorage.getItem('accumulatedCoins')) || 0;
+    totalEarnedCoins = parseInt(localStorage.getItem('totalEarnedCoins')) || 0;
+    console.log('Баланс после инициализации:', balance);
 }
 
+function updateBalanceDisplay(newBalance) {
+    console.log('Вызвана функция updateBalanceDisplay с аргументом:', newBalance);
+    
+    if (typeof newBalance === 'undefined' || isNaN(newBalance)) {
+        console.log('newBalance не определен или NaN, получаем значение из localStorage');
+        newBalance = parseInt(localStorage.getItem('balance')) || 0;
+    }
+    
+    newBalance = Math.max(0, Math.floor(newBalance));
+    console.log('Обработанный новый баланс:', newBalance);
+    
+    const balanceElement = document.getElementById('balance');
+    if (balanceElement) {
+        balanceElement.textContent = newBalance.toLocaleString();
+        console.log('Баланс обновлен в DOM:', newBalance);
+    } else {
+    }
+    
+    localStorage.setItem('balance', newBalance.toString());
+    console.log('Баланс сохранен в localStorage:', newBalance);
+}
 function initializeMainPage() {
+    console.log('Вызвана функция initializeMainPage');
+    
     progressBar = document.getElementById('progressBar');
     balanceElement = document.getElementById('balance');
     canElement = document.getElementById('can');
     energyElement = document.getElementById('energy');
     bubblesContainer = document.querySelector('.bubbles');
 
-    // Загрузка данных из localStorage
-    balance = parseInt(localStorage.getItem('balance')) || 0;
-    energy = parseInt(localStorage.getItem('energy')) || 100;
-    hourlyProfit = parseInt(localStorage.getItem('hourlyProfit')) || 0;
-    tapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
+    console.log('Найденные элементы:', {
+        progressBar,
+        balanceElement,
+        canElement,
+        energyElement,
+        bubblesContainer
+    });
 
-    lastExitTime = parseInt(localStorage.getItem('lastExitTime')) || Date.now();
-    accumulatedCoins = parseFloat(localStorage.getItem('accumulatedCoins')) || 0;
-    totalEarnedCoins = parseInt(localStorage.getItem('totalEarnedCoins')) || 0;
+    if (!progressBar || !balanceElement || !canElement || !energyElement || !bubblesContainer) {
+        console.error('Один или несколько необходимых элементов не найдены');
+        return;
+    }
 
+    initializeVariables();
+    updateBalanceDisplay();
     calculateOfflineEarnings();
     startOfflineEarningInterval();
 
-    // Устанавливаем флаг, что пользователь онлайн
     isOnline = true;
 
     updateProgress();
@@ -54,13 +84,9 @@ function initializeMainPage() {
 
     canElement.addEventListener('click', handleCanClick);
 
-    // Добавляем обработчик событий для кнопок футера
     document.querySelectorAll('.footer-btn').forEach(btn => {
         btn.addEventListener('click', handleFooterButtonClick);
     });
-
-    // В функции initializeMainPage() добавьте вызов этой функции
-    updateBalanceDisplay();
 }
 function updateUserProfile() {
     if (window.Telegram && window.Telegram.WebApp) {
@@ -125,10 +151,16 @@ function updateProgress() {
 
     localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
 }
-
-function updateBalance() {
-    balanceElement.textContent = balance.toLocaleString();
-    localStorage.setItem('balance', balance.toString());
+function updateBalance(amount) {
+    console.log('Вызвана функция updateBalance с аргументом:', amount);
+    let currentBalance = parseInt(localStorage.getItem('balance')) || 0;
+    if (isNaN(currentBalance)) {
+        console.warn('Текущий баланс в localStorage некорректен, сбрасываем на 0');
+        currentBalance = 0;
+    }
+    currentBalance += amount;
+    updateBalanceDisplay(currentBalance);
+    console.log('Новый баланс:', currentBalance);
 }
 
 function updateHourlyProfit() {
@@ -202,12 +234,11 @@ function handleCanClick() {
             }, Math.random() * 200);
         }
 
-        showTapProfit(); // Вызываем только один раз
+        showTapProfit();
 
         totalEarnedCoins += tapProfit;
-        balance += tapProfit;
+        updateBalance(tapProfit);
         updateProgress();
-        updateBalance();
 
         energy -= 1;
         updateEnergy();
@@ -270,6 +301,9 @@ function loadPage(pageName) {
             } else {
                 const script = document.createElement('script');
                 script.src = `${fileName}.js`;
+                script.onload = function() {
+                    console.log(`Скрипт ${fileName}.js загружен и выполнен`);
+                };
                 document.body.appendChild(script);
             }
             const link = document.createElement('link');
@@ -331,12 +365,20 @@ function loadTasksPage() {
 function loadFriendsPage() {
     loadPage('friends');
 }
-
+function initializeTelegramWebApp() {
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        console.log('WebApp инициализирован:', window.Telegram.WebApp.initDataUnsafe);
+    } else {
+        console.error('Telegram WebApp не доступен');
+    }
+}
 // Инициализация главной страницы при згрузке
 document.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('.container').children.length === 0) {
         loadPage('main');
     } else {
+        initializeTelegramWebApp();
         initializeMainPage();
     }
 });
@@ -407,18 +449,16 @@ window.addEventListener('message', function(event) {
     }
 });
 
-function updateBalanceDisplay(newBalance) {
-    const balanceElement = document.getElementById('balance');
-    if (balanceElement) {
-        balanceElement.textContent = newBalance.toLocaleString();
-    }
-    // Обновляем значение в localStorage
-    localStorage.setItem('balance', newBalance.toString());
-}
 
 // Добавьте обработчик события storage
 window.addEventListener('storage', function(event) {
     if (event.key === 'balance') {
         updateBalanceDisplay();
+    }
+});
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'updateBalance') {
+        const newBalance = event.data.balance;
+        updateBalanceDisplay(newBalance);
     }
 });

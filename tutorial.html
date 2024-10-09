@@ -7,24 +7,51 @@
     <link rel="stylesheet" href="main.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        .slider-container {
-            width: 100%;
-            overflow: hidden;
-        }
-        .slider {
-            display: flex;
-            transition: transform 0.3s ease-in-out;
-        }
-        .slide {
-            flex: 0 0 100%;
-            padding: 20px;
-            box-sizing: border-box;
-            text-align: center;
-        }
-        .slide img {
-            max-width: 80%;
-            height: auto;
-        }
+      .slider-container {
+        width: 100%;
+        overflow: hidden;
+        height: 100vh; /* Ограничиваем высоту контейнера высотой экрана */
+        display: flex;
+        flex-direction: column;
+    }
+    .slider {
+        display: flex;
+        transition: transform 0.3s ease-in-out;
+        flex: 1; /* Слайдер занимает все доступное пространство */
+    }
+    .slide {
+        flex: 0 0 100%;
+        width: 100vw;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start; /* Выравнивание содержимого по верхнему краю */
+        padding-top: 10vh; /* Отступ сверху */
+    }
+    .slide img {
+        max-width: 100%;
+        height: auto;
+    }
+    .fullscreen-slide {
+        justify-content: flex-start; /* Выравнивание по верхнему краю */
+    }
+    .fullscreen-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .slide-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        padding: 0 20px; /* Добавляем отступы по бокам */
+    }
         .progress-dots {
             display: flex;
             justify-content: center;
@@ -50,6 +77,30 @@
             cursor: pointer;
             margin-top: 20px;
         }
+        .fullscreen-slide {
+    position: relative;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+.fullscreen-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+}
+
+.fullscreen-slide h2,
+.fullscreen-slide p {
+    position: relative;
+    z-index: 1;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
     </style>
 </head>
 <body>
@@ -92,23 +143,27 @@
             });
         });
     </script>
-    <div class="container">
-        <div class="slider-container">
-            <div class="slider">
-                <div class="slide">
-                    <h2>Взрывай банки энергетиков!</h2>
-                    <img src="can1.png" alt="Энергетик">
-                </div>
-                <div class="slide">
-                    <h2>Собирай всю коллекцию!</h2>
-                    <img src="cans.png" alt="Коллекция энергетиков">
-                </div>
-                <div class="slide">
-                    <h2>Соревнуйся с друзьями!</h2>
-                    <p>У кого больше энергосов?</p>
-                </div>
+   <div class="slider-container">
+    <div class="slider">
+        <div class="slide fullscreen-slide">
+            <img src="assets/boom.png" alt="Энергетик" class="fullscreen-image">
+            <div class="slide-content">
+                <h2>Взрывай банки энергетиков!</h2>
             </div>
         </div>
+        <div class="slide">
+            <h2>Собирай всю коллекцию!</h2>
+            <img src="assets/mnogo.png" alt="Коллекция энергетиков">
+        </div>
+        <div class="slide fullscreen-slide">
+            <img src="assets/leader.png" alt="Лидеры" class="fullscreen-image">
+            <div class="slide-content">
+                <h2>Соревнуйся с друзьями!</h2>
+                <p>У кого больше энергосов?</p>
+            </div>
+        </div>
+    </div>
+</div>
         <div class="progress-dots">
             <div class="dot active"></div>
             <div class="dot"></div>
