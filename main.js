@@ -66,8 +66,10 @@ function updateUserProfile() {
     if (window.Telegram && window.Telegram.WebApp) {
         const webApp = window.Telegram.WebApp;
         webApp.ready();
-        const user = webApp.initDataUnsafe.user;
-        if (user) {
+        
+        // Проверяем, инициализированы ли данные
+        if (webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
+            const user = webApp.initDataUnsafe.user;
             document.getElementById('profileName').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
             document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '';
             if (user.photo_url) {
@@ -75,16 +77,22 @@ function updateUserProfile() {
             }
         } else {
             console.error('Данные пользователя недоступны');
+            // Можно добавить здесь код для отображения заглушки или сообщения об ошибке
         }
     } else {
         console.error('Telegram WebApp не инициализирован');
     }
 }
 
-// Вызовите эту функцию после загрузки DOM
-document.addEventListener('DOMContentLoaded', updateUserProfile);
+// Вызываем функцию после загрузки DOM
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+    }
+    updateUserProfile();
+});
 
-// Также добавьте обработчик события viewportChanged
+// Добавляем обработчик события viewportChanged
 if (window.Telegram && window.Telegram.WebApp) {
     window.Telegram.WebApp.onEvent('viewportChanged', updateUserProfile);
 }
@@ -285,7 +293,7 @@ function addFooter() {
                     <span>Главная</span>
                 </button></li>
                 <li><button class="footer-btn" data-page="collection">
-                    <img src="assets/metalcan-icon.svg" alt="Коллекция" class="footer-icon">
+                    <img src="assets/koll.svg" alt="Коллекция" class="footer-icon">
                     <span>Коллекция</span>
                 </button></li>
                 <li><button class="footer-btn" data-page="task">

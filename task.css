@@ -129,8 +129,8 @@
     box-sizing: border-box;
 }
 
-/* Общие стили для всех изображений LitCoin */
-.tasks-page img[src*="litCoin.png"] {
+/* Общие стили для всех изображений Litcoin */
+.tasks-page img[src*="litcoin.png"] {
     width: 24px;
     height: 24px;
     border-radius: 50%;
