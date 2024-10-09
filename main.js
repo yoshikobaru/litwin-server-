@@ -7,7 +7,12 @@ let totalEarnedCoins;
 const progressLevels = [100000, 500000, 1000000, 5000000, 10000000];
 
 let isOnline = true;
-
+if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.ready();
+    console.log('WebApp инициализирован:', window.Telegram.WebApp.initDataUnsafe);
+} else {
+    console.error('Telegram WebApp не доступен');
+}
 // В начале файла main.js добавьте эту функцию
 function updateBalanceDisplay() {
     const balance = parseInt(localStorage.getItem('balance')) || 0;
@@ -59,15 +64,29 @@ function initializeMainPage() {
 }
 function updateUserProfile() {
     if (window.Telegram && window.Telegram.WebApp) {
-        const user = window.Telegram.WebApp.initDataUnsafe.user;
+        const webApp = window.Telegram.WebApp;
+        webApp.ready();
+        const user = webApp.initDataUnsafe.user;
         if (user) {
             document.getElementById('profileName').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
             document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '';
             if (user.photo_url) {
                 document.getElementById('profilePic').src = user.photo_url;
             }
+        } else {
+            console.error('Данные пользователя недоступны');
         }
+    } else {
+        console.error('Telegram WebApp не инициализирован');
     }
+}
+
+// Вызовите эту функцию после загрузки DOM
+document.addEventListener('DOMContentLoaded', updateUserProfile);
+
+// Также добавьте обработчик события viewportChanged
+if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.onEvent('viewportChanged', updateUserProfile);
 }
 function updateProgress() {
     let currentLevel = 0;
@@ -394,7 +413,4 @@ window.addEventListener('storage', function(event) {
     if (event.key === 'balance') {
         updateBalanceDisplay();
     }
-});
-window.Telegram.WebApp.onEvent('viewportChanged', function() {
-    updateUserProfile();
 });

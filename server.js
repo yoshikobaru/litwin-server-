@@ -41,6 +41,7 @@ const server = https.createServer(options, (req, res) => {
     '.png': 'image/png',
     '.jpg': 'image/jpg',
     '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
   }[extname] || 'application/octet-stream';
 
   fs.readFile(filePath, (error, content) => {
