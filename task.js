@@ -1,3 +1,15 @@
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'updateTheme') {
+        applyTheme(event.data.theme);
+    }
+});
+
+function applyTheme(theme) {
+    document.documentElement.style.setProperty('--primary-color', theme.primary);
+    document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+    document.documentElement.style.setProperty('--tertiary-color', theme.tertiary);
+}
+
 (function() {
     console.log('Скрипт task.js загружен');
     const bonusButtons = document.querySelectorAll('.bonus-item');
@@ -6,71 +18,74 @@
     console.log('Найдено кнопок бонуса:', bonusButtons.length);
 
     function claimBonus(event, index) {
-        console.log('Функция claimBonus вызвана');
+        console.log('Функция claimBonus вызвана для кнопки с индексом:', index);
         const button = event.currentTarget;
         
-        // Проверяем, не была ли кнопка уже нажата
-        if (button.classList.contains('claimed')) {
-            console.log('Бонус уже получен');
+        if (button.classList.contains('claimed') || button.classList.contains('locked')) {
+            console.log('Бонус уже получен или кнопка заблокирована');
             return;
         }
         
         const bonusAmount = bonusValues[index];
-    
+
         console.log('Получение бонуса:', bonusAmount);
-    
+
         let balance = parseInt(localStorage.getItem('balance')) || 0;
         balance += bonusAmount;
         localStorage.setItem('balance', balance.toString());
         
-        // Отправляем сообщение родительскому окну для обновления баланса
         window.parent.postMessage({ type: 'updateBalance', balance: balance }, '*');
         
-        localStorage.setItem('lastBonusDate', new Date().toDateString());
-        localStorage.setItem('lastBonusIndex', index.toString());
-    
-        // Помечаем кнопку как использованную
-        button.classList.add('claimed');
-        button.disabled = true;
-    
+        localStorage.setItem('lastClaimedIndex', index.toString());
+        console.log('Сохранен lastClaimedIndex:', index);
+        
+        localStorage.setItem('lastClaimTime', new Date().getTime().toString());
+
         updateBonusButtons();
         showBonusPopup(bonusAmount);
     }
     
     function updateBonusButtons() {
-        const lastBonusDate = localStorage.getItem('lastBonusDate');
-        const lastBonusIndex = parseInt(localStorage.getItem('lastBonusIndex')) || -1;
-        const today = new Date().toDateString();
-    
+        const lastClaimedIndex = parseInt(localStorage.getItem('lastClaimedIndex')) || -1;
+        const lastClaimTime = parseInt(localStorage.getItem('lastClaimTime')) || 0;
+        const currentTime = new Date().getTime();
+
         console.log('Обновление кнопок бонуса');
-        console.log('Последняя дата бонуса:', lastBonusDate);
-        console.log('Последний индекс бонуса:', lastBonusIndex);
-        console.log('Сегодня:', today);
-    
+        console.log('Последний полученный индекс бонуса:', lastClaimedIndex);
+
+        const timeSinceLastClaim = currentTime - lastClaimTime;
+        const canClaimNext = timeSinceLastClaim >= 5 * 1000; // 10 секунд в миллисекундах
+        console.log('Время с последнего клейма:', timeSinceLastClaim);
+        console.log('Можно ли активировать следующую кнопку:', canClaimNext);
+
+        let nextUnlockedIndex = lastClaimedIndex + 1;
+        if (canClaimNext && nextUnlockedIndex < bonusButtons.length) {
+            console.log('Можно разблокировать следующую кнопку:', nextUnlockedIndex);
+        } else {
+            console.log('Ожидание кулдауна или все кнопки использованы');
+        }
+
         bonusButtons.forEach((button, index) => {
-            console.log(`Обработка кнопки ${index}:`, button.classList.toString());
+            console.log(`Кнопка ${index} до обработки:`, button.classList.toString());
             
-            if (lastBonusDate !== today && index === lastBonusIndex + 1) {
-                button.classList.remove('locked');
+            if (index < nextUnlockedIndex) {
+                button.classList.remove('unlocked', 'locked');
+                button.classList.add('claimed');
+                button.disabled = true;
+            } else if (index === nextUnlockedIndex && canClaimNext) {
+                button.classList.remove('locked', 'claimed');
                 button.classList.add('unlocked');
-                button.classList.remove('claimed');
                 button.disabled = false;
-            } else if (index > lastBonusIndex + 1 || lastBonusDate === today) {
-                button.classList.remove('unlocked');
+            } else {
+                button.classList.remove('unlocked', 'claimed');
                 button.classList.add('locked');
                 button.disabled = true;
             }
-    
-            button.onclick = function(event) {
-                console.log('Кнопка нажата:', index);
-                console.log('Классы кнопки:', button.classList.toString());
-                if (!button.classList.contains('locked') && !button.classList.contains('claimed')) {
-                    event.preventDefault(); // Предотвращаем повторное срабатывание
-                    claimBonus(event, index);
-                } else {
-                    console.log('Кнопка заблокирована или уже использована');
-                }
-            };
+
+            const img = button.querySelector('img');
+            if (img) {
+                img.className = button.classList.contains('locked') || button.classList.contains('claimed') ? 'locked-coin' : 'bonus-coin';
+            }
             
             console.log(`Кнопка ${index} после обработки:`, button.classList.toString());
         });
@@ -106,6 +121,27 @@
         }
     }
 
+    // Инициализация кнопок при загруке страницы
+    function initializeBonusButtons() {
+        const lastClaimedIndex = parseInt(localStorage.getItem('lastClaimedIndex')) || -1;
+        bonusButtons.forEach((button, index) => {
+            if (index <= lastClaimedIndex) {
+                button.classList.remove('unlocked', 'locked');
+                button.classList.add('claimed');
+                button.disabled = true;
+            } else if (index === lastClaimedIndex + 1) {
+                button.classList.remove('locked', 'claimed');
+                button.classList.add('unlocked');
+                button.disabled = false;
+            } else {
+                button.classList.remove('unlocked', 'claimed');
+                button.classList.add('locked');
+                button.disabled = true;
+            }
+        });
+    }
+
+    initializeBonusButtons();
     updateBonusButtons();
 
     // Добавляем обработчик для всего контейнера с бонусами
@@ -113,15 +149,21 @@
     if (dailyBonusContainer) {
         dailyBonusContainer.addEventListener('click', function(event) {
             const button = event.target.closest('.bonus-item');
-            if (button) {
-                console.log('Клик по кнопке бонуса');
+            if (button && button.classList.contains('unlocked')) {
+                console.log('Клик по активой кнопке бонуса');
                 const index = Array.from(bonusButtons).indexOf(button);
                 if (index !== -1) {
-                    button.onclick(event);
+                    claimBonus(event, index);
                 }
             }
         });
     } else {
         console.error('Контейнер .daily-bonus не найден');
     }
+
+    // Обновляем состояние кнопок каждые 5 секунд
+    setInterval(() => {
+        console.log('Обновление кнопок:', new Date().toISOString());
+        updateBonusButtons();
+    }, 5000);
 })();

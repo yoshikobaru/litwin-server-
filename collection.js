@@ -2,20 +2,44 @@
     const collectionGrid = document.getElementById('collection-grid');
     const marketItems = document.getElementById('market-items');
     
+    const canImages = [
+        'assets/bankaClassic.png',
+        'assets/bankamango.png',
+        'assets/bankablueberry.png',
+        'assets/banka4.png',
+        'assets/banka5.png',
+        'assets/banka6.png',
+        'assets/banka7.png',
+        'assets/banka8.png'
+    ];
+    
     // Создаем сетку коллекции
     for (let i = 0; i < 8; i++) {
         const itemElement = document.createElement('div');
-        itemElement.className = 'collection-item locked';
-        itemElement.innerHTML = '<img src="assets/lock.svg" alt="Замок" class="lock-icon">';
+        itemElement.className = 'collection-item';
+        itemElement.dataset.index = i;
+        itemElement.innerHTML = `<img src="${canImages[i]}" alt="Банка ${i + 1}" class="can-icon">`;
         collectionGrid.appendChild(itemElement);
     }
     
+    // Обновляем отображение разблокированных банок
+    updateUnlockedCans();
+    
+    // Добавляем обработчик клика на элементы коллекции
+    collectionGrid.addEventListener('click', function(event) {
+        const item = event.target.closest('.collection-item');
+        if (item && item.classList.contains('unlocked')) {
+            const index = parseInt(item.dataset.index);
+            changeCan(index);
+        }
+    });
+    
     // Обновленные данные маркета с уникальными идентификаторами
     const marketData = [
-        { id: 1, title: 'Бахнуть литки', level: 1, profitType: 'tap', profit: 3, price: 10 },
+        { id: 1, title: 'Выпить LIT', level: 1, profitType: 'tap', profit: 3, price: 10 },
         { id: 2, title: 'Title', level: 1, profitType: 'hourly', profit: 3, price: 10 },
         { id: 3, title: 'Title', level: 1, profitType: 'hourly', profit: 4, price: 11, timer: '16:30:00' },
-        { id: 4, title: 'Title', level: 1, profitType: 'tap', profit: 5, price: 15 }
+        { id: 4, title: 'Увеличить энергию', level: 1, profitType: 'energy', profit: 100, price: 15 }
     ];
     
     marketData.forEach((item, index) => {
@@ -25,26 +49,29 @@
             <div class="market-item-header">
                 <span class="market-item-level">Ур. ${item.level}</span>
                 <span class="market-item-title">${item.title}</span>
-                <span class="market-item-profit">Прибыль ${item.profitType === 'tap' ? 'за тап' : 'в час'} <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+${item.profit}</span>
+                <span class="market-item-profit">
+                    ${item.profitType === 'energy' 
+                        ? `Добавить энергии <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+${item.profit}`
+                        : `Прибыль ${item.profitType === 'tap' ? 'за тап' : 'в час'} <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+${item.profit}`
+                    }
+                </span>
             </div>
             <hr class="item-divider">
-            <div class="market-item-price-container">
-                <div class="price-circle" data-id="${item.id}">
-                    <img src="assets/litcoin.png" alt="LIT" class="lit-coin">
-                    <span class="price-value">${item.price}</span>
-                </div>
+            <div class="market-item-buy" data-id="${item.id}">
+                <img src="assets/litcoin.png" alt="LIT" class="lit-coin">
+                <span class="price-value">${item.price}</span>
             </div>
             ${item.timer ? `<div class="market-item-timer">${item.timer}</div>` : ''}
         `;
         marketItems.appendChild(itemElement);
     });
 
-    // Обновляем обработчик событий для покупки
+    // Обновляем обработчик событий
     marketItems.addEventListener('click', function(event) {
-        const priceCircle = event.target.closest('.price-circle');
-        if (priceCircle) {
-            const itemId = parseInt(priceCircle.dataset.id);
-            const item = marketData.find(i => i.id === itemId);
+        const buyButton = event.target.closest('.market-item-buy');
+        if (buyButton) {
+            const itemId = parseInt(buyButton.dataset.id);
+            const item = marketData.find(item => item.id === itemId);
             if (item) {
                 buyItem(item);
             }
@@ -61,7 +88,7 @@
             const newBalance = currentBalance - item.price;
             localStorage.setItem('balance', newBalance.toString());
 
-            // Увеличиваем соответствующую прибыль
+            // Увеличиваем соответствующую прибыль или энергию
             if (item.profitType === 'hourly') {
                 const newHourlyProfit = currentHourlyProfit + item.profit;
                 localStorage.setItem('hourlyProfit', newHourlyProfit.toString());
@@ -80,6 +107,9 @@
                     tapProfit = newTapProfit;
                     updateTapProfit();
                 }
+            } else if (item.profitType === 'energy') {
+                // Отправляем сообщение главной странице для обновления максимальной энергии
+                window.parent.postMessage({ type: 'updateMaxEnergy', increase: item.profit }, '*');
             }
 
             // Обновляем отображение на странице коллекции
@@ -121,4 +151,42 @@
 
     // Вызываем эту функцию при загрузке страницы коллекции
     updateProfitDisplay();
+    
+    function updateUnlockedCans() {
+        const currentLevel = parseInt(localStorage.getItem('currentLevel')) || 1;
+        const items = collectionGrid.querySelectorAll('.collection-item');
+        items.forEach((item, index) => {
+            if (index < currentLevel) {
+                item.classList.add('unlocked');
+            } else {
+                item.classList.remove('unlocked');
+            }
+        });
+    }
+    
+    function changeCan(index) {
+        localStorage.setItem('selectedCan', index);
+        window.parent.postMessage({ type: 'updateCan', canIndex: index }, '*');
+        alert(`Выбрана банка ${index + 1}`);
+    }
+    
+    // Обновляем отображение при изменении уровня
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'levelUp') {
+            updateUnlockedCans();
+        }
+    });
+
+    // Добавьте этот код в начало файла collection.js
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'updateTheme') {
+            applyTheme(event.data.theme);
+        }
+    });
+
+    function applyTheme(theme) {
+        document.documentElement.style.setProperty('--primary-color', theme.primary);
+        document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+        document.documentElement.style.setProperty('--tertiary-color', theme.tertiary);
+    }
 })();

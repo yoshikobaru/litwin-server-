@@ -22,6 +22,26 @@ h1, h2 {
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.collection-item:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.collection-item.unlocked {
+    background-color: rgba(0, 255, 0, 0.2);
+}
+
+.collection-item.unlocked:hover {
+    background-color: rgba(0, 255, 0, 0.3);
+}
+
+.collection-item img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
 }
 
 .lock-icon {
@@ -37,7 +57,7 @@ h1, h2 {
 }
 
 .market-item {
-    background-color: rgb(1,43,89);
+    background-color: var(--tertiary-color);
     border-radius: 15px;
     padding: 10px;
     color: white;
@@ -63,43 +83,43 @@ h1, h2 {
     font-size: 0.8em;
 }
 
-.market-item-price-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
+.item-divider {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 10px 0;
 }
 
-.price-circle {
+.market-item-buy {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: rgb(20, 131, 239);
+    padding: 10px;
+    background-color: var(--secondary-color);
+    border-radius: 0 0 15px 15px;
     cursor: pointer;
     transition: background-color 0.3s;
 }
 
-.price-circle:hover {
-    background-color: #e0e0e0;
+.market-item-buy:hover {
+    background-color: rgb(30, 141, 249);
 }
 
-.price-circle img.lit-coin {
-    width: 12px;
-    height: 12px;
-    margin-right: 2px;
+.market-item-buy img.lit-coin {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
 }
 
-.price-circle .price-value {
+.market-item-buy .price-value {
     font-weight: bold;
-    font-size: 12px;
+    font-size: 16px;
 }
 
 .market-item-timer {
     text-align: right;
     font-size: 0.8em;
     opacity: 0.7;
+    margin-top: 5px;
 }
 
 .lit-coin-small {
@@ -123,3 +143,24 @@ h1, h2 {
 }
 
 /* ... остальные стили ... */
+
+:root {
+    --primary-color: rgb(18,131,255);
+    --secondary-color: rgb(7,119,240);
+    --tertiary-color: rgb(1,43,89);
+}
+
+body {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.market-item {
+    background-color: var(--tertiary-color);
+}
+
+.market-item-buy {
+    background-color: var(--secondary-color);
+}
+
+/* Обновите остальные стили, используя переменные цвета */

@@ -8,6 +8,42 @@ const progressLevels = [100000, 500000, 1000000, 5000000, 10000000];
 
 let isOnline = true;
 
+let lastEnergyRegenTime;
+let maxEnergy = parseInt(localStorage.getItem('maxEnergy')) || 100;
+const energyRegenRate = 1; // Количество энергии, восстанавливаемое за интервал
+const energyRegenInterval = 5000; // Интервал восстановления энергии в миллисекундах (5 секунд)
+
+let currentLevel = parseInt(localStorage.getItem('currentLevel')) || 1;
+const canImages = [
+    'assets/bankaClassic.png',
+    'assets/bankamango.png',
+    'assets/bankablueberry.png',
+    'assets/banka4.png',
+    'assets/banka5.png',
+    'assets/banka6.png',
+    'assets/banka7.png',
+    'assets/banka8.png'
+];
+
+const canThemes = {
+    'assets/bankaClassic.png': {
+        primary: 'rgb(18,131,255)',
+        secondary: 'rgb(7,119,240)',
+        tertiary: 'rgb(1,43,89)'
+    },
+    'assets/bankamango.png': {
+        primary: 'rgb(255,165,0)',
+        secondary: 'rgb(255,140,0)',
+        tertiary: 'rgb(184,134,11)'
+    },
+    'assets/bankablueberry.png': {
+        primary: 'rgb(76,0,153)',      // Темно-фиолетовый
+        secondary: 'rgb(102,0,204)',   // Фиолетовый
+        tertiary: 'rgb(51,0,102)'      // Очень темный фиолетовый
+    },
+    // Добавьте темы для остальных банок здесь
+};
+
 function initializeVariables() {
     console.log('Инициализация переменных');
     balance = parseInt(localStorage.getItem('balance')) || 0;
@@ -22,6 +58,7 @@ function initializeVariables() {
     lastExitTime = parseInt(localStorage.getItem('lastExitTime')) || Date.now();
     accumulatedCoins = parseFloat(localStorage.getItem('accumulatedCoins')) || 0;
     totalEarnedCoins = parseInt(localStorage.getItem('totalEarnedCoins')) || 0;
+    console.log('Инициализация: lastExitTime =', new Date(lastExitTime), 'accumulatedCoins =', accumulatedCoins);
     console.log('Баланс после инициализации:', balance);
 }
 
@@ -69,7 +106,6 @@ function initializeMainPage() {
     }
 
     initializeVariables();
-    updateBalanceDisplay();
     calculateOfflineEarnings();
     startOfflineEarningInterval();
 
@@ -87,6 +123,14 @@ function initializeMainPage() {
     document.querySelectorAll('.footer-btn').forEach(btn => {
         btn.addEventListener('click', handleFooterButtonClick);
     });
+
+    initializeEnergy();
+    regenerateEnergy(); // Восстанавливаем энергию сразу при загрузке
+    startEnergyRegenInterval();
+
+    // Загружаем выбранную банку и применяем тему
+    const selectedCan = parseInt(localStorage.getItem('selectedCan')) || 0;
+    updateCanImage(selectedCan);
 }
 function updateUserProfile() {
     if (window.Telegram && window.Telegram.WebApp) {
@@ -123,15 +167,6 @@ if (window.Telegram && window.Telegram.WebApp) {
     window.Telegram.WebApp.onEvent('viewportChanged', updateUserProfile);
 }
 function updateProgress() {
-    let currentLevel = 0;
-    for (let i = 0; i < progressLevels.length; i++) {
-        if (totalEarnedCoins >= progressLevels[i]) {
-            currentLevel = i + 1;
-        } else {
-            break;
-        }
-    }
-
     let progressPercentage;
     if (currentLevel === progressLevels.length) {
         progressPercentage = 100;
@@ -143,19 +178,27 @@ function updateProgress() {
 
     progressBar.style.width = `${progressPercentage}%`;
     
-    // Обновляем отображение текущего уровня прогресса
     const levelDisplay = document.getElementById('levelDisplay');
     if (levelDisplay) {
-        levelDisplay.textContent = `Liga ${currentLevel + 1}`;
+        levelDisplay.textContent = `Liga ${currentLevel}`;
     }
 
     localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
+    localStorage.setItem('currentLevel', currentLevel.toString());
+    
+    // Проверяем, достигнут ли новый уровень
+    if (totalEarnedCoins >= progressLevels[currentLevel - 1] && currentLevel < progressLevels.length) {
+        currentLevel++;
+        localStorage.setItem('currentLevel', currentLevel.toString());
+        // Отправляем сообщение странице коллекции об изменении уровня
+        window.frames[0].postMessage({ type: 'levelUp' }, '*');
+    }
 }
 function updateBalance(amount) {
     console.log('Вызвана функция updateBalance с аргументом:', amount);
     let currentBalance = parseInt(localStorage.getItem('balance')) || 0;
     if (isNaN(currentBalance)) {
-        console.warn('Текущий баланс в localStorage некорректен, сбрасываем на 0');
+        console.warn('Текущий баланс в localStorage нкорректен, сбрасываем на 0');
         currentBalance = 0;
     }
     currentBalance += amount;
@@ -240,8 +283,8 @@ function handleCanClick() {
         updateBalance(tapProfit);
         updateProgress();
 
-        energy -= 1;
-        updateEnergy();
+        energy = Math.max(0, energy - 1);
+        updateEnergyDisplay();
     }
 }
 
@@ -272,11 +315,23 @@ function showTapProfit() {
 }
 
 function regenerateEnergy() {
-    if (energy < 100) {
-        energy = Math.min(energy + 1, 100);
-        updateEnergy();
+    const currentTime = Date.now();
+    const timePassed = currentTime - lastEnergyRegenTime;
+    const energyToRegen = Math.floor(timePassed / energyRegenInterval) * energyRegenRate;
+
+    if (energyToRegen > 0) {
+        energy = Math.min(energy + energyToRegen, maxEnergy);
+        lastEnergyRegenTime = currentTime - (timePassed % energyRegenInterval);
+        
+        updateEnergyDisplay();
+        localStorage.setItem('lastEnergyRegenTime', lastEnergyRegenTime.toString());
     }
 }
+
+function startEnergyRegenInterval() {
+    setInterval(regenerateEnergy, energyRegenInterval);
+}
+
 let isShaking = false;
 let lastShakeTime = 0;
 const shakeThreshold = 15;
@@ -486,13 +541,20 @@ function calculateOfflineEarnings() {
     const timeDiff = (currentTime - lastExitTime) / 1000; // разница в секундах
     const maxOfflineTime = 5 * 60 * 60; // 5 часов в секундах
 
+    console.log('Расчет офлайн-заработка: timeDiff =', timeDiff, 'секунд');
+
     if (timeDiff > 0) {
         const earnedCoins = Math.min(timeDiff, maxOfflineTime) * (hourlyProfit / 3600);
         accumulatedCoins += earnedCoins;
-        balance += Math.floor(accumulatedCoins);
-        totalEarnedCoins += Math.floor(accumulatedCoins);
-        accumulatedCoins -= Math.floor(accumulatedCoins);
-        updateBalance();
+        const earnedWholeCoins = Math.floor(accumulatedCoins);
+        balance += earnedWholeCoins;
+        totalEarnedCoins += earnedWholeCoins;
+        accumulatedCoins -= earnedWholeCoins;
+
+        console.log('Заработано монет:', earnedCoins, 'Целых монет:', earnedWholeCoins);
+        console.log('Новый баланс:', balance, 'Остаток:', accumulatedCoins);
+
+        updateBalanceDisplay(balance);
         updateProgress();
     }
 
@@ -511,27 +573,28 @@ function startOfflineEarningInterval() {
                 balance += earnedWholeCoins;
                 totalEarnedCoins += earnedWholeCoins;
                 accumulatedCoins -= earnedWholeCoins;
-                updateBalance();
+                updateBalanceDisplay(balance);
                 updateProgress();
+                console.log('Интервал: заработано', earnedWholeCoins, 'монет. Новый баланс:', balance);
             }
             localStorage.setItem('accumulatedCoins', accumulatedCoins.toString());
         }
     }, 1000); // обновляем каждую секунду
 }
 
-// Добавьте эту функцию для сохранения времени выхода
 function saveExitTime() {
     isOnline = false;
-    localStorage.setItem('lastExitTime', Date.now().toString());
+    const exitTime = Date.now();
+    localStorage.setItem('lastExitTime', exitTime.toString());
+    console.log('Сохранено время выхода:', new Date(exitTime));
 }
 
-// Вызывайте эту функцию при закрытии страницы
 window.addEventListener('beforeunload', saveExitTime);
 
-// Добавьте эту функцию для обработки возвращения в игру
 window.addEventListener('focus', () => {
     if (!isOnline) {
         isOnline = true;
+        console.log('Возвращение в игру, расчет офлайн-заработка');
         calculateOfflineEarnings();
     }
 });
@@ -557,3 +620,63 @@ window.addEventListener('message', function(event) {
         updateBalanceDisplay(newBalance);
     }
 });
+
+function initializeEnergy() {
+    energy = parseInt(localStorage.getItem('energy')) || maxEnergy;
+    lastEnergyRegenTime = parseInt(localStorage.getItem('lastEnergyRegenTime')) || Date.now();
+    updateEnergyDisplay();
+}
+
+function updateEnergyDisplay() {
+    const energyElement = document.getElementById('energy');
+    if (energyElement) {
+        energyElement.textContent = `${energy}/${maxEnergy}`;
+    }
+    localStorage.setItem('energy', energy.toString());
+    localStorage.setItem('maxEnergy', maxEnergy.toString());
+}
+
+// Добавьте эту функцию для обновления максимальной энергии
+function updateMaxEnergy(increase) {
+    maxEnergy += increase;
+    energy = Math.min(energy, maxEnergy); // Убедимся, что текущая энергия не превышает новый максимум
+    updateEnergyDisplay();
+}
+
+// Добавьте обработчик сообщений дл обновления максимальной энергии
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'updateMaxEnergy') {
+        updateMaxEnergy(event.data.increase);
+    }
+});
+
+// Обновляем обработчик сообщений
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'updateCan') {
+        const canIndex = event.data.canIndex;
+        updateCanImage(canIndex);
+    }
+    // ... обработка других типов сообщений ...
+});
+
+function updateCanImage(index) {
+    const canElement = document.getElementById('can');
+    if (canElement) {
+        const newCanSrc = canImages[index];
+        canElement.src = newCanSrc;
+        updateAppTheme(newCanSrc);
+    }
+}
+
+function updateAppTheme(canSrc) {
+    const theme = canThemes[canSrc] || canThemes['assets/bankaClassic.png'];
+    document.documentElement.style.setProperty('--primary-color', theme.primary);
+    document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+    document.documentElement.style.setProperty('--tertiary-color', theme.tertiary);
+    
+    // Отправляем сообщение об изменении темы другим страницам
+    const frames = document.querySelectorAll('iframe');
+    frames.forEach(frame => {
+        frame.contentWindow.postMessage({ type: 'updateTheme', theme: theme }, '*');
+    });
+}
