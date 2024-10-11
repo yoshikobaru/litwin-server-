@@ -522,6 +522,9 @@ function loadPage(pageName) {
                 script.src = `${fileName}.js`;
                 script.onload = function() {
                     console.log(`Скрипт ${fileName}.js загружен и выполнен`);
+                    if (pageName === 'friends' && typeof window.initializeFriendsPage === 'function') {
+                        window.initializeFriendsPage();
+                    }
                 };
                 document.body.appendChild(script);
             }

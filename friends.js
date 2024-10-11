@@ -53,35 +53,59 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCansImage(parseInt(selectedCan));
     }
 
-    inviteButton.addEventListener('click', () => {
-        console.log('Кнопка "Пригласить друга" нажата'); // Отладочное сообщение
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM загружен');
+        window.initializeFriendsPage();
+    });
+    
+    window.initializeFriendsPage = function() {
+        console.log('Инициализация страницы друзей');
+        const inviteButton = document.getElementById('inviteButton');
+        if (inviteButton) {
+            console.log('Кнопка найдена, добавляем обработчик');
+            inviteButton.addEventListener('click', handleInviteButtonClick);
+        } else {
+            console.error('Кнопка приглашения не найдена');
+        }
+    }
+    
+    function handleInviteButtonClick(event) {
+        event.preventDefault();
+        console.log('Кнопка "Пригласить друга" нажата');
+        
+        if (!window.Telegram || !window.Telegram.WebApp) {
+            console.error('Telegram WebApp не доступен');
+            alert('Ошибка: Telegram WebApp не доступен');
+            return;
+        }
+        
+        console.log('Telegram WebApp доступен');
+        
         const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
-        console.log('Telegram ID:', telegramId); // Отладочное сообщение
-
+        console.log('Telegram ID:', telegramId);
+    
         // Запрашиваем реферальную ссылку с сервера
         fetch(`/get-referral-link?telegramId=${telegramId}`)
-            .then(response => {
-                console.log('Ответ получен:', response); // Отладочное сообщение
-                return response.json();
-            })
-            .then(data => {
-                console.log('Данные получены:', data); // Отладочное сообщение
-                if (data.inviteLink) {
-                    console.log('Отправка данных в Telegram:', data.inviteLink); // Отладочное сообщение
-                    window.Telegram.WebApp.sendData(JSON.stringify({
-                        action: 'share',
-                        url: data.inviteLink
-                    }));
-                } else {
-                    console.error('Ссылка не получена:', data); // Отладочное сообщение
-                    alert('Не удалось получить реферальную ссылку. Попробуйте позже.');
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                alert('Произошла ошибка. Попробуйте позже.');
-            });
-    });
+        .then(response => {
+            console.log('Ответ получен:', response);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Данные получены:', data);
+            if (data.inviteLink) {
+                console.log('Открытие диалога "Поделиться" с ссылкой:', data.inviteLink);
+                // Используем switchInlineQuery вместо sendData
+                window.Telegram.WebApp.switchInlineQuery(data.inviteLink);
+            } else {
+                console.error('Ссылка не получена:', data);
+                alert('Не удалось получить реферальную ссылку. Попробуйте позже.');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Произошла ошибка. Попробуйте позже.');
+        });
+    }
     // Пример данных о друзьях (в реальном приложении эти данные должны загружаться с сервера)
     const friends = [
         { name: '@evve_rigell', xp: '1 000 000 xp' },
