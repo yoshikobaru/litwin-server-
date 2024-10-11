@@ -56,7 +56,7 @@ function handleInviteButtonClick(event) {
     const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
     console.log('Telegram ID:', telegramId);
 
-    fetch(`/get-referral-link?telegramId=${telegramId}`)
+    fetch(`https://litwin-tap.ru/get-referral-link?telegramId=${telegramId}`)
     .then(response => {
         console.log('Ответ получен:', response);
         return response.json();
@@ -64,8 +64,22 @@ function handleInviteButtonClick(event) {
     .then(data => {
         console.log('Данные получены:', data);
         if (data.inviteLink) {
-            console.log('Открытие диалога "Поделиться" с ссылкой:', data.inviteLink);
-            window.Telegram.WebApp.switchInlineQuery(data.inviteLink);
+            console.log('Реферальная ссылка получена:', data.inviteLink);
+            
+            // Копируем ссылку в буфер обмена
+            navigator.clipboard.writeText(data.inviteLink).then(() => {
+                console.log('Ссылка скопирована в буфер обмена');
+                
+                // Показываем всплывающее уведомление
+                window.Telegram.WebApp.showPopup({
+                    title: 'Ссылка скопирована!',
+                    message: 'Реферальная ссылка скопирована в буфер обмена. Отправьте её друзьям!',
+                    buttons: [{text: 'OK', type: 'ok'}]
+                });
+            }).catch(err => {
+                console.error('Не удалось скопировать ссылку:', err);
+                alert('Не удалось скопировать ссылку. Пожалуйста, скопируйте её вручную: ' + data.inviteLink);
+            });
         } else {
             console.error('Ссылка не получена:', data);
             alert('Не удалось получить реферальную ссылку. Попробуйте позже.');

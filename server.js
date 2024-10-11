@@ -155,12 +155,19 @@ const serveStaticFile = (filePath, res) => {
   });
 };
 
-const options = {
-    key: fs.readFileSync('/etc/letsencrypt/live/litwin-tap.ru/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/litwin-tap.ru/fullchain.pem')
-};
-
 const server = https.createServer(options, async (req, res) => {
+  // Добавляем заголовки CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Обрабатываем preflight запросы
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
   const method = req.method;
