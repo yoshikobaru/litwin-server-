@@ -1,2 +1,2 @@
-node_modules/
-package-lock.json
+   echo "node_modules/" > .gitignore
+   echo "package-lock.json" >> .gitignore
