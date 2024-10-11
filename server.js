@@ -9,7 +9,7 @@ const { Sequelize, DataTypes } = require('sequelize');
 const url = require('url');
 
 // Создаем подключение к базе данных
-const sequelize = new Sequelize('litwin_tap', 'litwin_user', 'your_password', {
+const sequelize = new Sequelize('litwin_tap', 'litwin_user', 'Negxtic007', {
   host: 'localhost',
   dialect: 'postgres'
 });
