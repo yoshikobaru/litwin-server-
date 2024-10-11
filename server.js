@@ -84,43 +84,37 @@ bot.command('start', async (ctx) => {
 // Запускаем бота
 bot.launch();
 
-const options = {
-    key: fs.readFileSync('/etc/letsencrypt/live/litwin-tap.ru/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/litwin-tap.ru/fullchain.pem')
-};
-const server = https.createServer(options, async (req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  
-  if (parsedUrl.pathname === '/get-referral-link') {
-    const telegramId = parsedUrl.query.telegramId;
-    
-    if (!telegramId) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Missing telegramId parameter' }));
-      return;
-    }
-
-    try {
-      const user = await User.findOne({ where: { telegramId } });
-      if (user) {
-        const inviteLink = `https://t.me/LITWIN_TAP_BOT?start=${user.referralCode}`;
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ inviteLink }));
-      } else {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'User not found' }));
+// Определяем маршруты
+const routes = {
+  GET: {
+    '/get-referral-link': async (req, res, query) => {
+      const telegramId = query.telegramId;
+      
+      if (!telegramId) {
+        return { status: 400, body: { error: 'Missing telegramId parameter' } };
       }
-    } catch (error) {
-      console.error('Error in get-referral-link:', error);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Internal server error' }));
+
+      try {
+        const user = await User.findOne({ where: { telegramId } });
+        if (user) {
+          const inviteLink = `https://t.me/LITWIN_TAP_BOT?start=${user.referralCode}`;
+          return { status: 200, body: { inviteLink } };
+        } else {
+          return { status: 404, body: { error: 'User not found' } };
+        }
+      } catch (error) {
+        console.error('Error in get-referral-link:', error);
+        return { status: 500, body: { error: 'Internal server error' } };
+      }
     }
-    return;
+  },
+  POST: {
+    // Здесь вы можете добавить обработчики POST-запросов
   }
-  
-  // Обработка остальных запросов
-  let filePath = path.join(__dirname, '..', 'litwin-server', req.url === '/' ? 'tutorial.html' : req.url);
-  
+};
+
+// Функция для обработки статических файлов
+const serveStaticFile = (filePath, res) => {
   const extname = String(path.extname(filePath)).toLowerCase();
   const contentType = {
     '.html': 'text/html',
@@ -154,9 +148,32 @@ const server = https.createServer(options, async (req, res) => {
       res.end(content, 'utf-8');
     }
   });
+};
+
+const options = {
+    key: fs.readFileSync('/etc/letsencrypt/live/litwin-tap.ru/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/litwin-tap.ru/fullchain.pem')
+};
+
+const server = https.createServer(options, async (req, res) => {
+  const parsedUrl = url.parse(req.url, true);
+  const pathname = parsedUrl.pathname;
+  const method = req.method;
+
+  // Проверяем, есть ли обработчик для данного маршрута
+  if (routes[method] && routes[method][pathname]) {
+    const handler = routes[method][pathname];
+    const result = await handler(req, res, parsedUrl.query);
+    res.writeHead(result.status, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(result.body));
+  } else {
+    // Если нет обработчика, пытаемся отдать статический файл
+    let filePath = path.join(__dirname, '..', 'litwin-server', req.url === '/' ? 'tutorial.html' : req.url);
+    serveStaticFile(filePath, res);
+  }
 });
 
-const port = 443; // Изменено на 443 для HTTPS
+const port = 443;
 server.listen(port, () => {
   console.log(`HTTPS Сервер запущен на порту ${port}`);
   console.log('Telegram бот запущен');
@@ -172,47 +189,3 @@ http.createServer((req, res) => {
 // Graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
-
-app.get('/get-referral-link', async (req, res) => {
-  const telegramId = req.query.telegramId; // Предполагается, что telegramId передается в запросе
-  try {
-    const user = await User.findOne({ where: { telegramId } });
-    if (user) {
-      const inviteLink = `https://t.me/LITWIN_TAP_BOT?start=${user.referralCode}`;
-      res.json({ inviteLink });
-    } else {
-      res.status(404).json({ error: 'User not found' });
-    }
-  } catch (error) {
-    console.error('Error in get-referral-link:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-server.on('request', async (req, res) => {
-  if (req.method === 'GET' && req.url.startsWith('/get-referral-link')) {
-    const urlParams = new URL(req.url, `http://${req.headers.host}`);
-    const telegramId = urlParams.searchParams.get('telegramId');
-
-    if (!telegramId) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Missing telegramId parameter' }));
-      return;
-    }
-
-    try {
-      const user = await User.findOne({ where: { telegramId } });
-      if (user) {
-        const inviteLink = `https://t.me/LITWIN_TAP_BOT?start=${user.referralCode}`;
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ inviteLink }));
-      } else {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'User not found' }));
-      }
-    } catch (error) {
-      console.error('Error in get-referral-link:', error);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Internal server error' }));
-    }
-  }
-});
