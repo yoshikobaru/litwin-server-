@@ -88,22 +88,27 @@ bot.launch();
 const routes = {
   GET: {
     '/get-referral-link': async (req, res, query) => {
+      console.log('Получен запрос на /get-referral-link'); // Отладочное сообщение
       const telegramId = query.telegramId;
       
       if (!telegramId) {
+        console.log('Отсутствует telegramId'); // Отладочное сообщение
         return { status: 400, body: { error: 'Missing telegramId parameter' } };
       }
 
       try {
+        console.log('Поиск пользователя с telegramId:', telegramId); // Отладочное сообщение
         const user = await User.findOne({ where: { telegramId } });
         if (user) {
           const inviteLink = `https://t.me/LITWIN_TAP_BOT?start=${user.referralCode}`;
+          console.log('Сгенерирована ссылка:', inviteLink); // Отладочное сообщение
           return { status: 200, body: { inviteLink } };
         } else {
+          console.log('Пользователь не найден'); // Отладочное сообщение
           return { status: 404, body: { error: 'User not found' } };
         }
       } catch (error) {
-        console.error('Error in get-referral-link:', error);
+        console.error('Ошибка при обработке запроса:', error);
         return { status: 500, body: { error: 'Internal server error' } };
       }
     }

@@ -54,26 +54,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     inviteButton.addEventListener('click', () => {
+        console.log('Кнопка "Пригласить друга" нажата'); // Отладочное сообщение
         const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+        console.log('Telegram ID:', telegramId); // Отладочное сообщение
+
         // Запрашиваем реферальную ссылку с сервера
         fetch(`/get-referral-link?telegramId=${telegramId}`)
-          .then(response => response.json())
-          .then(data => {
-            if (data.inviteLink) {
-              // Используем Telegram Web App API для отправки ссылки
-              window.Telegram.WebApp.sendData(JSON.stringify({
-                action: 'share',
-                url: data.inviteLink
-              }));
-            } else {
-              alert('Не удалось получить реферальную ссылку. Попробуйте позже.');
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            alert('Произошла ошибка. Попробуйте позже.');
-          });
-      });
+            .then(response => {
+                console.log('Ответ получен:', response); // Отладочное сообщение
+                return response.json();
+            })
+            .then(data => {
+                console.log('Данные получены:', data); // Отладочное сообщение
+                if (data.inviteLink) {
+                    console.log('Отправка данных в Telegram:', data.inviteLink); // Отладочное сообщение
+                    window.Telegram.WebApp.sendData(JSON.stringify({
+                        action: 'share',
+                        url: data.inviteLink
+                    }));
+                } else {
+                    console.error('Ссылка не получена:', data); // Отладочное сообщение
+                    alert('Не удалось получить реферальную ссылку. Попробуйте позже.');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка. Попробуйте позже.');
+            });
+    });
     // Пример данных о друзьях (в реальном приложении эти данные должны загружаться с сервера)
     const friends = [
         { name: '@evve_rigell', xp: '1 000 000 xp' },
