@@ -108,6 +108,7 @@ function initializeMainPage() {
     initializeVariables();
     calculateOfflineEarnings();
     startOfflineEarningInterval();
+    updateBalanceDisplay();
 
     isOnline = true;
 
@@ -117,6 +118,7 @@ function initializeMainPage() {
     updateHourlyProfit();
     updateTapProfit();
     updateUserProfile();
+    initializeTelegramWebApp();
 
     canElement.addEventListener('click', handleCanClick);
 
@@ -166,6 +168,16 @@ document.addEventListener('DOMContentLoaded', () => {
 if (window.Telegram && window.Telegram.WebApp) {
     window.Telegram.WebApp.onEvent('viewportChanged', updateUserProfile);
 }
+
+function initializeTelegramWebApp() {
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        console.log('WebApp инициализирован:', window.Telegram.WebApp.initDataUnsafe);
+    } else {
+        console.error('Telegram WebApp не доступен');
+    }
+}
+
 function updateProgress() {
     let progressPercentage;
     if (currentLevel === progressLevels.length) {
@@ -571,14 +583,6 @@ function loadTasksPage() {
 
 function loadFriendsPage() {
     loadPage('friends');
-}
-function initializeTelegramWebApp() {
-    if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.ready();
-        console.log('WebApp инициализирован:', window.Telegram.WebApp.initDataUnsafe);
-    } else {
-        console.error('Telegram WebApp не доступен');
-    }
 }
 // Инициализация главной страницы при згрузке
 document.addEventListener('DOMContentLoaded', () => {
