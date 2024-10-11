@@ -401,102 +401,6 @@ function startEnergyRegenInterval() {
     setInterval(regenerateEnergy, energyRegenInterval);
 }
 
-let isShaking = false;
-let lastShakeTime = 0;
-const shakeThreshold = 15;
-const shakeCooldown = 1000;
-
-function requestMotionPermission() {
-    if (typeof DeviceMotionEvent.requestPermission === 'function') {
-        // iOS 13+ устройства
-        DeviceMotionEvent.requestPermission()
-            .then(permissionState => {
-                if (permissionState === 'granted') {
-                    window.addEventListener('devicemotion', handleShake);
-                }
-            })
-            .catch(console.error);
-    } else {
-        // Устройства, не требующие разрешения
-        window.addEventListener('devicemotion', handleShake);
-    }
-}
-
-function handleShake(event) {
-    const currentTime = new Date().getTime();
-    if (currentTime - lastShakeTime < shakeCooldown) return;
-
-    let acceleration = event.acceleration;
-    
-    // Дл устройств, которые не предоставяют event.acceleration
-    if (!acceleration || acceleration.x === null) {
-        acceleration = event.accelerationIncludingGravity;
-    }
-
-    const { x, y, z } = acceleration;
-    const accelerationMagnitude = Math.sqrt(x*x + y*y + z*z);
-
-    if (accelerationMagnitude > shakeThreshold) {
-        if (!isShaking) {
-            isShaking = true;
-            shakeReward();
-        }
-    } else {
-        isShaking = false;
-    }
-
-    lastShakeTime = currentTime;
-}
-
-function shakeReward() {
-    if (energy > 0) {
-        const shakeProfit = Math.floor(tapProfit / 2);
-        totalEarnedCoins += shakeProfit;
-        updateBalance(shakeProfit);
-        updateProgress();
-
-        energy -= 1;
-        updateEnergy();
-
-        showShakeProfit(shakeProfit);
-    }
-}
-
-function showShakeProfit(profit) {
-    const profitElement = document.createElement('div');
-    profitElement.className = 'shake-profit';
-    profitElement.textContent = `+${profit}`;
-
-    const containerRect = document.querySelector('.container').getBoundingClientRect();
-    const x = Math.random() * (containerRect.width - 50);
-    const y = Math.random() * (containerRect.height - 50);
-
-    profitElement.style.left = `${x}px`;
-    profitElement.style.top = `${y}px`;
-
-    document.querySelector('.container').appendChild(profitElement);
-
-    setTimeout(() => {
-        profitElement.style.opacity = '0';
-        profitElement.style.transform = 'translateY(-20px)';
-        setTimeout(() => profitElement.remove(), 500);
-    }, 10);
-}
-
-// Добавляем обработчик события тряски
-if (window.DeviceMotionEvent) {
-    window.addEventListener('devicemotion', handleShake, false);
-} else {
-    console.log('DeviceMotionEvent не поддерживается на этом устройстве');
-}
-// Инициализация обработчика тряски
-document.addEventListener('DOMContentLoaded', () => {
-    const shakeButton = document.createElement('button');
-    shakeButton.textContent = 'Разрешить тряску устройства';
-    shakeButton.addEventListener('click', requestMotionPermission);
-    document.body.appendChild(shakeButton);
-});
-
 function handleFooterButtonClick(event) {
     const page = event.target.closest('.footer-btn').dataset.page;
     loadPage(page);
@@ -507,94 +411,35 @@ function handleFooterButtonClick(event) {
     });
     event.target.closest('.footer-btn').classList.add('active');
 }
+function showPage(pageName) {
+    document.querySelectorAll('.page').forEach(page => {
+        page.style.display = 'none';
+    });
+    document.getElementById(`${pageName}-page`).style.display = 'block';
 
-function loadPage(pageName) {
-    const fileName = pageName === 'tasks' ? 'task' : pageName;
-    
-    fetch(`${fileName}.html`)
-        .then(response => response.text())
-        .then(html => {
-            document.querySelector('.container').innerHTML = html;
-            if (pageName === 'main') {
-                initializeMainPage();
-            } else {
-                const script = document.createElement('script');
-                script.src = `${fileName}.js`;
-                script.onload = function() {
-                    console.log(`Скрипт ${fileName}.js загружен и выполнен`);
-                    if (pageName === 'friends' && typeof window.initializeFriendsPage === 'function') {
-                        window.initializeFriendsPage();
-                    }
-                };
-                document.body.appendChild(script);
-            }
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = `${fileName}.css`;
-            document.head.appendChild(link);
-            
-            addFooter();
-        })
-        .catch(error => console.error(`Ошибка загрузки страницы ${fileName}:`, error));
+    document.querySelectorAll('.footer-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`.footer-btn[data-page="${pageName}"]`).classList.add('active');
+
+    if (pageName === 'friends') {
+        initializeFriendsPage();
+    }
 }
 
-function addFooter() {
-    const footer = document.createElement('footer');
-    footer.className = 'footer';
-    footer.innerHTML = `
-        <nav>
-            <ul>
-                <li><button class="footer-btn" data-page="main">
-                    <img src="assets/icon.svg" alt="Главная" class="footer-icon">
-                    <span>Главная</span>
-                </button></li>
-                <li><button class="footer-btn" data-page="collection">
-                    <img src="assets/koll.png" alt="Коллекция" class="footer-icon">
-                    <span>Коллекция</span>
-                </button></li>
-                <li><button class="footer-btn" data-page="task">
-                    <img src="assets/diamond-sharp.svg" alt="Задания" class="footer-icon">
-                    <span>Задания</span>
-                </button></li>
-                <li><button class="footer-btn" data-page="friends">
-                    <img src="assets/users.svg" alt="Друзья" class="footer-icon">
-                    <span>Друзья</span>
-                </button></li>
-            </ul>
-        </nav>
-    `;
-    document.body.appendChild(footer);
-    
-    // Добавляем обработчики событий для кнопок футера
+function handleFooterButtonClick(event) {
+    const page = event.target.closest('.footer-btn').dataset.page;
+    showPage(page);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.footer-btn').forEach(btn => {
         btn.addEventListener('click', handleFooterButtonClick);
     });
-}
 
-// Заменяем ществующие функции loadCollectionPage, loadMainPage, loadTasksPage, loadFriendsPage
-function loadCollectionPage() {
-    loadPage('collection');
-}
-
-function loadMainPage() {
-    loadPage('main');
-}
-
-function loadTasksPage() {
-    loadPage('task');
-}
-
-function loadFriendsPage() {
-    loadPage('friends');
-}
-// Инициализация главной страницы при згрузке
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.querySelector('.container').children.length === 0) {
-        loadPage('main');
-    } else {
-        initializeTelegramWebApp();
-        initializeMainPage();
-    }
+    showPage('main');
+    initializeTelegramWebApp();
+    initializeMainPage();
 });
 
 // Запуск регенерации энергии
@@ -723,7 +568,7 @@ window.addEventListener('message', function(event) {
     // ... обработка других типов сообщений ...
 });
 
-function updateCanImage(index) {
+window.updateCanImage = function(index) {
     const canElement = document.getElementById('can');
     if (canElement) {
         const newCanSrc = canImages[index];
@@ -732,7 +577,7 @@ function updateCanImage(index) {
         updateFriendsCanImage(index);
         localStorage.setItem('selectedCan', index.toString());
     }
-}
+};
 
 function updateAppTheme(canSrc) {
     const theme = canThemes[canSrc] || canThemes['assets/bankaClassic.png'];

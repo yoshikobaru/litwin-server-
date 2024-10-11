@@ -6,9 +6,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Lit WIN Tap</title>
     <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="friends.css">
+    <link rel="stylesheet" href="task.css">
+    <link rel="stylesheet" href="collection.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
+    <div id="main-page" class="page">
     
         <div class="container">
             <div class="top-info">
@@ -56,7 +60,111 @@
                 <span id="energy">100/100</span>
             </div>
         </div>
+    </div>
     
+    <div id="collection-page" class="page" style="display: none;">
+        <div class="container">
+            <h1>Твоя коллекция</h1>
+            <div id="collection-grid"></div>
+            <hr class="divider">
+            <h2>Маркет</h2>
+            <div id="market-items"></div>
+        </div>
+        
+    </div>
+    
+    <div id="tasks-page" class="page" style="display: none;">
+        <div class="container tasks-page">
+            <h1>Забери ежедневный бонус</h1>
+            <div class="daily-bonus">
+                <div class="bonus-grid">
+                    <button class="bonus-item unlocked" type="button" id="bonus0">
+                        <img src="assets/litcoin.png" alt="LitCoin" class="bonus-coin">
+                        <span class="bonus-value">+500</span>
+                    </button>
+                    <button class="bonus-item locked" type="button" id="bonus1">
+                        <img src="assets/litcoin.png" alt="LitCoin" class="locked-coin">
+                        <span class="bonus-value">1000</span>
+                    </button>
+                    <button class="bonus-item locked" type="button" id="bonus2">
+                        <img src="assets/litcoin.png" alt="LitCoin" class="locked-coin">
+                        <span class="bonus-value">7000</span>
+                    </button>
+                    <button class="bonus-item locked" type="button" id="bonus3">
+                        <img src="assets/litcoin.png" alt="LitCoin" class="locked-coin">
+                        <span class="bonus-value">15000</span>
+                    </button>
+                </div>
+                <div class="bonus-grid">
+                    <button class="bonus-item locked" type="button" id="bonus4">
+                        <img src="assets/litcoin.png" alt="LitCoin" class="locked-coin">
+                        <span class="bonus-value">45000</span>
+                    </button>
+                    <button class="bonus-item locked" type="button" id="bonus5">
+                        <img src="assets/litcoin.png" alt="LitCoin" class="locked-coin">
+                        <span class="bonus-value">75000</span>
+                    </button>
+                    <button class="bonus-item locked" type="button" id="bonus6">
+                        <img src="assets/litcoin.png" alt="LitCoin" class="locked-coin">
+                        <span class="bonus-value">125000</span>
+                    </button>
+                </div>
+            </div>
+            <h2>Задания</h2>
+            <div id="tasks-list">
+                <div class="task-item">
+                    <div class="task-info">
+                        <div class="task-circle"></div>
+                        <span class="task-name">Задание 1</span>
+                    </div>
+                    <div class="task-reward">
+                        <span class="reward-value">100</span>
+                        <img src="assets/litcoin.png" alt="LitCoin" class="reward-coin">
+                    </div>
+                </div>
+                <div class="task-item">
+                    <div class="task-info">
+                        <div class="task-circle"></div>
+                        <span class="task-name">Задание 2</span>
+                    </div>
+                    <div class="task-reward">
+                        <span class="reward-value">100</span>
+                        <img src="assets/litcoin.png" alt="LitCoin" class="reward-coin">
+                    </div>
+                </div>
+                <div class="task-item">
+                    <div class="task-info">
+                        <div class="task-circle"></div>
+                        <span class="task-name">Задание 3</span>
+                    </div>
+                    <div class="task-reward">
+                        <span class="reward-value">100</span>
+                        <img src="assets/litcoin.png" alt="LitCoin" class="reward-coin">
+                    </div>
+                </div>
+                <div class="task-item">
+                    <div class="task-info">
+                        <div class="task-circle"></div>
+                        <span class="task-name">Задание 4</span>
+                    </div>
+                    <div class="task-reward">
+                        <span class="reward-value">100</span>
+                        <img src="assets/litcoin.png" alt="LitCoin" class="reward-coin">
+                    </div>
+                </div>
+            </div>
+        </div>   
+    </div>
+    
+    <div id="friends-page" class="page" style="display: none;">
+        <div class="friends-container">
+            <img src="assets/twobanka.png" alt="Две банки" class="cans-image" id="cansImage">
+            <button class="invite-button" id="inviteButton">⚡Пригласить друга!</button>
+            <div class="friends-list" id="friendsList">
+                <!-- Список друзей будет добавлен динамически -->
+            </div>
+        </div>
+    </div>
 
     <footer class="footer">
         <nav>
@@ -81,7 +189,8 @@
         </nav>
     </footer>
     <script src="main.js"></script>
-    <script>
-    </script>
+    <script src="friends.js"></script>
+    <script src="task.js"></script>
+    <script src="collection.js"></script>
 </body>
 </html>

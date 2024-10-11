@@ -113,6 +113,35 @@ const routes = {
       }
     }
   },
+  '/get-referred-friends': async (req, res, query) => {
+    console.log('Получен запрос на /get-referred-friends');
+    const telegramId = query.telegramId;
+    
+    if (!telegramId) {
+      console.log('Отсутствует telegramId');
+      return { status: 400, body: { error: 'Missing telegramId parameter' } };
+    }
+
+    try {
+      console.log('Поиск рефералов для пользователя с telegramId:', telegramId);
+      const user = await User.findOne({ where: { telegramId } });
+      if (user) {
+        const referredFriends = await User.findAll({
+          where: { referredBy: user.referralCode },
+          attributes: ['telegramId']
+        });
+        console.log('Найдено рефералов:', referredFriends.length);
+        return { status: 200, body: { referredFriends: referredFriends.map(friend => friend.telegramId) } };
+      } else {
+        console.log('Пользователь не найден');
+        return { status: 404, body: { error: 'User not found' } };
+      }
+    } catch (error) {
+      console.error('Ошибка при обработке запроса:', error);
+      return { status: 500, body: { error: 'Internal server error' } };
+    }
+  },
+  
   POST: {
     // Здесь вы можете добавить обработчики POST-запросов
   }

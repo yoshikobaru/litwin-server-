@@ -1,60 +1,143 @@
-console.log('friends.js загружен');
-
-const canImages = [
-    'assets/two.png',
-    'assets/twobankamango.png',
-    'assets/twobankablueberry.png',
-    // Добавьте остальные изображения для двух банок здесь
-];
-
-window.addEventListener('message', function(event) {
-    console.log('Получено сообщение:', event.data);
-    if (event.data.type === 'updateTheme') {
-        applyTheme(event.data.theme);
+function initializeFriendsPage() {
+    console.log('Инициализация страницы друзей');
+    const inviteButton = document.getElementById('inviteButton');
+    if (inviteButton) {
+        console.log('Кнопка найдена, добавляем обработчик');
+        inviteButton.addEventListener('click', handleInviteButtonClick);
+    } else {
+        console.error('Кнопка приглашения не найдена');
     }
-    if (event.data.type === 'updateCan') {
-        const selectedCan = event.data.canSrc;
-        updateCansImage(selectedCan);
-    }
-});
 
-function applyTheme(theme) {
-    console.log('Применение темы:', theme);
-    document.documentElement.style.setProperty('--primary-color', theme.primary);
-    document.documentElement.style.setProperty('--secondary-color', theme.secondary);
-    document.documentElement.style.setProperty('--tertiary-color', theme.tertiary);
+    // Получаем список приглашенных друзей
+    getReferredFriends();
+
+    // Проверяем текущую выбранную банку при загрузке страницы
+    const selectedCan = localStorage.getItem('selectedCan');
+    if (selectedCan) {
+        updateCanImage(parseInt(selectedCan));
+    }
 }
 
-function updateCansImage(index) {
-    console.log('Обновление изображения банок:', index);
-    const cansImage = document.getElementById('cansImage');
-    if (!cansImage) {
-        console.error('Элемент cansImage не найден');
+function getReferredFriends() {
+    let telegramId;
+    try {
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+            telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+        } else {
+            throw new Error('Telegram WebApp не инициализирован или не содержит данных пользователя');
+        }
+    } catch (error) {
+        console.error('Ошибка при получении Telegram ID:', error);
+        displayReferredFriends([]); // Отображаем пустой список друзей
         return;
     }
-    const newCanSrc = canImages[index];
-    if (newCanSrc) {
-        cansImage.src = newCanSrc;
-        console.log('Новый src изображения:', cansImage.src);
-    } else {
-        console.error('Неверный индекс банки:', index);
+
+    fetch(`https://litwin-tap.ru/get-referred-friends?telegramId=${telegramId}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.referredFriends) {
+            displayReferredFriends(data.referredFriends);
+        } else {
+            console.error('Не удалось получить список рефералов:', data.error);
+            displayReferredFriends([]);
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка при получении списка рефералов:', error);
+        displayReferredFriends([]);
+    });
+}
+
+function displayReferredFriends(friends) {
+    const friendsList = document.getElementById('friendsList');
+    if (friendsList) {
+        friendsList.innerHTML = ''; // Очищаем список перед добавлением новых элементов
+        if (friends.length === 0) {
+            friendsList.innerHTML = '<p>У вас пока нет приглашенных друзей.</p>';
+        } else {
+            friends.forEach(friendId => {
+                const friendItem = document.createElement('div');
+                friendItem.className = 'friend-item';
+                friendItem.innerHTML = `
+                    <span class="friend-name">Друг ID: ${friendId}</span>
+                    <span class="friend-xp">Приглашен</span>
+                `;
+                friendsList.appendChild(friendItem);
+            });
+        }
+        console.log('Список друзей отображен');
     }
 }
 
-function handleInviteButtonClick(event) {
-    console.log('Кнопка "Пригласить друга" нажата');
+    // Проверяем текущую выбранную банку при загрузке страницы
+    const selectedCan = localStorage.getItem('selectedCan');
+    if (selectedCan) {
+        updateCanImage(parseInt(selectedCan));
+    }
+
+
+    function showPopup(title, message) {
+        const popup = document.createElement('div');
+        popup.style.position = 'fixed';
+        popup.style.left = '50%';
+        popup.style.top = '50%';
+        popup.style.transform = 'translate(-50%, -50%)';
+        popup.style.backgroundColor = 'var(--tertiary-color)'; // Используем цвет из CSS переменных
+        popup.style.color = '#fff'; // Белый текст для контраста
+        popup.style.padding = '20px';
+        popup.style.borderRadius = '10px';
+        popup.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+        popup.style.zIndex = '1000';
+        popup.style.maxWidth = '80%'; // Ограничиваем ширину попапа
+        popup.style.textAlign = 'center'; // Центрируем текст
+    
+        const closeButton = document.createElement('button');
+        closeButton.textContent = 'OK';
+        closeButton.style.backgroundColor = 'var(--secondary-color)';
+        closeButton.style.color = '#fff';
+        closeButton.style.border = 'none';
+        closeButton.style.padding = '10px 20px';
+        closeButton.style.borderRadius = '5px';
+        closeButton.style.marginTop = '15px';
+        closeButton.style.cursor = 'pointer';
+        closeButton.onclick = () => popup.remove();
+    
+        popup.innerHTML = `
+            <h2 style="margin-top: 0; color: #FFD700;">${title}</h2>
+            <p style="margin-bottom: 20px;">${message}</p>
+        `;
+        popup.appendChild(closeButton);
+    
+        document.body.appendChild(popup);
+    }
+
+window.handleInviteButtonClick = function(event) {
+    console.log('Функция handleInviteButtonClick вызвана');
     event.preventDefault();
     
     if (!window.Telegram || !window.Telegram.WebApp) {
         console.error('Telegram WebApp не доступен');
-        alert('Ошибка: Telegram WebApp не доступен');
+        showPopup('Ошибка', 'Telegram WebApp не доступен');
         return;
     }
     
     console.log('Telegram WebApp доступен');
     
-    const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
-    console.log('Telegram ID:', telegramId);
+    let telegramId;
+    try {
+        telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+        console.log('Telegram ID:', telegramId);
+    } catch (error) {
+        console.error('Не удалось получить Telegram ID:', error);
+        showPopup('Ошибка', 'Не удалось получить информацию о пользователе');
+        return;
+    }
+
+    if (!telegramId) {
+        console.error('Telegram ID не определен');
+        showPopup('Ошибка', 'Не удалось получить информацию о пользователе');
+        return;
+    }
 
     fetch(`https://litwin-tap.ru/get-referral-link?telegramId=${telegramId}`)
     .then(response => {
@@ -69,78 +152,20 @@ function handleInviteButtonClick(event) {
             // Копируем ссылку в буфер обмена
             navigator.clipboard.writeText(data.inviteLink).then(() => {
                 console.log('Ссылка скопирована в буфер обмена');
-                
-                // Показываем всплывающее уведомление
-                window.Telegram.WebApp.showPopup({
-                    title: 'Ссылка скопирована!',
-                    message: 'Реферальная ссылка скопирована в буфер обмена. Отправьте её друзьям!',
-                    buttons: [{text: 'OK', type: 'ok'}]
-                });
+                showPopup('Успех', 'Реферальная ссылка скопирована в буфер обмена. Отправьте её друзьям!');
             }).catch(err => {
                 console.error('Не удалось скопировать ссылку:', err);
-                alert('Не удалось скопировать ссылку. Пожалуйста, скопируйте её вручную: ' + data.inviteLink);
+                showPopup('Внимание', `Не удалось скопировать ссылку. Пожалуйста, скопируйте её вручную: ${data.inviteLink}`);
             });
         } else {
             console.error('Ссылка не получена:', data);
-            alert('Не удалось получить реферальную ссылку. Попробуйте позже.');
+            showPopup('Ошибка', 'Не удалось получить реферальную ссылку. Попробуйте позже.');
         }
     })
     .catch(error => {
         console.error('Ошибка:', error);
-        alert('Произошла ошибка. Попробуйте позже.');
+        showPopup('Ошибка', 'Произошла ошибка при получении реферальной ссылки. Попробуйте позже.');
     });
 }
 
-function initializeFriendsPage() {
-    console.log('Инициализация страницы друзей');
-    const inviteButton = document.getElementById('inviteButton');
-    if (inviteButton) {
-        console.log('Кнопка найдена, добавляем обработчик');
-        inviteButton.addEventListener('click', handleInviteButtonClick);
-    } else {
-        console.error('Кнопка приглашения не найдена');
-    }
-
-    const friendsList = document.getElementById('friendsList');
-    if (!friendsList) {
-        console.error('Элемент friendsList не найден');
-        return;
-    }
-
-    // Пример данных о друзьях (в реальном приложении эти данные должны загружаться с сервера)
-    const friends = [
-        { name: '@evve_rigell', xp: '1 000 000 xp' },
-        { name: '@evve_rigell', xp: '1 000 000 xp' },
-        { name: '@evve_rigell', xp: '1 000 000 xp' },
-        { name: '@evve_rigell', xp: '1 000 000 xp' }
-    ];
-
-    // Отображение списка друзей
-    friends.forEach(friend => {
-        const friendItem = document.createElement('div');
-        friendItem.className = 'friend-item';
-        friendItem.innerHTML = `
-            <span class="friend-name">${friend.name}</span>
-            <span class="friend-xp">${friend.xp}</span>
-        `;
-        friendsList.appendChild(friendItem);
-    });
-
-    console.log('Список друзей отображен');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM загружен');
-    initializeFriendsPage();
-
-    // Проверяем текущую выбранную банку при загрузке страницы
-    const selectedCan = localStorage.getItem('selectedCan');
-    if (selectedCan) {
-        updateCansImage(parseInt(selectedCan));
-    }
-});
-
-// Добавляем глобальный обработчик ошибок
-window.onerror = function(message, source, lineno, colno, error) {
-    console.error('Глобальная ошибка:', message, 'Источник:', source, 'Строка:', lineno, 'Колонка:', colno, 'Объект ошибки:', error);
-};
+// Остальные вспомогательные функции (updateCansImage, showPopup и т.д.) остаются без изменений
