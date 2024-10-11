@@ -192,14 +192,16 @@ const server = https.createServer(options, async (req, res) => {
   const pathname = parsedUrl.pathname;
   const method = req.method;
 
+  // Проверяем, есть ли обработчик для данного маршрута
   if (routes[method] && routes[method][pathname]) {
     const handler = routes[method][pathname];
     const result = await handler(req, res, parsedUrl.query);
     res.writeHead(result.status, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(result.body));
   } else {
-    res.writeHead(404, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Route not found' }));
+    // Если нет обработчика, пытаемся отдать статический файл
+    let filePath = path.join(__dirname, '..', 'litwin-server', req.url === '/' ? 'tutorial.html' : req.url);
+    serveStaticFile(filePath, res);
   }
 });
 
