@@ -1,3 +1,5 @@
+console.log('friends.js загружен');
+
 const canImages = [
     'assets/two.png',
     'assets/twobankamango.png',
@@ -6,6 +8,7 @@ const canImages = [
 ];
 
 window.addEventListener('message', function(event) {
+    console.log('Получено сообщение:', event.data);
     if (event.data.type === 'updateTheme') {
         applyTheme(event.data.theme);
     }
@@ -16,96 +19,80 @@ window.addEventListener('message', function(event) {
 });
 
 function applyTheme(theme) {
+    console.log('Применение темы:', theme);
     document.documentElement.style.setProperty('--primary-color', theme.primary);
     document.documentElement.style.setProperty('--secondary-color', theme.secondary);
     document.documentElement.style.setProperty('--tertiary-color', theme.tertiary);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const inviteButton = document.getElementById('inviteButton');
-    const friendsList = document.getElementById('friendsList');
+function updateCansImage(index) {
+    console.log('Обновление изображения банок:', index);
     const cansImage = document.getElementById('cansImage');
+    if (!cansImage) {
+        console.error('Элемент cansImage не найден');
+        return;
+    }
+    const newCanSrc = canImages[index];
+    if (newCanSrc) {
+        cansImage.src = newCanSrc;
+        console.log('Новый src изображения:', cansImage.src);
+    } else {
+        console.error('Неверный индекс банки:', index);
+    }
+}
 
-    // Функция для обновления изображения банок
-    function updateCansImage(index) {
-        console.log('Обновление изображения банок:', index); // Отладочное сообщение
-        const newCanSrc = canImages[index];
-        if (newCanSrc) {
-            cansImage.src = newCanSrc;
-            console.log('Новый src изображения:', cansImage.src); // Отладочное сообщение
+function handleInviteButtonClick(event) {
+    console.log('Кнопка "Пригласить друга" нажата');
+    event.preventDefault();
+    
+    if (!window.Telegram || !window.Telegram.WebApp) {
+        console.error('Telegram WebApp не доступен');
+        alert('Ошибка: Telegram WebApp не доступен');
+        return;
+    }
+    
+    console.log('Telegram WebApp доступен');
+    
+    const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+    console.log('Telegram ID:', telegramId);
+
+    fetch(`/get-referral-link?telegramId=${telegramId}`)
+    .then(response => {
+        console.log('Ответ получен:', response);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Данные получены:', data);
+        if (data.inviteLink) {
+            console.log('Открытие диалога "Поделиться" с ссылкой:', data.inviteLink);
+            window.Telegram.WebApp.switchInlineQuery(data.inviteLink);
         } else {
-            console.error('Неверный индекс банки:', index);
+            console.error('Ссылка не получена:', data);
+            alert('Не удалось получить реферальную ссылку. Попробуйте позже.');
         }
-    }
-
-    // Слушаем сообщения от родительского окна
-    window.addEventListener('message', function(event) {
-        console.log('Получено сообщение:', event.data); // Отладочное сообщение
-        if (event.data.type === 'updateCan') {
-            const canIndex = event.data.canIndex;
-            updateCansImage(canIndex);
-        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка. Попробуйте позже.');
     });
+}
 
-    // Проверяем текущую выбранную банку при загрузке страницы
-    const selectedCan = localStorage.getItem('selectedCan');
-    if (selectedCan) {
-        updateCansImage(parseInt(selectedCan));
+function initializeFriendsPage() {
+    console.log('Инициализация страницы друзей');
+    const inviteButton = document.getElementById('inviteButton');
+    if (inviteButton) {
+        console.log('Кнопка найдена, добавляем обработчик');
+        inviteButton.addEventListener('click', handleInviteButtonClick);
+    } else {
+        console.error('Кнопка приглашения не найдена');
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM загружен');
-        window.initializeFriendsPage();
-    });
-    
-    window.initializeFriendsPage = function() {
-        console.log('Инициализация страницы друзей');
-        const inviteButton = document.getElementById('inviteButton');
-        if (inviteButton) {
-            console.log('Кнопка найдена, добавляем обработчик');
-            inviteButton.addEventListener('click', handleInviteButtonClick);
-        } else {
-            console.error('Кнопка приглашения не найдена');
-        }
+    const friendsList = document.getElementById('friendsList');
+    if (!friendsList) {
+        console.error('Элемент friendsList не найден');
+        return;
     }
-    
-    function handleInviteButtonClick(event) {
-        event.preventDefault();
-        console.log('Кнопка "Пригласить друга" нажата');
-        
-        if (!window.Telegram || !window.Telegram.WebApp) {
-            console.error('Telegram WebApp не доступен');
-            alert('Ошибка: Telegram WebApp не доступен');
-            return;
-        }
-        
-        console.log('Telegram WebApp доступен');
-        
-        const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
-        console.log('Telegram ID:', telegramId);
-    
-        // Запрашиваем реферальную ссылку с сервера
-        fetch(`/get-referral-link?telegramId=${telegramId}`)
-        .then(response => {
-            console.log('Ответ получен:', response);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Данные получены:', data);
-            if (data.inviteLink) {
-                console.log('Открытие диалога "Поделиться" с ссылкой:', data.inviteLink);
-                // Используем switchInlineQuery вместо sendData
-                window.Telegram.WebApp.switchInlineQuery(data.inviteLink);
-            } else {
-                console.error('Ссылка не получена:', data);
-                alert('Не удалось получить реферальную ссылку. Попробуйте позже.');
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка:', error);
-            alert('Произошла ошибка. Попробуйте позже.');
-        });
-    }
+
     // Пример данных о друзьях (в реальном приложении эти данные должны загружаться с сервера)
     const friends = [
         { name: '@evve_rigell', xp: '1 000 000 xp' },
@@ -124,4 +111,22 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         friendsList.appendChild(friendItem);
     });
+
+    console.log('Список друзей отображен');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM загружен');
+    initializeFriendsPage();
+
+    // Проверяем текущую выбранную банку при загрузке страницы
+    const selectedCan = localStorage.getItem('selectedCan');
+    if (selectedCan) {
+        updateCansImage(parseInt(selectedCan));
+    }
 });
+
+// Добавляем глобальный обработчик ошибок
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error('Глобальная ошибка:', message, 'Источник:', source, 'Строка:', lineno, 'Колонка:', colno, 'Объект ошибки:', error);
+};
