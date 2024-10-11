@@ -6,13 +6,15 @@ const { Telegraf } = require('telegraf');
 const crypto = require('crypto');
 require('dotenv').config();
 const { Sequelize, DataTypes } = require('sequelize');
+const url = require('url');
+
 // Создаем подключение к базе данных
 const sequelize = new Sequelize('litwin_tap', 'litwin_user', 'your_password', {
   host: 'localhost',
   dialect: 'postgres'
 });
 
-// Определяем модель Friend
+// Определяем модель User
 const User = sequelize.define('User', {
   telegramId: {
     type: DataTypes.STRING,
@@ -32,8 +34,6 @@ const User = sequelize.define('User', {
 
 // Синхронизируем модель с базой данных
 sequelize.sync();
-
-
 // Создаем экземпляр бота с вашим токеном
 const bot = new Telegraf(process.env.BOT_TOKEN);
 // WebApp URL
@@ -88,7 +88,37 @@ const options = {
     key: fs.readFileSync('/etc/letsencrypt/live/litwin-tap.ru/privkey.pem'),
     cert: fs.readFileSync('/etc/letsencrypt/live/litwin-tap.ru/fullchain.pem')
 };
-const server = https.createServer(options, (req, res) => {
+const server = https.createServer(options, async (req, res) => {
+  const parsedUrl = url.parse(req.url, true);
+  
+  if (parsedUrl.pathname === '/get-referral-link') {
+    const telegramId = parsedUrl.query.telegramId;
+    
+    if (!telegramId) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Missing telegramId parameter' }));
+      return;
+    }
+
+    try {
+      const user = await User.findOne({ where: { telegramId } });
+      if (user) {
+        const inviteLink = `https://t.me/LITWIN_TAP_BOT?start=${user.referralCode}`;
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ inviteLink }));
+      } else {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'User not found' }));
+      }
+    } catch (error) {
+      console.error('Error in get-referral-link:', error);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal server error' }));
+    }
+    return;
+  }
+  
+  // Обработка остальных запросов
   let filePath = path.join(__dirname, '..', 'litwin-server', req.url === '/' ? 'tutorial.html' : req.url);
   
   const extname = String(path.extname(filePath)).toLowerCase();
