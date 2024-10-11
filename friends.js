@@ -54,13 +54,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     inviteButton.addEventListener('click', () => {
-        // Здесь будет логика для генерации и копирования реферальной ссылки
-        const referralLink = 'https://example.com/ref=123456'; // Замените на реальную ссылку
-        navigator.clipboard.writeText(referralLink).then(() => {
-            alert('Реферальная ссылка скопирована в буфер обмена!');
-        });
-    });
-
+        const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+        // Запрашиваем реферальную ссылку с сервера
+        fetch(`/get-referral-link?telegramId=${telegramId}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.inviteLink) {
+              // Используем Telegram Web App API для отправки ссылки
+              window.Telegram.WebApp.sendData(JSON.stringify({
+                action: 'share',
+                url: data.inviteLink
+              }));
+            } else {
+              alert('Не удалось получить реферальную ссылку. Попробуйте позже.');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка. Попробуйте позже.');
+          });
+      });
     // Пример данных о друзьях (в реальном приложении эти данные должны загружаться с сервера)
     const friends = [
         { name: '@evve_rigell', xp: '1 000 000 xp' },
