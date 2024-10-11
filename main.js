@@ -266,15 +266,72 @@ function createBubble() {
     setTimeout(() => bubble.remove(), 1000);
 }
 
+// Добавьте эту функцию
+function createMango() {
+    console.log('Creating a mango'); // Отладочное сообщение
+    const mango = document.createElement('div');
+    mango.classList.add('mango');
+    
+    const size = Math.random() * 20 + 10;
+    mango.style.width = `${size}px`;
+    mango.style.height = `${size}px`;
+    
+    const startAngle = Math.random() * Math.PI * 2;
+    const startRadius = 75;
+    const endRadius = 100 + Math.random() * 50;
+    
+    const startX = Math.cos(startAngle) * startRadius;
+    const startY = Math.sin(startAngle) * startRadius;
+    
+    mango.style.left = `calc(50% + ${startX}px)`;
+    mango.style.top = `calc(50% + ${startY}px)`;
+    
+    const endX = Math.cos(startAngle) * endRadius;
+    const endY = Math.sin(startAngle) * endRadius;
+    
+    const tx = endX - startX;
+    const ty = endY - startY;
+    
+    mango.style.setProperty('--tx', `${tx}px`);
+    mango.style.setProperty('--ty', `${ty}px`);
+    
+    bubblesContainer.appendChild(mango);
+    setTimeout(() => mango.remove(), 1000);
+}
+
+// Обновите функцию handleCanClick
 function handleCanClick() {
     if (energy > 0) {
         canElement.classList.add('shake');
         setTimeout(() => canElement.classList.remove('shake'), 200);
 
-        for (let i = 0; i < 15; i++) {
-            setTimeout(() => {
-                createBubble();
-            }, Math.random() * 200);
+        const selectedCan = localStorage.getItem('selectedCan') || '0';
+        const canSrc = canImages[parseInt(selectedCan)];
+
+        console.log('Selected can:', canSrc); // Отладочное сообщение
+
+        if (canSrc === 'assets/bankamango.png') {
+            console.log('Creating mangoes and coconuts'); // Отладочное сообщение
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    createFruit('mango');
+                    createFruit('coconut');
+                }, Math.random() * 200);
+            }
+        } else if (canSrc === 'assets/bankablueberry.png') {
+            console.log('Creating blueberries'); // Отладочное сообщение
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    createFruit('blueberry');
+                }, Math.random() * 200);
+            }
+        } else {
+            console.log('Creating bubbles'); // Отладочное сообщение
+            for (let i = 0; i < 7; i++) {
+                setTimeout(() => {
+                    createBubble();
+                }, Math.random() * 200);
+            }
         }
 
         showTapProfit();
@@ -359,7 +416,7 @@ function handleShake(event) {
 
     let acceleration = event.acceleration;
     
-    // Для устройств, которые не предоставляют event.acceleration
+    // Дл устройств, которые не предоставяют event.acceleration
     if (!acceleration || acceleration.x === null) {
         acceleration = event.accelerationIncludingGravity;
     }
@@ -499,7 +556,7 @@ function addFooter() {
     });
 }
 
-// Заменяем существующие функции loadCollectionPage, loadMainPage, loadTasksPage, loadFriendsPage
+// Заменяем ществующие функции loadCollectionPage, loadMainPage, loadTasksPage, loadFriendsPage
 function loadCollectionPage() {
     loadPage('collection');
 }
@@ -643,7 +700,7 @@ function updateMaxEnergy(increase) {
     updateEnergyDisplay();
 }
 
-// Добавьте обработчик сообщений дл обновления максимальной энергии
+// Добавте обработчик сообщений дл обновления максимальной энергии
 window.addEventListener('message', function(event) {
     if (event.data.type === 'updateMaxEnergy') {
         updateMaxEnergy(event.data.increase);
@@ -665,6 +722,8 @@ function updateCanImage(index) {
         const newCanSrc = canImages[index];
         canElement.src = newCanSrc;
         updateAppTheme(newCanSrc);
+        updateFriendsCanImage(index);
+        localStorage.setItem('selectedCan', index.toString());
     }
 }
 
@@ -679,4 +738,51 @@ function updateAppTheme(canSrc) {
     frames.forEach(frame => {
         frame.contentWindow.postMessage({ type: 'updateTheme', theme: theme }, '*');
     });
+}
+
+function createFruit(type) {
+    console.log(`Creating a ${type}`); // Отладочное сообщение
+    const fruit = document.createElement('div');
+    fruit.classList.add('fruit', type);
+    
+    const size = Math.random() * 20 + 10;
+    fruit.style.width = `${size}px`;
+    fruit.style.height = `${size}px`;
+    
+    const startAngle = Math.random() * Math.PI * 2;
+    const startRadius = 75;
+    const endRadius = 100 + Math.random() * 50;
+    
+    const startX = Math.cos(startAngle) * startRadius;
+    const startY = Math.sin(startAngle) * startRadius;
+    
+    fruit.style.left = `calc(50% + ${startX}px)`;
+    fruit.style.top = `calc(50% + ${startY}px)`;
+    
+    const endX = Math.cos(startAngle) * endRadius;
+    const endY = Math.sin(startAngle) * endRadius;
+    
+    const tx = endX - startX;
+    const ty = endY - startY;
+    
+    fruit.style.setProperty('--tx', `${tx}px`);
+    fruit.style.setProperty('--ty', `${ty}px`);
+    
+    bubblesContainer.appendChild(fruit);
+    setTimeout(() => fruit.remove(), 1000);
+}
+
+function updateFriendsCanImage(index) {
+    const friendsFrame = document.querySelector('iframe[src="friends.html"]');
+    if (friendsFrame) {
+        friendsFrame.contentWindow.postMessage({ type: 'updateCan', canIndex: index }, '*');
+    }
+}
+
+// Также вызовите эту функцию при загрузке страницы
+function updateFriendsCanImage(selectedCan) {
+    const friendsFrame = document.querySelector('iframe[src="friends.html"]');
+    if (friendsFrame) {
+        friendsFrame.contentWindow.postMessage({ type: 'updateCan', canSrc: selectedCan }, '*');
+    }
 }

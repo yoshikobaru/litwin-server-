@@ -1,6 +1,17 @@
+const canImages = [
+    'assets/two.png',
+    'assets/twobankamango.png',
+    'assets/twobankablueberry.png',
+    // Добавьте остальные изображения для двух банок здесь
+];
+
 window.addEventListener('message', function(event) {
     if (event.data.type === 'updateTheme') {
         applyTheme(event.data.theme);
+    }
+    if (event.data.type === 'updateCan') {
+        const selectedCan = event.data.canSrc;
+        updateCansImage(selectedCan);
     }
 });
 
@@ -13,6 +24,34 @@ function applyTheme(theme) {
 document.addEventListener('DOMContentLoaded', () => {
     const inviteButton = document.getElementById('inviteButton');
     const friendsList = document.getElementById('friendsList');
+    const cansImage = document.getElementById('cansImage');
+
+    // Функция для обновления изображения банок
+    function updateCansImage(index) {
+        console.log('Обновление изображения банок:', index); // Отладочное сообщение
+        const newCanSrc = canImages[index];
+        if (newCanSrc) {
+            cansImage.src = newCanSrc;
+            console.log('Новый src изображения:', cansImage.src); // Отладочное сообщение
+        } else {
+            console.error('Неверный индекс банки:', index);
+        }
+    }
+
+    // Слушаем сообщения от родительского окна
+    window.addEventListener('message', function(event) {
+        console.log('Получено сообщение:', event.data); // Отладочное сообщение
+        if (event.data.type === 'updateCan') {
+            const canIndex = event.data.canIndex;
+            updateCansImage(canIndex);
+        }
+    });
+
+    // Проверяем текущую выбранную банку при загрузке страницы
+    const selectedCan = localStorage.getItem('selectedCan');
+    if (selectedCan) {
+        updateCansImage(parseInt(selectedCan));
+    }
 
     inviteButton.addEventListener('click', () => {
         // Здесь будет логика для генерации и копирования реферальной ссылки

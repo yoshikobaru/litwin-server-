@@ -284,7 +284,7 @@ body {
     justify-content: space-between;
     align-items: stretch; /* Изменено с center на stretch */
     margin-bottom: 20px;
-    background-color: var(--secondary-color);
+    background-color: transparent; /* Убираем фоновый цвет */
 }
 
 .profile {
@@ -408,5 +408,58 @@ body {
     100% {
         opacity: 0;
         transform: translateY(-20px);
+    }
+}
+
+.mango {
+    position: absolute;
+    background-image: url('assets/mango.png'); /* Убедитесь, что путь правильный */
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0;
+    animation: float 1s ease-out;
+    pointer-events: none;
+}
+
+@keyframes float {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.fruit {
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0;
+    animation: float 1s ease-out;
+    pointer-events: none;
+}
+
+.mango {
+    background-image: url('assets/mango.png'); /* Убедитесь, что путь правильный */
+}
+
+.coconut {
+    background-image: url('assets/coconut.png');
+}
+
+.blueberry {
+    background-image: url('assets/blueberry.png'); /* Убедитесь, что у вас есть это изображение */
+}
+
+@keyframes float {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) rotate(360deg);
+        opacity: 0;
     }
 }

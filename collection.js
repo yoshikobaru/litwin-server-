@@ -176,17 +176,4 @@
             updateUnlockedCans();
         }
     });
-
-    // Добавьте этот код в начало файла collection.js
-    window.addEventListener('message', function(event) {
-        if (event.data.type === 'updateTheme') {
-            applyTheme(event.data.theme);
-        }
-    });
-
-    function applyTheme(theme) {
-        document.documentElement.style.setProperty('--primary-color', theme.primary);
-        document.documentElement.style.setProperty('--secondary-color', theme.secondary);
-        document.documentElement.style.setProperty('--tertiary-color', theme.tertiary);
-    }
 })();
