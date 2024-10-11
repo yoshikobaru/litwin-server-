@@ -84,7 +84,6 @@ bot.command('start', async (ctx) => {
 // Запускаем бота
 bot.launch();
 
-// Определяем маршруты
 const routes = {
   GET: {
     '/get-referral-link': async (req, res, query) => {
@@ -111,37 +110,36 @@ const routes = {
         console.error('Ошибка при обработке запроса:', error);
         return { status: 500, body: { error: 'Internal server error' } };
       }
-    }
-  },
-  '/get-referred-friends': async (req, res, query) => {
-    console.log('Получен запрос на /get-referred-friends');
-    const telegramId = query.telegramId;
-    
-    if (!telegramId) {
-      console.log('Отсутствует telegramId');
-      return { status: 400, body: { error: 'Missing telegramId parameter' } };
-    }
-
-    try {
-      console.log('Поиск рефералов для пользователя с telegramId:', telegramId);
-      const user = await User.findOne({ where: { telegramId } });
-      if (user) {
-        const referredFriends = await User.findAll({
-          where: { referredBy: user.referralCode },
-          attributes: ['telegramId']
-        });
-        console.log('Найдено рефералов:', referredFriends.length);
-        return { status: 200, body: { referredFriends: referredFriends.map(friend => friend.telegramId) } };
-      } else {
-        console.log('Пользователь не найден');
-        return { status: 404, body: { error: 'User not found' } };
+    },
+    '/get-referred-friends': async (req, res, query) => {
+      console.log('Получен запрос на /get-referred-friends');
+      const telegramId = query.telegramId;
+      
+      if (!telegramId) {
+        console.log('Отсутствует telegramId');
+        return { status: 400, body: { error: 'Missing telegramId parameter' } };
       }
-    } catch (error) {
-      console.error('Ошибка при обработке запроса:', error);
-      return { status: 500, body: { error: 'Internal server error' } };
+
+      try {
+        console.log('Поиск рефералов для пользователя с telegramId:', telegramId);
+        const user = await User.findOne({ where: { telegramId } });
+        if (user) {
+          const referredFriends = await User.findAll({
+            where: { referredBy: user.referralCode },
+            attributes: ['telegramId']
+          });
+          console.log('Найдено рефералов:', referredFriends.length);
+          return { status: 200, body: { referredFriends: referredFriends.map(friend => friend.telegramId) } };
+        } else {
+          console.log('Пользователь не найден');
+          return { status: 404, body: { error: 'User not found' } };
+        }
+      } catch (error) {
+        console.error('Ошибка при обработке запроса:', error);
+        return { status: 500, body: { error: 'Internal server error' } };
+      }
     }
   },
-  
   POST: {
     // Здесь вы можете добавить обработчики POST-запросов
   }
@@ -194,16 +192,14 @@ const server = https.createServer(options, async (req, res) => {
   const pathname = parsedUrl.pathname;
   const method = req.method;
 
-  // Проверяем, есть ли обработчик для данного маршрута
   if (routes[method] && routes[method][pathname]) {
     const handler = routes[method][pathname];
     const result = await handler(req, res, parsedUrl.query);
     res.writeHead(result.status, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(result.body));
   } else {
-    // Если нет обработчика, пытаемся отдать статический файл
-    let filePath = path.join(__dirname, '..', 'litwin-server', req.url === '/' ? 'tutorial.html' : req.url);
-    serveStaticFile(filePath, res);
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Route not found' }));
   }
 });
 
