@@ -52,7 +52,8 @@ function initializeVariables() {
         balance = 0;
         localStorage.setItem('balance', '0');
     }
-    energy = parseInt(localStorage.getItem('energy')) || 100;
+    maxEnergy = parseInt(localStorage.getItem('maxEnergy')) || 100;
+    energy = parseInt(localStorage.getItem('energy')) || maxEnergy;
     hourlyProfit = parseInt(localStorage.getItem('hourlyProfit')) || 0;
     tapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
     lastExitTime = parseInt(localStorage.getItem('lastExitTime')) || Date.now();
@@ -60,6 +61,7 @@ function initializeVariables() {
     totalEarnedCoins = parseInt(localStorage.getItem('totalEarnedCoins')) || 0;
     console.log('Инициализация: lastExitTime =', new Date(lastExitTime), 'accumulatedCoins =', accumulatedCoins);
     console.log('Баланс после инициализации:', balance);
+    console.log('Максимальная энергия после инициализации:', maxEnergy);
 }
 
 function updateBalanceDisplay(newBalance) {
@@ -130,7 +132,7 @@ function initializeMainPage() {
     regenerateEnergy(); // Восстанавливаем энергию сразу при загрузке
     startEnergyRegenInterval();
 
-    // Загружаем выбанную банку и применяем тему
+    // Загружаем выбнную банку и применяем тему
     const selectedCan = parseInt(localStorage.getItem('selectedCan')) || 0;
     updateCanImage(selectedCan);
 }
@@ -503,7 +505,7 @@ window.addEventListener('beforeunload', saveExitTime);
 window.addEventListener('focus', () => {
     if (!isOnline) {
         isOnline = true;
-        console.log('Возвращение в игру, расчет офлайн-заработка');
+        console.log('Возвращение в игру, расчет офлайн-зарабтка');
         calculateOfflineEarnings();
     }
 });
@@ -531,6 +533,7 @@ window.addEventListener('message', function(event) {
 });
 
 function initializeEnergy() {
+    maxEnergy = parseInt(localStorage.getItem('maxEnergy')) || 100;
     energy = parseInt(localStorage.getItem('energy')) || maxEnergy;
     lastEnergyRegenTime = parseInt(localStorage.getItem('lastEnergyRegenTime')) || Date.now();
     updateEnergyDisplay();
@@ -545,25 +548,20 @@ function updateEnergyDisplay() {
     localStorage.setItem('maxEnergy', maxEnergy.toString());
 }
 
-// Добавьте эту функцию для обновления максимальной энергии
 function updateMaxEnergy(increase) {
     maxEnergy += increase;
-    energy = Math.min(energy, maxEnergy); // Убедимся, что текущая энергия не превышает новый максимум
+    energy = Math.min(energy + increase, maxEnergy); // Увеличиваем текущую энергию, но не больше нового максимума
     updateEnergyDisplay();
+    localStorage.setItem('maxEnergy', maxEnergy.toString());
+    localStorage.setItem('energy', energy.toString());
 }
-
-// Добавте обработчик сообщений дл обновления максимальной энергии
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'updateMaxEnergy') {
-        updateMaxEnergy(event.data.increase);
-    }
-});
 
 // Обновляем обработчик сообщений
 window.addEventListener('message', function(event) {
-    if (event.data.type === 'updateCan') {
-        const canIndex = event.data.canIndex;
-        updateCanImage(canIndex);
+    if (event.data.type === 'updateMaxEnergy') {
+        maxEnergy = event.data.newMaxEnergy;
+        energy = Math.min(energy, maxEnergy); // Убедимся, что текущая энергия не превышает новый максимум
+        updateEnergyDisplay();
     }
     // ... обработка других типов сообщений ...
 });
@@ -670,3 +668,33 @@ function checkFriendsFrame() {
 
 // Вызовите эту функцию при загрузке страницы
 document.addEventListener('DOMContentLoaded', checkFriendsFrame);
+
+function openTaskLink(url) {
+    // Проверяем, доступен ли Telegram WebApp
+    if (window.Telegram && window.Telegram.WebApp) {
+        // Если да, используем метод openTelegramLink
+        window.Telegram.WebApp.openTelegramLink(url);
+    } else {
+        // Если нет, открываем ссылку в новом окне
+        window.open(url, '_blank');
+    }
+}
+
+// Добавьте эту функцию в конец файла main.js
+
+// Добавьте эту функцию в конец файла main.js
+function initializeFriendsPageFromMain() {
+    const friendsPage = document.getElementById('friends-page');
+    if (friendsPage) {
+        const inviteButton = friendsPage.querySelector('#inviteButton');
+        if (inviteButton) {
+            console.log('Кнопка найдена в main.js, добавляем обработчик');
+            inviteButton.addEventListener('click', window.handleInviteButtonClick);
+        } else {
+            console.error('Кнопка приглашения не найдена в main.js');
+        }
+    }
+}
+
+// Вызовите эту функцию при загрузке страницы
+document.addEventListener('DOMContentLoaded', initializeFriendsPageFromMain);

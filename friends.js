@@ -24,7 +24,7 @@ function getReferredFriends() {
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
             telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
         } else {
-            throw new Error('Telegram WebApp не ин��циализирован или не содержит данных пользователя');
+            throw new Error('Telegram WebApp не инциализирован или не содержит данных пользователя');
         }
     } catch (error) {
         console.error('Ошибка при получении Telegram ID:', error);
@@ -171,7 +171,7 @@ window.handleInviteButtonClick = function(event) {
 // Остальные вспомогательные функции (updateCansImage, showPopup и т.д.) остаются без изменений
 
 window.addEventListener('message', function(event) {
-    console.log('П��лучено сообщение:', event.data);
+    console.log('��лучено сообщение:', event.data);
     if (event.data.type === 'updateCan') {
         const canSrc = event.data.canSrc;
         console.log('Получен новый источник изображения банки:', canSrc);
@@ -204,3 +204,6 @@ function checkCansImage() {
 
 // Вызовите эту функцию при загрузке страницы
 document.addEventListener('DOMContentLoaded', checkCansImage);
+
+// Добавьте эту функцию в конец файла
+document.addEventListener('DOMContentLoaded', initializeFriendsPage);

@@ -14,18 +14,32 @@ function applyTheme(theme) {
     console.log('Скрипт task.js загружен');
     let bonusButtons;
     const bonusValues = [500, 1000, 1500, 2000, 2500, 3000, 3500];
-    let lastClaimedIndex = parseInt(localStorage.getItem('lastClaimedIndex')) || -1;
     const cooldownTime = 5 * 1000; // 5 секунд кулдауна
     const bonusTime = 10 * 1000; // 10 секунд бонусного времени
     
     function initializeBonusSystem() {
         bonusButtons = document.querySelectorAll('.bonus-item');
+        loadBonusState();
         updateBonusButtons();
         
         const dailyBonusContainer = document.querySelector('.daily-bonus');
         if (dailyBonusContainer) {
             dailyBonusContainer.addEventListener('click', handleBonusClick);
         }
+    }
+
+    function loadBonusState() {
+        const state = JSON.parse(localStorage.getItem('bonusState')) || {};
+        lastClaimedIndex = state.lastClaimedIndex || -1;
+        lastClaimTime = state.lastClaimTime || 0;
+    }
+
+    function saveBonusState() {
+        const state = {
+            lastClaimedIndex: lastClaimedIndex,
+            lastClaimTime: lastClaimTime
+        };
+        localStorage.setItem('bonusState', JSON.stringify(state));
     }
 
     function handleBonusClick(event) {
@@ -47,15 +61,14 @@ function applyTheme(theme) {
         window.parent.postMessage({ type: 'updateBalance', balance: balance }, '*');
         
         lastClaimedIndex = index;
-        localStorage.setItem('lastClaimedIndex', lastClaimedIndex.toString());
-        localStorage.setItem('lastClaimTime', Date.now().toString());
+        lastClaimTime = Date.now();
+        saveBonusState();
 
         updateBonusButtons();
         showBonusPopup(bonusAmount);
     }
     
     function updateBonusButtons() {
-        const lastClaimTime = parseInt(localStorage.getItem('lastClaimTime')) || 0;
         const currentTime = Date.now();
         const timeSinceLastClaim = currentTime - lastClaimTime;
 
@@ -71,7 +84,8 @@ function applyTheme(theme) {
         if (timeSinceLastClaim >= (cooldownTime + bonusTime)) {
             // Сбрасываем на первую кнопку
             lastClaimedIndex = -1;
-            localStorage.setItem('lastClaimedIndex', '-1');
+            lastClaimTime = 0;
+            saveBonusState();
             nextUnlockedIndex = 0;
         }
 
@@ -145,7 +159,6 @@ function applyTheme(theme) {
 
 // Добавьте эту функцию для сброса бонусов (например, раз в день)
 function resetBonuses() {
-    lastClaimedIndex = -1;
     localStorage.setItem('lastClaimedIndex', '-1');
     localStorage.setItem('lastClaimTime', '0');
     updateBonusButtons();
@@ -164,5 +177,81 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Обновляем состояние кнопок каждые 5 секунд
+// Обновляем состояние кнопо каждые 5 секунд
 setInterval(updateBonusButtons, 5000);
+
+
+
+
+
+
+function initializeTasks() {
+    console.log('Инициализация задач');
+    // Глобальная переменная для отслеживания состояния задания
+    let isTask1Completed = false;
+    isTask1Completed = localStorage.getItem('task1Completed') === 'true';
+    console.log('Состояние task1Completed:', isTask1Completed);
+    
+    const task1Button = document.getElementById('task1Button');
+    if (task1Button) {
+        if (isTask1Completed) {
+            disableTask1Button(task1Button);
+        } else {
+            enableTask1Button(task1Button);
+        }
+    }
+}
+
+function handleTask1Click() {
+    console.log('Task 1 clicked');
+    
+    // Открываем ссылку на группу в Telegram
+    window.open('https://t.me/litwin_community', '_blank');
+
+    // Обновляем баланс
+    let currentBalance = parseInt(localStorage.getItem('balance')) || 0;
+    currentBalance += 1000;
+    localStorage.setItem('balance', currentBalance.toString());
+
+    // Отмечаем задание как выполненное
+    isTask1Completed = true;
+    localStorage.setItem('task1Completed', 'true');
+    console.log('Задание отмечено как выполненное');
+
+    // Обновляем отображение задания
+    const task1Button = document.getElementById('task1Button');
+    if (task1Button) {
+        disableTask1Button(task1Button);
+    }
+
+    // Отправляем сообщение об обновлении баланса
+    window.parent.postMessage({ type: 'updateBalance', balance: currentBalance }, '*');
+    
+    console.log('New balance:', currentBalance);
+}
+
+function disableTask1Button(button) {
+    button.disabled = true;
+    button.parentElement.classList.add('completed');
+    console.log('Кнопка задания деактивирована');
+}
+
+function enableTask1Button(button) {
+    button.disabled = false;
+    button.parentElement.classList.remove('completed');
+    console.log('Кнопка задания активирована');
+}
+
+// Вызываем функцию инициализации при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM загружен');
+    initializeTasks();
+});
+
+// Добавляем обработчик клика на кнопку задания
+document.addEventListener('DOMContentLoaded', function() {
+    const task1Button = document.getElementById('task1Button');
+    if (task1Button) {
+        task1Button.addEventListener('click', handleTask1Click);
+    }
+});

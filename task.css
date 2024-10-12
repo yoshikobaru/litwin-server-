@@ -195,3 +195,43 @@ h2 {
     color: white;
     /* ... существующие стили ... */
 }
+
+.task-item.completed {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.task-item.completed .task-circle {
+    background-color: #4CAF50; /* Зеленый цвет для выполненных заданий */
+}
+
+.task-item.completed .task-reward-button {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.task-reward-button {
+    display: flex;
+    align-items: center;
+    background-color: var(--secondary-color);
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.task-reward-button:hover {
+    background-color: var(--tertiary-color);
+}
+
+.task-reward-button .reward-value {
+    color: white;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.task-reward-button .reward-coin {
+    width: 20px;
+    height: 20px;
+}
