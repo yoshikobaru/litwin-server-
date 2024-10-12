@@ -130,7 +130,7 @@ function initializeMainPage() {
     regenerateEnergy(); // Восстанавливаем энергию сразу при загрузке
     startEnergyRegenInterval();
 
-    // Загружаем выбранную банку и применяем тему
+    // Загружаем выбанную банку и применяем тему
     const selectedCan = parseInt(localStorage.getItem('selectedCan')) || 0;
     updateCanImage(selectedCan);
 }
@@ -423,7 +423,7 @@ function showPage(pageName) {
     document.querySelector(`.footer-btn[data-page="${pageName}"]`).classList.add('active');
 
     if (pageName === 'friends') {
-        initializeFriendsPage();
+        updateFriendsCanImage(parseInt(localStorage.getItem('selectedCan')) || 0);
     }
 }
 
@@ -450,7 +450,7 @@ function calculateOfflineEarnings() {
     const timeDiff = (currentTime - lastExitTime) / 1000; // разница в секундах
     const maxOfflineTime = 5 * 60 * 60; // 5 часов в секундах
 
-    console.log('Расчет офлайн-заработка: timeDiff =', timeDiff, 'секунд');
+    console.log('Расчет офлайн-заработка: timeDiff =', timeDiff, 'секуд');
 
     if (timeDiff > 0) {
         const earnedCoins = Math.min(timeDiff, maxOfflineTime) * (hourlyProfit / 3600);
@@ -625,16 +625,48 @@ function createFruit(type) {
 }
 
 function updateFriendsCanImage(index) {
-    const friendsFrame = document.querySelector('iframe[src="friends.html"]');
-    if (friendsFrame) {
-        friendsFrame.contentWindow.postMessage({ type: 'updateCan', canIndex: index }, '*');
+    console.log('Вызвана функция updateFriendsCanImage с индексом:', index);
+    const canSrc = canImages[index];
+    console.log('Новый источник изображения банки:', canSrc);
+    const cansImage = document.getElementById('cansImage');
+    if (cansImage) {
+        if (canSrc === 'assets/bankamango.png') {
+            cansImage.src = 'assets/twobankamango.png';
+        } else if (canSrc === 'assets/bankablueberry.png') {
+            cansImage.src = 'assets/twobankablueberry.png';
+        } else {
+            cansImage.src = 'assets/twobanka.png';
+        }
+        console.log('Новое изображение установлено:', cansImage.src);
+    } else {
+        console.error('Элемент cansImage не найден');
     }
 }
 
-// Также вызовите эту функцию при загрузке страницы
-function updateFriendsCanImage(selectedCan) {
-    const friendsFrame = document.querySelector('iframe[src="friends.html"]');
-    if (friendsFrame) {
-        friendsFrame.contentWindow.postMessage({ type: 'updateCan', canSrc: selectedCan }, '*');
+function updateCanImage(index) {
+    console.log('Вызвана функция updateCanImage с индексом:', index);
+    const canElement = document.getElementById('can');
+    if (canElement) {
+        const newCanSrc = canImages[index];
+        console.log('Новый источник изображения банки:', newCanSrc);
+        canElement.src = newCanSrc;
+        updateAppTheme(newCanSrc);
+        updateFriendsCanImage(index);
+        localStorage.setItem('selectedCan', index.toString());
+    } else {
+        console.error('Элемент can не найден');
     }
 }
+
+// Добавьте эту функцию для проверки
+function checkFriendsFrame() {
+    const friendsFrame = document.getElementById('friendsFrame');
+    if (friendsFrame) {
+        console.log('Фрейм friends.html найден');
+    } else {
+        console.error('Фрейм friends.html не найден');
+    }
+}
+
+// Вызовите эту функцию при загрузке страницы
+document.addEventListener('DOMContentLoaded', checkFriendsFrame);

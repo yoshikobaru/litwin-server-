@@ -24,7 +24,7 @@ function getReferredFriends() {
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
             telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
         } else {
-            throw new Error('Telegram WebApp не инициализирован или не содержит данных пользователя');
+            throw new Error('Telegram WebApp не ин��циализирован или не содержит данных пользователя');
         }
     } catch (error) {
         console.error('Ошибка при получении Telegram ID:', error);
@@ -169,3 +169,38 @@ window.handleInviteButtonClick = function(event) {
 }
 
 // Остальные вспомогательные функции (updateCansImage, showPopup и т.д.) остаются без изменений
+
+window.addEventListener('message', function(event) {
+    console.log('П��лучено сообщение:', event.data);
+    if (event.data.type === 'updateCan') {
+        const canSrc = event.data.canSrc;
+        console.log('Получен новый источник изображения банки:', canSrc);
+        const cansImage = document.getElementById('cansImage');
+        if (cansImage) {
+            console.log('Элемент cansImage найден');
+            if (canSrc === 'assets/bankamango.png') {
+                cansImage.src = 'assets/twobankamango.png';
+            } else if (canSrc === 'assets/bankablueberry.png') {
+                cansImage.src = 'assets/twobankablueberry.png';
+            } else {
+                cansImage.src = 'assets/twobanka.png';
+            }
+            console.log('Новое изображение установлено:', cansImage.src);
+        } else {
+            console.error('Элемент cansImage не найден');
+        }
+    }
+});
+
+// Добавьте эту функцию для проверки
+function checkCansImage() {
+    const cansImage = document.getElementById('cansImage');
+    if (cansImage) {
+        console.log('Элемент cansImage найден, текущий src:', cansImage.src);
+    } else {
+        console.error('Элемент cansImage не найден');
+    }
+}
+
+// Вызовите эту функцию при загрузке страницы
+document.addEventListener('DOMContentLoaded', checkCansImage);

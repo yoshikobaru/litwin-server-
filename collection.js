@@ -36,7 +36,7 @@
     
     // Обновленные данные маркета с уникальными идентификаторами
     const marketData = [
-        { id: 1, title: 'Выпить LIT', level: 1, profitType: 'tap', profit: 3, price: 10 },
+        { id: 1, title: 'Выпить LIT', level: 1, profitType: 'tap', profit: 50000, price: 10 },
         { id: 2, title: 'Title', level: 1, profitType: 'hourly', profit: 3, price: 10 },
         { id: 3, title: 'Title', level: 1, profitType: 'hourly', profit: 4, price: 11, timer: '16:30:00' },
         { id: 4, title: 'Увеличить энергию', level: 1, profitType: 'energy', profit: 100, price: 15 }
