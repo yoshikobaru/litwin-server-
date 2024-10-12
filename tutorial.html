@@ -11,14 +11,18 @@
         body, button, input, textarea, select {
             font-family: 'Exo 2', sans-serif !important;
         }
-      .slider-container {
-        width: 100%;
-        overflow: hidden;
-        height: 80vh; /* Ограничиваем высоту контейнера высотой экрана */
-        display: flex;
-        flex-direction: column;
-    }
-    .slide-content h2 {
+        body {
+            background-color: rgb(42,144,255);
+        }
+        .slider-container {
+            background-color: rgb(42,144,255);
+            width: 100%;
+            overflow: hidden;
+            height: 80vh; /* Ограничиваем высоту контейнера высотой экрана */
+            display: flex;
+            flex-direction: column;
+        }
+        .slide-content h2 {
             font-size: 28px;
             font-weight: 600;
         }
@@ -32,44 +36,44 @@
             font-size: 16px;
             font-weight: 500;
         }
-    .slider {
-        display: flex;
-        transition: transform 0.3s ease-in-out;
-        flex: 1; /* Слайдер занимает все доступное пространство */
-    }
-    .slide {
-        flex: 0 0 100%;
-        width: 100vw;
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start; /* Выравнивание содержимого по верхнему краю */
-        padding-top: 10vh; /* Отступ сверху */
-    }
-    .slide img {
-        max-width: 100%;
-        height: auto;
-    }
-    .fullscreen-slide {
-        justify-content: flex-start; /* Выравнивание по верхнему краю */
-    }
-    .fullscreen-image {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .slide-content {
-        position: relative;
-        z-index: 1;
-        text-align: center;
-        color: white;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        padding: 0 20px; /* Добавляем отступы по бокам */
-    }
+        .slider {
+            display: flex;
+            transition: transform 0.3s ease-in-out;
+            flex: 1; /* Слайдер занимает все доступное пространство */
+        }
+        .slide {
+            flex: 0 0 100%;
+            width: 100vw;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Выравнивание содержимого по верхнему краю */
+            padding-top: 10vh; /* Отступ сверху */
+        }
+        .slide img {
+            max-width: 100%;
+            height: auto;
+        }
+        .fullscreen-slide {
+            justify-content: flex-start; /* Выравнивание по верхнему краю */
+        }
+        .fullscreen-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .slide-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            padding: 0 20px; /* Добавляем отступы по бокам */
+        }
         .progress-dots {
             display: flex;
             justify-content: center;
