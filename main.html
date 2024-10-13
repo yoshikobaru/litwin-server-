@@ -10,6 +10,17 @@
     <link rel="stylesheet" href="task.css">
     <link rel="stylesheet" href="collection.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tg = window.Telegram.WebApp;
+            tg.expand();
+
+            const tutorialShown = localStorage.getItem('tutorialShown');
+            if (!tutorialShown) {
+                window.location.href = 'tutorial.html';
+            }
+        });
+    </script>
 </head>
 <body>
     <div id="main-page" class="page">

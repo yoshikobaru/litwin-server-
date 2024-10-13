@@ -155,26 +155,19 @@ function initializeVariables() {
 function updateBalanceDisplay(newBalance) {
     console.log('Вызвана функция updateBalanceDisplay с аргументом:', newBalance);
     
-    if (typeof newBalance === 'undefined' || isNaN(newBalance)) {
-        console.log('newBalance не определен или NaN, получаем значение из localStorage');
-        newBalance = parseInt(localStorage.getItem('balance')) || 0;
+    if (typeof newBalance !== 'undefined' && !isNaN(newBalance)) {
+        balance += newBalance;
     }
     
-    newBalance = Math.max(0, Math.floor(newBalance));
-    console.log('Обработанный новый баланс:', newBalance);
+    balance = Math.max(0, Math.floor(balance));
     
     const balanceElement = document.getElementById('balance');
     if (balanceElement) {
-        balanceElement.textContent = newBalance.toLocaleString();
-        console.log('Баланс обновлен в DOM:', newBalance);
+        balanceElement.textContent = balance.toLocaleString();
     } else {
-        console.error('Элемент баланса не найден в DOM');
     }
-    
-    localStorage.setItem('balance', newBalance.toString());
-    console.log('Баланс сохранен в localStorage:', newBalance);
-    
-    balance = newBalance;
+    localStorage.setItem('balance', balance.toString());
+    console.log('Баланс сохранен в localStorage:', balance);
 }
 function initializeMainPage() {
     console.log('Вызвана функция initializeMainPage');
@@ -448,14 +441,10 @@ function handleCanClick() {
 
         showTapProfit();
 
-        balance += tapProfit;
+        updateBalance(tapProfit);
         totalEarnedCoins += tapProfit;
-        
-        // Сохраняем обновленные данные в localStorage
-        localStorage.setItem('balance', balance.toString());
         localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
         
-        updateBalance(tapProfit);
         updateProgress();
 
         energy = Math.max(0, energy - 1);

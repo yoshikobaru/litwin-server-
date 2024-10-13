@@ -127,7 +127,7 @@
 </head>
 <body>
     <script>
-        const tg = window.Telegram.WebApp;
+       const tg = window.Telegram.WebApp;
         tg.expand(); // Расширяет приложение на весь экран
         document.addEventListener('DOMContentLoaded', () => {
             const slider = document.querySelector('.slider');
@@ -148,6 +148,8 @@
             function nextSlide() {
                 currentSlide++;
                 if (currentSlide >= slides.length) {
+                    // Отмечаем, что туториал был показан
+                    localStorage.setItem('tutorialShown', 'true');
                     // Переход на главный экран
                     window.location.href = 'main.html';
                 } else {

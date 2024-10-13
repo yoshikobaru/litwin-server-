@@ -304,7 +304,7 @@ const serveStaticFile = (filePath, res) => {
   fs.readFile(filePath, (error, content) => {
     if (error) {
       if(error.code === 'ENOENT') {
-        fs.readFile(path.join(__dirname, '..', 'client', 'tutorial.html'), (error, content) => {
+        fs.readFile(path.join(__dirname, '..', 'client', 'main.html'), (error, content) => {
           if (error) {
             res.writeHead(404);
             res.end('Файл не найден');
@@ -334,15 +334,13 @@ const server = https.createServer(options, async (req, res) => {
   const pathname = parsedUrl.pathname;
   const method = req.method;
 
-  // Проверяем, есть ли обработчик для данного маршрута
   if (routes[method] && routes[method][pathname]) {
     const handler = routes[method][pathname];
     const result = await handler(req, res, parsedUrl.query);
     res.writeHead(result.status, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(result.body));
   } else {
-    // Если нет обработчика, пытаемся отдать статический файл
-    let filePath = path.join(__dirname, '..', 'litwin-server', req.url === '/' ? 'tutorial.html' : req.url);
+    let filePath = path.join(__dirname, '..', 'litwin-server', req.url === '/' ? 'main.html' : req.url);
     serveStaticFile(filePath, res);
   }
 });
