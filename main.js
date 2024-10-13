@@ -62,6 +62,7 @@ if (window.Telegram && window.Telegram.WebApp) {
 
 function syncDataWithServer() {
     const telegramId = getTelegramUserId();
+    const username = getTelegramUsername(); // Добавьте эту функцию, если её ещё нет
     if (!telegramId) {
         console.error('Не удалось получить Telegram ID пользователя');
         return;
@@ -69,10 +70,7 @@ function syncDataWithServer() {
 
     const dataToSync = {
         telegramId: telegramId.toString(),
-        balance: parseInt(localStorage.getItem('balance')) || 0,
-        tapProfit: parseInt(localStorage.getItem('tapProfit')) || 1,
-        hourlyProfit: parseInt(localStorage.getItem('hourlyProfit')) || 0,
-        totalEarnedCoins: parseInt(localStorage.getItem('totalEarnedCoins')) || 0
+        username: username
     };
 
     fetch('https://litwin-tap.ru/sync-user-data', {
@@ -91,11 +89,32 @@ function syncDataWithServer() {
         return response.json();
     })
     .then(data => {
-        console.log('Данные успешно синхронизированы с сервером:', data);
+        console.log('Данные получены с сервера:', data);
+        if (data.user) {
+            // Обновляем локальные данные
+            localStorage.setItem('balance', data.user.balance.toString());
+            localStorage.setItem('tapProfit', data.user.tapProfit.toString());
+            localStorage.setItem('hourlyProfit', data.user.hourlyProfit.toString());
+            localStorage.setItem('totalEarnedCoins', data.user.totalEarnedCoins.toString());
+
+            // Обновляем отображение на странице
+            updateBalanceDisplay(data.user.balance);
+            updateTapProfit(data.user.tapProfit);
+            updateHourlyProfit(data.user.hourlyProfit);
+            updateProgress();
+        }
     })
     .catch(error => {
         console.error('Ошибка при синхронизации данных с сервером:', error);
     });
+}
+
+// Добавьте эту функцию, если её ещё нет
+function getTelegramUsername() {
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+        return window.Telegram.WebApp.initDataUnsafe.user.username || null;
+    }
+    return null;
 }
 
 // Функция для получения данных с сервера
@@ -284,6 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.Telegram.WebApp.ready();
     }
     updateUserProfile();
+    syncDataWithServer(); // Добавьте эту строку
 });
 
 // Добавляем обработчик события viewportChanged
