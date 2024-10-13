@@ -157,29 +157,26 @@ function initializeVariables() {
     console.log('Максимальная энергия после инициализации:', maxEnergy);
 }
 
-function updateBalanceDisplay(amount) {
-    console.log('Вызвана функция updateBalanceDisplay с аргументом:', amount);
+function updateBalanceDisplay(newBalance) {
+    console.log('Вызвана функция updateBalanceDisplay с аргументом:', newBalance);
     
-    if (typeof amount === 'number' && !isNaN(amount)) {
-        if (amount !== 0) {
-            balance += amount;
-        }
-    } else if (typeof amount === 'undefined') {
-        console.log('Обновление отображения баланса без изменения значения');
-    } else {
-        console.warn('Некорректный аргумент для updateBalanceDisplay:', amount);
-        return;
+    if (typeof newBalance === 'undefined' || isNaN(newBalance)) {
+        console.log('newBalance не определен или NaN, получаем значение из localStorage');
+        newBalance = parseInt(localStorage.getItem('balance')) || 0;
     }
     
-    balance = Math.max(0, Math.floor(balance));
+    newBalance = Math.max(0, Math.floor(newBalance));
+    console.log('Обработанный новый баланс:', newBalance);
     
     const balanceElement = document.getElementById('balance');
     if (balanceElement) {
-        balanceElement.textContent = balance.toLocaleString();
+        balanceElement.textContent = newBalance.toLocaleString();
+        console.log('Баланс обновлен в DOM:', newBalance);
+    } else {
     }
     
-    localStorage.setItem('balance', balance.toString());
-    console.log('Баланс обновлен и сохранен в localStorage:', balance);
+    localStorage.setItem('balance', newBalance.toString());
+    console.log('Баланс сохранен в localStorage:', newBalance);
 }
 function initializeMainPage() {
     console.log('Вызвана функция initializeMainPage');
