@@ -64,7 +64,10 @@ function syncDataWithServer() {
 
     const data = {
         telegramId: telegramId.toString(),
-        ...dataBuffer
+        balance: balance + dataBuffer.balance,
+        tapProfit: tapProfit + dataBuffer.tapProfit,
+        hourlyProfit: hourlyProfit + dataBuffer.hourlyProfit,
+        totalEarnedCoins: totalEarnedCoins + dataBuffer.totalEarnedCoins
     };
 
     fetch('https://litwin-tap.ru/sync-user-data', {
@@ -96,6 +99,19 @@ function syncDataWithServer() {
         console.error('Ошибка при синхронизации данных с сервером:', error);
     });
 }
+
+// Синхронизация данных каждые 30 секунд
+setInterval(syncDataWithServer, 30000);
+
+// Синхронизация данных при переключении вкладок
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        syncDataWithServer();
+    }
+});
+
+// Попытка синхронизации при закрытии
+window.addEventListener('beforeunload', syncDataWithServer);
 
 // Функция для получения данных с сервера
 function fetchDataFromServer() {
@@ -441,10 +457,10 @@ function handleCanClick() {
         const selectedCan = localStorage.getItem('selectedCan') || '0';
         const canSrc = canImages[parseInt(selectedCan)];
 
-        console.log('Selected can:', canSrc); // Отладочное сообщение
+        console.log('Selected can:', canSrc);
 
         if (canSrc === 'assets/bankamango.png') {
-            console.log('Creating mangoes and coconuts'); // Отладочное сообщение
+            console.log('Creating mangoes and coconuts');
             for (let i = 0; i < 5; i++) {
                 setTimeout(() => {
                     createFruit('mango');
@@ -452,14 +468,14 @@ function handleCanClick() {
                 }, Math.random() * 200);
             }
         } else if (canSrc === 'assets/bankablueberry.png') {
-            console.log('Creating blueberries'); // Отладочное сообщение
+            console.log('Creating blueberries');
             for (let i = 0; i < 10; i++) {
                 setTimeout(() => {
                     createFruit('blueberry');
                 }, Math.random() * 200);
             }
         } else {
-            console.log('Creating bubbles'); // Отладочное сообщение
+            console.log('Creating bubbles');
             for (let i = 0; i < 7; i++) {
                 setTimeout(() => {
                     createBubble();
@@ -469,6 +485,8 @@ function handleCanClick() {
 
         showTapProfit();
 
+        updateDataBuffer('balance', tapProfit);
+        updateDataBuffer('totalEarnedCoins', tapProfit);
         totalEarnedCoins += tapProfit;
         updateBalance(tapProfit);
         updateProgress();
@@ -859,10 +877,5 @@ function applyAdBonus() {
 }
 // Вызовите эту функцию при загрузке страницы
 document.addEventListener('DOMContentLoaded', initializeFriendsPageFromMain);
-// Синхронизация данных с сервером каждые 5 минут
-setInterval(syncDataWithServer, 5 * 60 * 1000);
 // Получение данных с сервера при инициализации
 document.addEventListener('DOMContentLoaded', fetchDataFromServer);
-window.addEventListener('beforeunload', () => {
-    syncDataWithServer();
-});

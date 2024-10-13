@@ -256,9 +256,7 @@ const routes = {
       const { telegramId, balance, tapProfit, hourlyProfit, totalEarnedCoins } = data;
       
       if (!telegramId) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Telegram ID is required' }));
-        return;
+        return { status: 400, body: { error: 'Telegram ID is required' } };
       }
 
       const [user, created] = await User.findOrCreate({
@@ -276,12 +274,10 @@ const routes = {
         await user.update({ balance, tapProfit, hourlyProfit, totalEarnedCoins });
       }
 
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ message: 'User data updated successfully' }));
+      return { status: 200, body: { message: 'User data updated successfully' } };
     } catch (error) {
       console.error('Error in sync-user-data:', error);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Internal server error', details: error.message }));
+      return { status: 500, body: { error: 'Internal server error', details: error.message } };
     }
       });
     }
