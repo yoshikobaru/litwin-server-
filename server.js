@@ -255,9 +255,15 @@ const routes = {
       const data = JSON.parse(body);
       const { telegramId, balance, tapProfit, hourlyProfit, totalEarnedCoins } = data;
       
+      if (!telegramId) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Telegram ID is required' }));
+        return;
+      }
+
       const [user, created] = await User.findOrCreate({
         where: { telegramId },
-        defaults: { balance, tapProfit, hourlyProfit, totalEarnedCoins }
+        defaults: { balance, tapProfit, hourlyProfit, totalEarnedCoins, referralCode: crypto.randomBytes(4).toString('hex') }
       });
 
       if (!created) {
@@ -269,7 +275,7 @@ const routes = {
     } catch (error) {
       console.error('Error in sync-user-data:', error);
       res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Internal server error' }));
+      res.end(JSON.stringify({ error: 'Internal server error', details: error.message }));
     }
       });
     }

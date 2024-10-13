@@ -66,7 +66,12 @@ function syncDataWithServer() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         console.log('Данные успешно синхронизированы с сервером:', data);
     })
