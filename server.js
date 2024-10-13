@@ -258,7 +258,7 @@ const routes = {
         req.on('end', async () => {
             try {
                 const data = JSON.parse(body);
-                const { telegramId, username } = data;
+                const { telegramId, username, balance, tapProfit, hourlyProfit, totalEarnedCoins } = data;
                 
                 if (!telegramId) {
                     resolve({ status: 400, body: { error: 'Telegram ID is required' } });
@@ -268,24 +268,32 @@ const routes = {
                 let user = await User.findOne({ where: { telegramId: telegramId.toString() } });
 
                 if (!user) {
-                    // Если пользователь не найден, создаем нового с начальными значениями
+                    // Если пользователь не найден, создаем нового с полученными значениями
                     user = await User.create({
                         telegramId: telegramId.toString(),
                         username,
-                        balance: 0,
-                        tapProfit: 1,
-                        hourlyProfit: 0,
-                        totalEarnedCoins: 0,
+                        balance,
+                        tapProfit,
+                        hourlyProfit,
+                        totalEarnedCoins,
                         referralCode: crypto.randomBytes(4).toString('hex')
                     });
+                } else {
+                    // Если пользователь существует, обновляем его данные
+                    await user.update({
+                        username,
+                        balance,
+                        tapProfit,
+                        hourlyProfit,
+                        totalEarnedCoins
+                    });
                 }
-                // Если пользователь существует, просто возвращаем его текущие данные
 
-                // Возвращаем данные пользователя
+                // Возвращаем обновленные данные пользователя
                 resolve({ 
                     status: 200, 
                     body: { 
-                        message: user ? 'User data retrieved successfully' : 'New user created',
+                        message: user ? 'User data updated successfully' : 'New user created',
                         user: {
                             balance: user.balance,
                             tapProfit: user.tapProfit,
