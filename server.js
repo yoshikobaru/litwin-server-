@@ -255,16 +255,21 @@ const routes = {
       const data = JSON.parse(body);
       const { telegramId, balance, tapProfit, hourlyProfit, totalEarnedCoins } = data;
       
-      const user = await User.findOne({ where: { telegramId } });
-      if (user) {
+      const [user, created] = await User.findOrCreate({
+        where: { telegramId },
+        defaults: { balance, tapProfit, hourlyProfit, totalEarnedCoins }
+      });
+
+      if (!created) {
         await user.update({ balance, tapProfit, hourlyProfit, totalEarnedCoins });
-        return { status: 200, body: { message: 'User data updated successfully' } };
-      } else {
-        return { status: 404, body: { error: 'User not found' } };
       }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ message: 'User data updated successfully' }));
     } catch (error) {
       console.error('Error in sync-user-data:', error);
-      return { status: 500, body: { error: 'Internal server error' } };
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal server error' }));
     }
       });
     }

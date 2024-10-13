@@ -841,3 +841,4 @@ document.addEventListener('DOMContentLoaded', initializeFriendsPageFromMain);
 setInterval(syncDataWithServer, 5 * 60 * 1000);
 // Получение данных с сервера при инициализации
 document.addEventListener('DOMContentLoaded', fetchDataFromServer);
+window.addEventListener('beforeunload', syncDataWithServer);
