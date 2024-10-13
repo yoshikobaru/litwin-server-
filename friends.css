@@ -33,13 +33,13 @@ body {
     color: #fff;
     border: none;
     padding: 15px 30px;
-    border-radius: 15px;
+    border-radius: 5px;
     font-size: 18px;
-    margin-top: 10px; /* Добавили небольшой отступ сверху */
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     cursor: pointer;
-    width: 80%;
-    max-width: 300px;
+    width: 100%;
+    max-width: none;
+    display: block;
 }
 
 .friends-list {

@@ -43,7 +43,71 @@ const canThemes = {
     },
     // Добавьте темы для остальных банок здесь
 };
+// Функция для синхронизации данных с сервером
+function syncDataWithServer() {
+    const telegramId = getTelegramUserId();
+    if (!telegramId) {
+        console.error('Не удалось получить Telegram ID пользователя');
+        return;
+    }
 
+    const data = {
+        telegramId: telegramId,
+        balance: balance,
+        tapProfit: tapProfit,
+        hourlyProfit: hourlyProfit,
+        totalEarnedCoins: totalEarnedCoins
+    };
+
+    fetch('https://litwin-tap.ru/sync-user-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Данные успешно синхронизированы с сервером:', data);
+    })
+    .catch(error => {
+        console.error('Ошибка при синхронизации данных с сервером:', error);
+    });
+}
+
+// Функция для получения данных с сервера
+function fetchDataFromServer() {
+    const telegramId = getTelegramUserId();
+    if (!telegramId) {
+        console.error('Не удалось получить Telegram ID пользователя');
+        return;
+    }
+
+    fetch(`https://litwin-tap.ru/get-user-data?telegramId=${telegramId}`)
+    .then(response => response.json())
+    .then(data => {
+        balance = data.balance;
+        tapProfit = data.tapProfit;
+        hourlyProfit = data.hourlyProfit;
+        totalEarnedCoins = data.totalEarnedCoins;
+        updateBalanceDisplay();
+        updateTapProfit();
+        updateHourlyProfit();
+        updateProgress();
+        console.log('Данные успешно получены с сервера');
+    })
+    .catch(error => {
+        console.error('Ошибка при получении данных с сервера:', error);
+    });
+}
+
+// Функция для получения Telegram ID пользователя
+function getTelegramUserId() {
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+        return window.Telegram.WebApp.initDataUnsafe.user.id;
+    }
+    return null;
+}
 function initializeVariables() {
     console.log('Инициализация переменных');
     balance = parseInt(localStorage.getItem('balance')) || 0;
@@ -80,10 +144,14 @@ function updateBalanceDisplay(newBalance) {
         balanceElement.textContent = newBalance.toLocaleString();
         console.log('Баланс обновлен в DOM:', newBalance);
     } else {
+        console.error('Элемент баланса не найден в DOM');
     }
     
     localStorage.setItem('balance', newBalance.toString());
     console.log('Баланс сохранен в localStorage:', newBalance);
+    
+    balance = newBalance;
+    syncDataWithServer();
 }
 function initializeMainPage() {
     console.log('Вызвана функция initializeMainPage');
@@ -136,6 +204,31 @@ function initializeMainPage() {
     const selectedCan = parseInt(localStorage.getItem('selectedCan')) || 0;
     updateCanImage(selectedCan);
 }
+
+function updateTapProfit(newTapProfit) {
+    if (typeof newTapProfit !== 'undefined' && !isNaN(newTapProfit)) {
+        tapProfit = newTapProfit;
+        localStorage.setItem('tapProfit', tapProfit.toString());
+        const tapProfitElement = document.getElementById('tapProfit');
+        if (tapProfitElement) {
+            tapProfitElement.textContent = tapProfit.toLocaleString();
+        }
+        syncDataWithServer();
+    }
+}
+
+function updateHourlyProfit(newHourlyProfit) {
+    if (typeof newHourlyProfit !== 'undefined' && !isNaN(newHourlyProfit)) {
+        hourlyProfit = newHourlyProfit;
+        localStorage.setItem('hourlyProfit', hourlyProfit.toString());
+        const hourlyProfitElement = document.getElementById('hourlyProfit');
+        if (hourlyProfitElement) {
+            hourlyProfitElement.textContent = hourlyProfit.toLocaleString();
+        }
+        syncDataWithServer();
+    }
+}
+
 function updateUserProfile() {
     if (window.Telegram && window.Telegram.WebApp) {
         const webApp = window.Telegram.WebApp;
@@ -181,12 +274,21 @@ function initializeTelegramWebApp() {
 }
 
 function updateProgress() {
+    currentLevel = 1;
+    for (let i = 0; i < progressLevels.length; i++) {
+        if (totalEarnedCoins >= progressLevels[i]) {
+            currentLevel = i + 2;
+        } else {
+            break;
+        }
+    }
+
     let progressPercentage;
-    if (currentLevel === progressLevels.length) {
+    if (currentLevel > progressLevels.length) {
         progressPercentage = 100;
     } else {
-        const levelStart = currentLevel > 0 ? progressLevels[currentLevel - 1] : 0;
-        const levelEnd = progressLevels[currentLevel];
+        const levelStart = currentLevel > 1 ? progressLevels[currentLevel - 2] : 0;
+        const levelEnd = progressLevels[currentLevel - 1];
         progressPercentage = ((totalEarnedCoins - levelStart) / (levelEnd - levelStart)) * 100;
     }
 
@@ -200,13 +302,8 @@ function updateProgress() {
     localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
     localStorage.setItem('currentLevel', currentLevel.toString());
     
-    // Проверяем, достигнут ли новый уровень
-    if (totalEarnedCoins >= progressLevels[currentLevel - 1] && currentLevel < progressLevels.length) {
-        currentLevel++;
-        localStorage.setItem('currentLevel', currentLevel.toString());
-        // Отправляем сообщение странице коллекции об изменении уровня
-        window.frames[0].postMessage({ type: 'levelUp' }, '*');
-    }
+    // Отправляем сообщение странице коллекции об изменении уровня
+    window.postMessage({ type: 'levelUp', level: currentLevel }, '*');
 }
 function updateBalance(amount) {
     console.log('Вызвана функция updateBalance с аргументом:', amount);
@@ -656,19 +753,6 @@ function updateCanImage(index) {
     }
 }
 
-// Добавьте эту функцию для проверки
-function checkFriendsFrame() {
-    const friendsFrame = document.getElementById('friendsFrame');
-    if (friendsFrame) {
-        console.log('Фрейм friends.html найден');
-    } else {
-        console.error('Фрейм friends.html не найден');
-    }
-}
-
-// Вызовите эту функцию при загрузке страницы
-document.addEventListener('DOMContentLoaded', checkFriendsFrame);
-
 function openTaskLink(url) {
     // Проверяем, доступен ли Telegram WebApp
     if (window.Telegram && window.Telegram.WebApp) {
@@ -680,9 +764,6 @@ function openTaskLink(url) {
     }
 }
 
-// Добавьте эту функцию в конец файла main.js
-
-// Добавьте эту функцию в конец файла main.js
 function initializeFriendsPageFromMain() {
     const friendsPage = document.getElementById('friends-page');
     if (friendsPage) {
@@ -695,6 +776,68 @@ function initializeFriendsPageFromMain() {
         }
     }
 }
+function loadAdsgramScript() {
+    return new Promise((resolve, reject) => {
+        if (window.Adsgram) {
+            resolve();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://sad.adsgram.ai/js/sad.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.body.appendChild(script);
+    });
+}
 
+let AdController;
+async function initAdsgram() {
+    try {
+        await loadAdsgramScript();
+        console.log('Adsgram SDK loaded successfully');
+        AdController = window.Adsgram.init({ blockId: "2643" }); 
+    } catch (error) {
+        console.error('Error loading Adsgram SDK:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initAdsgram);
+
+async function watchAd() {
+    if (!AdController) {
+        await initAdsgram();
+    }
+    try {
+        const result = await AdController.show();
+        console.log('User watched ad', result);
+        const telegramId = getTelegramUserId();
+        if (!telegramId) {
+            console.error('Telegram ID not found');
+            return;
+        }
+        const response = await fetch(`https://litwin-tap.ru/reward?userid=${telegramId}`);
+        const data = await response.json();
+        if (data.success) {
+            applyAdBonus();
+        }
+    } catch (error) {
+        console.error('Error showing ad:', error);
+    }
+}
+
+function applyAdBonus() {
+    const bonusDuration = 30000; // 30 seconds
+    const originalTapProfit = tapProfit;
+    tapProfit += 100;
+    updateTapProfit();
+    setTimeout(() => {
+        tapProfit = originalTapProfit;
+        updateTapProfit();
+    }, bonusDuration);
+}
 // Вызовите эту функцию при загрузке страницы
 document.addEventListener('DOMContentLoaded', initializeFriendsPageFromMain);
+// Синхронизация данных с сервером каждые 5 минут
+setInterval(syncDataWithServer, 5 * 60 * 1000);
+// Получение данных с сервера при инициализации
+document.addEventListener('DOMContentLoaded', fetchDataFromServer);

@@ -1,11 +1,20 @@
 function initializeFriendsPage() {
     console.log('Инициализация страницы друзей');
     const inviteButton = document.getElementById('inviteButton');
+    const shareLinkButton = document.getElementById('shareLinkButton');
+    
     if (inviteButton) {
-        console.log('Кнопка найдена, добавляем обработчик');
+        console.log('Кнопка приглашения найдена, добавляем обработчик');
         inviteButton.addEventListener('click', handleInviteButtonClick);
     } else {
         console.error('Кнопка приглашения не найдена');
+    }
+    
+    if (shareLinkButton) {
+        console.log('Кнопка поделиться найдена, добавляем обработчик');
+        shareLinkButton.addEventListener('click', handleShareLinkButtonClick);
+    } else {
+        console.error('Кнопка поделиться не найдена');
     }
 
     // Получаем список приглашенных друзей
@@ -111,65 +120,125 @@ function displayReferredFriends(friends) {
         document.body.appendChild(popup);
     }
 
-window.handleInviteButtonClick = function(event) {
-    console.log('Функция handleInviteButtonClick вызвана');
-    event.preventDefault();
-    
-    if (!window.Telegram || !window.Telegram.WebApp) {
-        console.error('Telegram WebApp не доступен');
-        showPopup('Ошибка', 'Telegram WebApp не доступен');
-        return;
-    }
-    
-    console.log('Telegram WebApp доступен');
-    
-    let telegramId;
-    try {
-        telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
-        console.log('Telegram ID:', telegramId);
-    } catch (error) {
-        console.error('Не удалось получить Telegram ID:', error);
-        showPopup('Ошибка', 'Не удалось получить информацию о пользователе');
-        return;
-    }
-
-    if (!telegramId) {
-        console.error('Telegram ID не определен');
-        showPopup('Ошибка', 'Не удалось получить информацию о пользователе');
-        return;
-    }
-
-    fetch(`https://litwin-tap.ru/get-referral-link?telegramId=${telegramId}`)
-    .then(response => {
-        console.log('Ответ получен:', response);
-        return response.json();
-    })
-    .then(data => {
-        console.log('Данные получены:', data);
-        if (data.inviteLink) {
-            console.log('Реферальная ссылка получена:', data.inviteLink);
-            
-            // Копируем ссылку в буфер обмена
-            navigator.clipboard.writeText(data.inviteLink).then(() => {
-                console.log('Ссылка скопирована в буфер обмена');
-                showPopup('Успех', 'Реферальная ссылка скопирована в буфер обмена. Отправьте её друзьям!');
-            }).catch(err => {
-                console.error('Не удалось скопировать ссылку:', err);
-                showPopup('Внимание', `Не удалось скопировать ссылку. Пожалуйста, скопируйте её вручную: ${data.inviteLink}`);
-            });
-        } else {
-            console.error('Ссылка не получена:', data);
-            showPopup('Ошибка', 'Не удалось получить реферальную ссылку. Попробуйте позже.');
+    window.handleInviteButtonClick = function(event) {
+        console.log('Функция handleInviteButtonClick вызвана');
+        event.preventDefault();
+        
+        if (!window.Telegram || !window.Telegram.WebApp) {
+            console.error('Telegram WebApp не доступен');
+            showPopup('Ошибка', 'Telegram WebApp не доступен');
+            return;
         }
-    })
-    .catch(error => {
-        console.error('Ошибка:', error);
-        showPopup('Ошибка', 'Произошла ошибка при получении реферальной ссылки. Попробуйте позже.');
-    });
-}
-
-// Остальные вспомогательные функции (updateCansImage, showPopup и т.д.) остаются без изменений
-
+        
+        console.log('Telegram WebApp доступен');
+        
+        let telegramId;
+        try {
+            telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+            console.log('Telegram ID:', telegramId);
+        } catch (error) {
+            console.error('Не удалось получить Telegram ID:', error);
+            showPopup('Ошибка', 'Не удалось получить информацию о пользователе');
+            return;
+        }
+    
+        if (!telegramId) {
+            console.error('Telegram ID не определен');
+            showPopup('Ошибка', 'Не удалось получить информацию о пользователе');
+            return;
+        }
+    
+        fetch(`https://litwin-tap.ru/get-referral-link?telegramId=${telegramId}`)
+        .then(response => {
+            console.log('Ответ получен:', response);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Данные получены:', data);
+            if (data.inviteLink) {
+                console.log('Реферальная ссылка получена:', data.inviteLink);
+                
+                // Создаем временное текстовое поле для копирования
+                const tempInput = document.createElement('input');
+                tempInput.style.position = 'absolute';
+                tempInput.style.left = '-9999px';
+                tempInput.value = data.inviteLink;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                tempInput.setSelectionRange(0, 99999); // Для мобильных устройств
+    
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        console.log('Ссылка скопирована в буфер обмена');
+                        showPopup('Успех', 'Реферальная ссылка скопирована в буфер обмена. Отправьте её друзьям!');
+                    } else {
+                        throw new Error('Копирование не удалось');
+                    }
+                } catch (err) {
+                    console.error('Не удалось скопировать ссылку:', err);
+                    showPopup('Внимание', `Не удалось скопировать ссылку. Пожалуйста, скопируйте её вручную: ${data.inviteLink}`);
+                }
+    
+                document.body.removeChild(tempInput);
+            } else {
+                console.error('Ссылка не получена:', data);
+                showPopup('Ошибка', 'Не удалось получить реферальную ссылку. Попробуйте позже.');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            showPopup('Ошибка', 'Произошла ошибка при получении реферальной ссылки. Попробуйте позже.');
+        });
+    }
+    function handleShareLinkButtonClick(event) {
+        console.log('Функция handleShareLinkButtonClick вызвана');
+        event.preventDefault();
+        
+        if (!window.Telegram || !window.Telegram.WebApp) {
+            console.error('Telegram WebApp не доступен');
+            showPopup('Ошибка', 'Telegram WebApp не доступен');
+            return;
+        }
+        
+        let telegramId;
+        try {
+            telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+            console.log('Telegram ID:', telegramId);
+        } catch (error) {
+            console.error('Не удалось получить Telegram ID:', error);
+            showPopup('Ошибка', 'Не удалось получить информацию о пользователе');
+            return;
+        }
+    
+        if (!telegramId) {
+            console.error('Telegram ID не определен');
+            showPopup('Ошибка', 'Не удалось получить информацию о пользователе');
+            return;
+        }
+    
+        fetch(`https://litwin-tap.ru/get-referral-link?telegramId=${telegramId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.inviteLink) {
+                const message = "Присоединяйся к LITWIN вместе со мной!";
+                const shareUrl = `https://t.me/share/url?text=${encodeURIComponent(message)}&url=${encodeURIComponent(data.inviteLink)}`;
+                
+                if (window.Telegram && window.Telegram.WebApp) {
+                    Telegram.WebApp.openTelegramLink(shareUrl);
+                } else {
+                    window.open(shareUrl, "_blank");
+                }
+            } else {
+                console.error('Ссылка не получена:', data);
+                showPopup('Ошибка', 'Не удалось получить реферальную ссылку. Попробуйте позже.');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            showPopup('Ошибка', 'Произошла ошибка при получении реферальной ссылки. Попробуйте позже.');
+        });
+    }
 window.addEventListener('message', function(event) {
     console.log('��лучено сообщение:', event.data);
     if (event.data.type === 'updateCan') {

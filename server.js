@@ -29,11 +29,39 @@ const User = sequelize.define('User', {
   referredBy: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+  balance: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  tapProfit: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1
+  },
+  hourlyProfit: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  totalEarnedCoins: {
+    type: DataTypes.BIGINT,
+    defaultValue: 0
+  },
+  adWatchCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  lastAdUniqueId: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  lastAdWatchTime: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 });
 
 // Синхронизируем модель с базой данных
-sequelize.sync();
+sequelize.sync({ alter: true });
 // Создаем экземпляр бота с вашим токеном
 const bot = new Telegraf(process.env.BOT_TOKEN);
 // WebApp URL
@@ -87,23 +115,23 @@ bot.launch();
 const routes = {
   GET: {
     '/get-referral-link': async (req, res, query) => {
-      console.log('Получен запрос на /get-referral-link'); // Отладочное сообщение
+      console.log('Получен запрос на /get-referral-link');
       const telegramId = query.telegramId;
       
       if (!telegramId) {
-        console.log('Отсутствует telegramId'); // Отладочное сообщение
+        console.log('Отсутствует telegramId');
         return { status: 400, body: { error: 'Missing telegramId parameter' } };
       }
 
       try {
-        console.log('Поиск пользователя с telegramId:', telegramId); // Отладочное сообщение
+        console.log('Поиск пользователя с telegramId:', telegramId);
         const user = await User.findOne({ where: { telegramId } });
         if (user) {
           const inviteLink = `https://t.me/LITWIN_TAP_BOT?start=${user.referralCode}`;
-          console.log('Сгенерирована ссылка:', inviteLink); // Отладочное сообщение
+          console.log('Сгенерирована ссылка:', inviteLink);
           return { status: 200, body: { inviteLink } };
         } else {
-          console.log('Пользователь не найден'); // Отладочное сообщение
+          console.log('Пользователь не найден');
           return { status: 404, body: { error: 'User not found' } };
         }
       } catch (error) {
@@ -138,10 +166,108 @@ const routes = {
         console.error('Ошибка при обработке запроса:', error);
         return { status: 500, body: { error: 'Internal server error' } };
       }
+    },
+'/get-user-data': async (req, res, query) => {
+  const telegramId = query.telegramId;
+  
+  if (!telegramId) {
+    return { status: 400, body: { error: 'Missing telegramId parameter' } };
+  }
+
+  try {
+    const user = await User.findOne({ where: { telegramId } });
+    if (user) {
+      return { status: 200, body: { 
+        balance: user.balance, 
+        tapProfit: user.tapProfit, 
+        hourlyProfit: user.hourlyProfit,
+        totalEarnedCoins: user.totalEarnedCoins
+      }};
+    } else {
+      return { status: 404, body: { error: 'User not found' } };
+    }
+  } catch (error) {
+    console.error('Error in get-user-data:', error);
+    return { status: 500, body: { error: 'Internal server error' } };
+  }
     }
   },
+  '/watch-ad': async (req, res, query) => {
+  const telegramId = query.telegramId;
+  const uniqueId = query.uniqueId;
+
+  if (!telegramId || !uniqueId) {
+    return { status: 400, body: { error: 'Telegram ID and Unique ID are required' } };
+  }
+
+  try {
+    const user = await User.findOne({ where: { telegramId } });
+    if (!user) {
+      return { status: 404, body: { error: 'User not found' } };
+    }
+
+    if (user.lastAdUniqueId === uniqueId) {
+      return { status: 200, body: { message: 'Ad already processed' } };
+    }
+
+    const adWatchCount = (user.adWatchCount || 0) + 1;
+    
+    await user.update({
+      adWatchCount: adWatchCount,
+      lastAdUniqueId: uniqueId,
+      lastAdWatchTime: Date.now()
+    });
+
+    return { status: 200, body: { success: true, adWatchCount } };
+  } catch (error) {
+    console.error('Error processing ad watch:', error);
+    return { status: 500, body: { error: 'Internal server error' } };
+    }
+  },
+  '/reward': async (req, res, query) => {
+  const telegramId = query.userid;
+  if (!telegramId) {
+    return { status: 400, body: { error: 'Missing userid parameter' } };
+  }
+
+  try {
+    const user = await User.findOne({ where: { telegramId } });
+    if (!user) {
+      return { status: 404, body: { error: 'User not found' } };
+    }
+
+    // Здесь мы не изменяем tapProfit в базе данных,
+    // так как это временный бонус
+    return { status: 200, body: { success: true, message: 'Reward applied' } };
+  } catch (error) {
+    console.error('Error processing reward:', error);
+    return { status: 500, body: { error: 'Internal server error' } };
+  }
+},
   POST: {
-    // Здесь вы можете добавить обработчики POST-запросов
+    '/sync-user-data': async (req, res) => {
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
+  req.on('end', async () => {
+    try {
+      const data = JSON.parse(body);
+      const { telegramId, balance, tapProfit, hourlyProfit, totalEarnedCoins } = data;
+      
+      const user = await User.findOne({ where: { telegramId } });
+      if (user) {
+        await user.update({ balance, tapProfit, hourlyProfit, totalEarnedCoins });
+        return { status: 200, body: { message: 'User data updated successfully' } };
+      } else {
+        return { status: 404, body: { error: 'User not found' } };
+      }
+    } catch (error) {
+      console.error('Error in sync-user-data:', error);
+      return { status: 500, body: { error: 'Internal server error' } };
+    }
+      });
+    }
   }
 };
 
