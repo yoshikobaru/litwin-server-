@@ -47,7 +47,19 @@ body {
     vertical-align: middle;
     margin-bottom: 4px;
 }
-
+#watchAdButton {
+    background-color: #000000;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 12px;
+}
 .footer-btn {
     display: flex;
     flex-direction: column;
@@ -200,7 +212,7 @@ body {
 .energy {
     position: absolute;
     left: 20px;
-    bottom: 80px;
+    bottom: 5px;
     display: flex;
     align-items: center;
     font-size: 18px;

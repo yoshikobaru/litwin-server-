@@ -7,7 +7,7 @@ let totalEarnedCoins;
 const progressLevels = [100000, 500000, 1000000, 5000000, 10000000];
 
 let isOnline = true;
-
+let syncTimer;
 let lastEnergyRegenTime;
 let maxEnergy = parseInt(localStorage.getItem('maxEnergy')) || 100;
 const energyRegenRate = 1; // Количество энергии, восстанавливаемое за интервал
@@ -441,9 +441,7 @@ function handleCanClick() {
 
         showTapProfit();
 
-        // Используем updateBalanceDisplay с tapProfit в качестве аргумента
         updateBalanceDisplay(tapProfit);
-        
         totalEarnedCoins += tapProfit;
         localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
         
@@ -452,6 +450,16 @@ function handleCanClick() {
         energy = Math.max(0, energy - 1);
         localStorage.setItem('energy', energy.toString());
         updateEnergyDisplay();
+
+        // Отменяем предыдущий таймер, если он существует
+        if (syncTimer) {
+            clearTimeout(syncTimer);
+        }
+
+        // Устанавливаем новый таймер на синхронизацию
+        syncTimer = setTimeout(() => {
+            syncDataWithServer();
+        }, 5000); // 5 секунд задержки
     }
 }
 
@@ -596,8 +604,16 @@ function saveExitTime() {
     console.log('Сохранено время выхода:', new Date(exitTime));
 }
 
-window.addEventListener('beforeunload', saveExitTime);
-
+window.addEventListener('beforeunload', () => {
+    saveExitTime();
+    syncDataWithServer();
+});
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // Страница скрыта (пользователь переключился на другую вкладку)
+        syncDataWithServer();
+    }
+});
 window.addEventListener('focus', () => {
     if (!isOnline) {
         isOnline = true;
