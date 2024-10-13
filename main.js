@@ -122,15 +122,15 @@ function fetchDataFromServer() {
     fetch(`https://litwin-tap.ru/get-user-data?telegramId=${telegramId}`)
     .then(response => response.json())
     .then(data => {
-        balance = data.balance;
-        tapProfit = data.tapProfit;
-        hourlyProfit = data.hourlyProfit;
-        totalEarnedCoins = data.totalEarnedCoins;
+        balance = data.balance + dataBuffer.balance;
+        tapProfit = data.tapProfit + dataBuffer.tapProfit;
+        hourlyProfit = data.hourlyProfit + dataBuffer.hourlyProfit;
+        totalEarnedCoins = data.totalEarnedCoins + dataBuffer.totalEarnedCoins;
         updateBalanceDisplay();
         updateTapProfit();
         updateHourlyProfit();
         updateProgress();
-        console.log('Данные успешно получены с сервера');
+        console.log('Данные успешно получены с сервера и объединены с локальным буфером');
     })
     .catch(error => {
         console.error('Ошибка при получении данных с сервера:', error);
@@ -199,11 +199,7 @@ function initializeMainPage() {
     bubblesContainer = document.querySelector('.bubbles');
 
     console.log('Найденные элементы:', {
-        progressBar,
-        balanceElement,
-        canElement,
-        energyElement,
-        bubblesContainer
+        progressBar, balanceElement, canElement, energyElement, bubblesContainer
     });
 
     if (!progressBar || !balanceElement || !canElement || !energyElement || !bubblesContainer) {
@@ -211,13 +207,13 @@ function initializeMainPage() {
         return;
     }
 
+    tapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
+    hourlyProfit = parseInt(localStorage.getItem('hourlyProfit')) || 0;
+
     initializeVariables();
     calculateOfflineEarnings();
     startOfflineEarningInterval();
     updateBalanceDisplay();
-
-    isOnline = true;
-
     updateProgress();
     updateBalance();
     updateEnergy();
@@ -226,6 +222,8 @@ function initializeMainPage() {
     updateUserProfile();
     initializeTelegramWebApp();
 
+    isOnline = true;
+
     canElement.addEventListener('click', handleCanClick);
 
     document.querySelectorAll('.footer-btn').forEach(btn => {
@@ -233,10 +231,9 @@ function initializeMainPage() {
     });
 
     initializeEnergy();
-    regenerateEnergy(); // Восстанавливаем энергию сразу при загрузке
+    regenerateEnergy();
     startEnergyRegenInterval();
 
-    // Загружаем выбнную банку и применяем тему
     const selectedCan = parseInt(localStorage.getItem('selectedCan')) || 0;
     updateCanImage(selectedCan);
 }
@@ -244,25 +241,34 @@ function initializeMainPage() {
 function updateTapProfit(newTapProfit) {
     if (typeof newTapProfit !== 'undefined' && !isNaN(newTapProfit)) {
         tapProfit = newTapProfit;
-        localStorage.setItem('tapProfit', tapProfit.toString());
-        const tapProfitElement = document.getElementById('tapProfit');
-        if (tapProfitElement) {
-            tapProfitElement.textContent = tapProfit.toLocaleString();
-        }
-        updateDataBuffer();
     }
+    localStorage.setItem('tapProfit', tapProfit.toString());
+    
+    const tapProfitProfileElement = document.querySelector('.profit-item:first-child .profit-value');
+    if (tapProfitProfileElement) {
+        tapProfitProfileElement.innerHTML = `<img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span>${tapProfit}</span>`;
+    }
+
+    const tapProfitElement = document.getElementById('tapProfit');
+    if (tapProfitElement) {
+        tapProfitElement.textContent = tapProfit.toLocaleString();
+    }
+
+    updateDataBuffer('tapProfit', tapProfit);
 }
 
 function updateHourlyProfit(newHourlyProfit) {
     if (typeof newHourlyProfit !== 'undefined' && !isNaN(newHourlyProfit)) {
         hourlyProfit = newHourlyProfit;
-        localStorage.setItem('hourlyProfit', hourlyProfit.toString());
-        const hourlyProfitElement = document.getElementById('hourlyProfit');
-        if (hourlyProfitElement) {
-            hourlyProfitElement.textContent = hourlyProfit.toLocaleString();
-        }
-        updateDataBuffer();
     }
+    localStorage.setItem('hourlyProfit', hourlyProfit.toString());
+    
+    const hourlyProfitElement = document.getElementById('hourlyProfit');
+    if (hourlyProfitElement) {
+        hourlyProfitElement.textContent = hourlyProfit.toLocaleString();
+    }
+
+    updateDataBuffer('hourlyProfit', hourlyProfit);
 }
 
 function updateUserProfile() {
@@ -356,25 +362,27 @@ function updateBalance(amount) {
 function updateHourlyProfit() {
     const hourlyProfitElement = document.getElementById('hourlyProfit');
     if (hourlyProfitElement) {
-        hourlyProfitElement.textContent = hourlyProfit;
+        hourlyProfitElement.textContent = hourlyProfit.toLocaleString();
     }
     localStorage.setItem('hourlyProfit', hourlyProfit.toString());
+    updateDataBuffer('hourlyProfit', hourlyProfit);
 }
 
 function updateTapProfit() {
     // Обновляем значение в профиле
     const tapProfitProfileElement = document.querySelector('.profit-item:first-child .profit-value');
     if (tapProfitProfileElement) {
-        tapProfitProfileElement.innerHTML = `<img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span>${tapProfit}</span>`;
+        tapProfitProfileElement.innerHTML = `<img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span>${tapProfit.toLocaleString()}</span>`;
     }
 
     // Обновляем значение, которое отображается при нажатии на банку
     const tapProfitElement = document.getElementById('tapProfit');
     if (tapProfitElement) {
-        tapProfitElement.textContent = tapProfit;
+        tapProfitElement.textContent = tapProfit.toLocaleString();
     }
 
     localStorage.setItem('tapProfit', tapProfit.toString());
+    updateDataBuffer('tapProfit', tapProfit);
 }
 
 function updateEnergy() {
