@@ -109,10 +109,15 @@ function fetchDataFromServer() {
     .then(response => response.json())
     .then(data => {
         console.log('Полученные данные с сервера:', data);
-        balance = data.balance || balance;
-        tapProfit = data.tapProfit || tapProfit;
-        hourlyProfit = data.hourlyProfit || hourlyProfit;
-        totalEarnedCoins = data.totalEarnedCoins || totalEarnedCoins;
+        balance = data.balance;
+        tapProfit = data.tapProfit;
+        hourlyProfit = data.hourlyProfit;
+        totalEarnedCoins = data.totalEarnedCoins;
+        
+        localStorage.setItem('balance', balance.toString());
+        localStorage.setItem('tapProfit', tapProfit.toString());
+        localStorage.setItem('hourlyProfit', hourlyProfit.toString());
+        localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
         
         updateBalanceDisplay();
         updateTapProfit();
@@ -124,7 +129,6 @@ function fetchDataFromServer() {
         console.error('Ошибка при получении данных с сервера:', error);
     });
 }
-
 // Функция для получения Telegram ID пользователя
 function getTelegramUserId() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
@@ -156,7 +160,7 @@ function updateBalanceDisplay(newBalance) {
     console.log('Вызвана функция updateBalanceDisplay с аргументом:', newBalance);
     
     if (typeof newBalance !== 'undefined' && !isNaN(newBalance)) {
-        balance += newBalance;
+        balance = newBalance;
     }
     
     balance = Math.max(0, Math.floor(balance));
@@ -164,8 +168,8 @@ function updateBalanceDisplay(newBalance) {
     const balanceElement = document.getElementById('balance');
     if (balanceElement) {
         balanceElement.textContent = balance.toLocaleString();
-    } else {
     }
+    
     localStorage.setItem('balance', balance.toString());
     console.log('Баланс сохранен в localStorage:', balance);
 }
