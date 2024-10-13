@@ -59,6 +59,7 @@ if (window.Telegram && window.Telegram.WebApp) {
         }
     });
 }
+
 function syncDataWithServer() {
     const telegramId = getTelegramUserId();
     if (!telegramId) {
@@ -119,7 +120,7 @@ function fetchDataFromServer() {
         localStorage.setItem('hourlyProfit', hourlyProfit.toString());
         localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
         
-        updateBalanceDisplay(data.balance - balance);
+        updateBalanceDisplay();
         updateTapProfit();
         updateHourlyProfit();
         updateProgress();
@@ -160,9 +161,10 @@ function updateBalanceDisplay(amount) {
     console.log('Вызвана функция updateBalanceDisplay с аргументом:', amount);
     
     if (typeof amount === 'number' && !isNaN(amount)) {
-        balance += amount;
+        if (amount !== 0) {
+            balance += amount;
+        }
     } else if (typeof amount === 'undefined') {
-        // Если аргумент не передан, просто обновляем отображение
         console.log('Обновление отображения баланса без изменения значения');
     } else {
         console.warn('Некорректный аргумент для updateBalanceDisplay:', amount);
