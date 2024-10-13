@@ -441,7 +441,9 @@ function handleCanClick() {
 
         showTapProfit();
 
-        updateBalance(tapProfit);
+        // Используем updateBalanceDisplay с tapProfit в качестве аргумента
+        updateBalanceDisplay(tapProfit);
+        
         totalEarnedCoins += tapProfit;
         localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
         
