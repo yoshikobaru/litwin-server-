@@ -43,17 +43,6 @@ const canThemes = {
     },
     // Добавьте темы для остальных банок здесь
 };
-// Функция для синхронизации данных с сервером
-let dataBuffer = {
-    balance: 0,
-    tapProfit: 0,
-    hourlyProfit: 0,
-    totalEarnedCoins: 0
-};
-
-function updateDataBuffer(key, value) {
-    dataBuffer[key] += value;
-}
 
 function syncDataWithServer() {
     const telegramId = getTelegramUserId();
@@ -64,10 +53,10 @@ function syncDataWithServer() {
 
     const dataToSync = {
         telegramId: telegramId.toString(),
-        balance: dataBuffer.balance,
-        tapProfit: dataBuffer.tapProfit,
-        hourlyProfit: dataBuffer.hourlyProfit,
-        totalEarnedCoins: dataBuffer.totalEarnedCoins
+        balance: parseInt(localStorage.getItem('balance')) || 0,
+        tapProfit: parseInt(localStorage.getItem('tapProfit')) || 1,
+        hourlyProfit: parseInt(localStorage.getItem('hourlyProfit')) || 0,
+        totalEarnedCoins: parseInt(localStorage.getItem('totalEarnedCoins')) || 0
     };
 
     fetch('https://litwin-tap.ru/sync-user-data', {
@@ -87,30 +76,11 @@ function syncDataWithServer() {
     })
     .then(data => {
         console.log('Данные успешно синхронизированы с сервером:', data);
-        // Вычитаем синхронизированные значения из буфера
-        dataBuffer.balance -= dataToSync.balance;
-        dataBuffer.tapProfit -= dataToSync.tapProfit;
-        dataBuffer.hourlyProfit -= dataToSync.hourlyProfit;
-        dataBuffer.totalEarnedCoins -= dataToSync.totalEarnedCoins;
     })
     .catch(error => {
         console.error('Ошибка при синхронизации данных с сервером:', error);
-        // Не обнуляем буфер в случае ошибки
     });
 }
-
-// Синхронизация данных каждые 30 секунд
-setInterval(syncDataWithServer, 30000);
-
-// Синхронизация данных при переключении вкладок
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        syncDataWithServer();
-    }
-});
-
-// Попытка синхронизации при закрытии
-window.addEventListener('beforeunload', syncDataWithServer);
 
 // Функция для получения данных с сервера
 function fetchDataFromServer() {
@@ -124,21 +94,16 @@ function fetchDataFromServer() {
     .then(response => response.json())
     .then(data => {
         console.log('Полученные данные с сервера:', data);
-        balance = data.balance;
-        tapProfit = data.tapProfit;
-        hourlyProfit = data.hourlyProfit;
-        totalEarnedCoins = data.totalEarnedCoins;
-        
-        localStorage.setItem('balance', balance.toString());
-        localStorage.setItem('tapProfit', tapProfit.toString());
-        localStorage.setItem('hourlyProfit', hourlyProfit.toString());
-        localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
+        balance = data.balance || balance;
+        tapProfit = data.tapProfit || tapProfit;
+        hourlyProfit = data.hourlyProfit || hourlyProfit;
+        totalEarnedCoins = data.totalEarnedCoins || totalEarnedCoins;
         
         updateBalanceDisplay();
         updateTapProfit();
         updateHourlyProfit();
         updateProgress();
-        console.log('Данные успешно получены с сервера и обновлены в localStorage');
+        console.log('Данные успешно получены с сервера и обновлены');
     })
     .catch(error => {
         console.error('Ошибка при получении данных с сервера:', error);
@@ -195,7 +160,7 @@ function updateBalanceDisplay(newBalance) {
     console.log('Баланс сохранен в localStorage:', newBalance);
     
     balance = newBalance;
-    updateDataBuffer();
+    syncDataWithServer();
 }
 function initializeMainPage() {
     console.log('Вызвана функция initializeMainPage');
@@ -261,8 +226,6 @@ function updateTapProfit(newTapProfit) {
     if (tapProfitElement) {
         tapProfitElement.textContent = tapProfit.toLocaleString();
     }
-
-    updateDataBuffer('tapProfit', 0); // Обнуляем буфер после обновления
 }
 
 function updateHourlyProfit(newHourlyProfit) {
@@ -275,8 +238,6 @@ function updateHourlyProfit(newHourlyProfit) {
     if (hourlyProfitElement) {
         hourlyProfitElement.textContent = hourlyProfit.toLocaleString();
     }
-
-    updateDataBuffer('hourlyProfit', 0); // Обнуляем буфер после обновления
 }
 
 function updateUserProfile() {
@@ -437,7 +398,6 @@ function createMango() {
     setTimeout(() => mango.remove(), 1000);
 }
 
-// Обновите функцию handleCanClick
 function handleCanClick() {
     if (energy > 0) {
         canElement.classList.add('shake');
@@ -474,14 +434,18 @@ function handleCanClick() {
 
         showTapProfit();
 
-        updateDataBuffer('balance', tapProfit);
-        updateDataBuffer('totalEarnedCoins', tapProfit);
         balance += tapProfit;
         totalEarnedCoins += tapProfit;
+        
+        // Сохраняем обновленные данные в localStorage
+        localStorage.setItem('balance', balance.toString());
+        localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
+        
         updateBalance(tapProfit);
         updateProgress();
 
         energy = Math.max(0, energy - 1);
+        localStorage.setItem('energy', energy.toString());
         updateEnergyDisplay();
     }
 }
@@ -869,3 +833,19 @@ function applyAdBonus() {
 document.addEventListener('DOMContentLoaded', initializeFriendsPageFromMain);
 // Получение данных с сервера при инициализации
 document.addEventListener('DOMContentLoaded', fetchDataFromServer);
+if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.onEvent('viewportChanged', function() {
+        if (window.Telegram.WebApp.isExpanded) {
+            // Приложение развернуто
+        } else {
+            // Приложение свернуто, пользователь пытается выйти
+            window.Telegram.WebApp.showConfirm('Вы уверены, что хотите выйти?', function(confirmed) {
+                if (confirmed) {
+                    // Пользователь подтвердил выход
+                    syncDataWithServer(); // Синхронизируем данные перед выходом
+                    window.Telegram.WebApp.close();
+                }
+            });
+        }
+    });
+}
