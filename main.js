@@ -119,7 +119,7 @@ function fetchDataFromServer() {
         localStorage.setItem('hourlyProfit', hourlyProfit.toString());
         localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
         
-        updateBalanceDisplay();
+        updateBalanceDisplay(data.balance - balance);
         updateTapProfit();
         updateHourlyProfit();
         updateProgress();
@@ -156,11 +156,17 @@ function initializeVariables() {
     console.log('Максимальная энергия после инициализации:', maxEnergy);
 }
 
-function updateBalanceDisplay(newBalance) {
-    console.log('Вызвана функция updateBalanceDisplay с аргументом:', newBalance);
+function updateBalanceDisplay(amount) {
+    console.log('Вызвана функция updateBalanceDisplay с аргументом:', amount);
     
-    if (typeof newBalance !== 'undefined' && !isNaN(newBalance)) {
-        balance += newBalance;
+    if (typeof amount === 'number' && !isNaN(amount)) {
+        balance += amount;
+    } else if (typeof amount === 'undefined') {
+        // Если аргумент не передан, просто обновляем отображение
+        console.log('Обновление отображения баланса без изменения значения');
+    } else {
+        console.warn('Некорректный аргумент для updateBalanceDisplay:', amount);
+        return;
     }
     
     balance = Math.max(0, Math.floor(balance));
@@ -445,14 +451,14 @@ function handleCanClick() {
 
         showTapProfit();
 
-        updateBalanceDisplay(tapProfit);
-        updateTotalEarnedCoins(tapProfit);
-        
-        updateProgress();
+updateBalanceDisplay(tapProfit);
+updateTotalEarnedCoins(tapProfit);
 
-        energy = Math.max(0, energy - 1);
-        localStorage.setItem('energy', energy.toString());
-        updateEnergyDisplay();
+updateProgress();
+
+energy = Math.max(0, energy - 1);
+localStorage.setItem('energy', energy.toString());
+updateEnergyDisplay();
 
         // Отменяем предыдущий таймер, если он существует
         if (syncTimer) {
