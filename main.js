@@ -122,15 +122,15 @@ function fetchDataFromServer() {
     fetch(`https://litwin-tap.ru/get-user-data?telegramId=${telegramId}`)
     .then(response => response.json())
     .then(data => {
-        balance = data.balance + dataBuffer.balance;
-        tapProfit = data.tapProfit + dataBuffer.tapProfit;
-        hourlyProfit = data.hourlyProfit + dataBuffer.hourlyProfit;
-        totalEarnedCoins = data.totalEarnedCoins + dataBuffer.totalEarnedCoins;
+        balance = data.balance;
+        tapProfit = data.tapProfit;
+        hourlyProfit = data.hourlyProfit;
+        totalEarnedCoins = data.totalEarnedCoins;
         updateBalanceDisplay();
         updateTapProfit();
         updateHourlyProfit();
         updateProgress();
-        console.log('Данные успешно получены с сервера и объединены с локальным буфером');
+        console.log('Данные успешно получены с сервера');
     })
     .catch(error => {
         console.error('Ошибка при получении данных с сервера:', error);
@@ -246,7 +246,7 @@ function updateTapProfit(newTapProfit) {
     
     const tapProfitProfileElement = document.querySelector('.profit-item:first-child .profit-value');
     if (tapProfitProfileElement) {
-        tapProfitProfileElement.innerHTML = `<img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span>${tapProfit}</span>`;
+        tapProfitProfileElement.innerHTML = `<img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span>${tapProfit.toLocaleString()}</span>`;
     }
 
     const tapProfitElement = document.getElementById('tapProfit');
@@ -254,7 +254,7 @@ function updateTapProfit(newTapProfit) {
         tapProfitElement.textContent = tapProfit.toLocaleString();
     }
 
-    updateDataBuffer('tapProfit', tapProfit);
+    updateDataBuffer('tapProfit', 0); // Обнуляем буфер после обновления
 }
 
 function updateHourlyProfit(newHourlyProfit) {
@@ -268,7 +268,7 @@ function updateHourlyProfit(newHourlyProfit) {
         hourlyProfitElement.textContent = hourlyProfit.toLocaleString();
     }
 
-    updateDataBuffer('hourlyProfit', hourlyProfit);
+    updateDataBuffer('hourlyProfit', 0); // Обнуляем буфер после обновления
 }
 
 function updateUserProfile() {
@@ -359,31 +359,6 @@ function updateBalance(amount) {
     console.log('Новый баланс:', currentBalance);
 }
 
-function updateHourlyProfit() {
-    const hourlyProfitElement = document.getElementById('hourlyProfit');
-    if (hourlyProfitElement) {
-        hourlyProfitElement.textContent = hourlyProfit.toLocaleString();
-    }
-    localStorage.setItem('hourlyProfit', hourlyProfit.toString());
-    updateDataBuffer('hourlyProfit', hourlyProfit);
-}
-
-function updateTapProfit() {
-    // Обновляем значение в профиле
-    const tapProfitProfileElement = document.querySelector('.profit-item:first-child .profit-value');
-    if (tapProfitProfileElement) {
-        tapProfitProfileElement.innerHTML = `<img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span>${tapProfit.toLocaleString()}</span>`;
-    }
-
-    // Обновляем значение, которое отображается при нажатии на банку
-    const tapProfitElement = document.getElementById('tapProfit');
-    if (tapProfitElement) {
-        tapProfitElement.textContent = tapProfit.toLocaleString();
-    }
-
-    localStorage.setItem('tapProfit', tapProfit.toString());
-    updateDataBuffer('tapProfit', tapProfit);
-}
 
 function updateEnergy() {
     energyElement.textContent = `${energy}/100`;
