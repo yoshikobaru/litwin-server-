@@ -43,7 +43,22 @@ const canThemes = {
     },
     // Добавьте темы для остальных банок здесь
 };
-
+if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.onEvent('viewportChanged', function() {
+        if (window.Telegram.WebApp.isExpanded) {
+            // Приложение развернуто
+        } else {
+            // Приложение свернуто, пользователь пытается выйти
+            window.Telegram.WebApp.showConfirm('Вы уверены, что хотите выйти?', function(confirmed) {
+                if (confirmed) {
+                    // Пользователь подтвердил выход
+                    syncDataWithServer(); // Синхронизируем данные перед выходом
+                    window.Telegram.WebApp.close();
+                }
+            });
+        }
+    });
+}
 function syncDataWithServer() {
     const telegramId = getTelegramUserId();
     if (!telegramId) {
@@ -160,7 +175,6 @@ function updateBalanceDisplay(newBalance) {
     console.log('Баланс сохранен в localStorage:', newBalance);
     
     balance = newBalance;
-    syncDataWithServer();
 }
 function initializeMainPage() {
     console.log('Вызвана функция initializeMainPage');
@@ -833,19 +847,4 @@ function applyAdBonus() {
 document.addEventListener('DOMContentLoaded', initializeFriendsPageFromMain);
 // Получение данных с сервера при инициализации
 document.addEventListener('DOMContentLoaded', fetchDataFromServer);
-if (window.Telegram && window.Telegram.WebApp) {
-    window.Telegram.WebApp.onEvent('viewportChanged', function() {
-        if (window.Telegram.WebApp.isExpanded) {
-            // Приложение развернуто
-        } else {
-            // Приложение свернуто, пользователь пытается выйти
-            window.Telegram.WebApp.showConfirm('Вы уверены, что хотите выйти?', function(confirmed) {
-                if (confirmed) {
-                    // Пользователь подтвердил выход
-                    syncDataWithServer(); // Синхронизируем данные перед выходом
-                    window.Telegram.WebApp.close();
-                }
-            });
-        }
-    });
-}
+
