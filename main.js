@@ -450,7 +450,7 @@ function handleCanClick() {
 
         showTapProfit();
 
-updateBalanceDisplay(tapProfit);
+updateBalance(tapProfit);
 updateTotalEarnedCoins(tapProfit);
 
 updateProgress();
