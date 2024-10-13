@@ -62,12 +62,12 @@ function syncDataWithServer() {
         return;
     }
 
-    const data = {
+    const dataToSync = {
         telegramId: telegramId.toString(),
-        balance: balance + dataBuffer.balance,
-        tapProfit: tapProfit + dataBuffer.tapProfit,
-        hourlyProfit: hourlyProfit + dataBuffer.hourlyProfit,
-        totalEarnedCoins: totalEarnedCoins + dataBuffer.totalEarnedCoins
+        balance: dataBuffer.balance,
+        tapProfit: dataBuffer.tapProfit,
+        hourlyProfit: dataBuffer.hourlyProfit,
+        totalEarnedCoins: dataBuffer.totalEarnedCoins
     };
 
     fetch('https://litwin-tap.ru/sync-user-data', {
@@ -75,7 +75,7 @@ function syncDataWithServer() {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(dataToSync)
     })
     .then(response => {
         if (!response.ok) {
@@ -87,13 +87,11 @@ function syncDataWithServer() {
     })
     .then(data => {
         console.log('Данные успешно синхронизированы с сервером:', data);
-        // Сбрасываем буфер после успешной синхронизации
-        dataBuffer = {
-            balance: 0,
-            tapProfit: 0,
-            hourlyProfit: 0,
-            totalEarnedCoins: 0
-        };
+        // Вычитаем синхронизированные значения из буфера
+        dataBuffer.balance -= dataToSync.balance;
+        dataBuffer.tapProfit -= dataToSync.tapProfit;
+        dataBuffer.hourlyProfit -= dataToSync.hourlyProfit;
+        dataBuffer.totalEarnedCoins -= dataToSync.totalEarnedCoins;
     })
     .catch(error => {
         console.error('Ошибка при синхронизации данных с сервером:', error);
@@ -487,6 +485,7 @@ function handleCanClick() {
 
         updateDataBuffer('balance', tapProfit);
         updateDataBuffer('totalEarnedCoins', tapProfit);
+        balance += tapProfit;
         totalEarnedCoins += tapProfit;
         updateBalance(tapProfit);
         updateProgress();

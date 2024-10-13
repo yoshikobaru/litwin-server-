@@ -167,118 +167,121 @@ const routes = {
         return { status: 500, body: { error: 'Internal server error' } };
       }
     },
-'/get-user-data': async (req, res, query) => {
-  const telegramId = query.telegramId;
-  
-  if (!telegramId) {
-    return { status: 400, body: { error: 'Missing telegramId parameter' } };
-  }
-
-  try {
-    const user = await User.findOne({ where: { telegramId } });
-    if (user) {
-      return { status: 200, body: { 
-        balance: user.balance, 
-        tapProfit: user.tapProfit, 
-        hourlyProfit: user.hourlyProfit,
-        totalEarnedCoins: user.totalEarnedCoins
-      }};
-    } else {
-      return { status: 404, body: { error: 'User not found' } };
-    }
-  } catch (error) {
-    console.error('Error in get-user-data:', error);
-    return { status: 500, body: { error: 'Internal server error' } };
-  }
-    }
-  },
-  '/watch-ad': async (req, res, query) => {
-  const telegramId = query.telegramId;
-  const uniqueId = query.uniqueId;
-
-  if (!telegramId || !uniqueId) {
-    return { status: 400, body: { error: 'Telegram ID and Unique ID are required' } };
-  }
-
-  try {
-    const user = await User.findOne({ where: { telegramId } });
-    if (!user) {
-      return { status: 404, body: { error: 'User not found' } };
-    }
-
-    if (user.lastAdUniqueId === uniqueId) {
-      return { status: 200, body: { message: 'Ad already processed' } };
-    }
-
-    const adWatchCount = (user.adWatchCount || 0) + 1;
-    
-    await user.update({
-      adWatchCount: adWatchCount,
-      lastAdUniqueId: uniqueId,
-      lastAdWatchTime: Date.now()
-    });
-
-    return { status: 200, body: { success: true, adWatchCount } };
-  } catch (error) {
-    console.error('Error processing ad watch:', error);
-    return { status: 500, body: { error: 'Internal server error' } };
-    }
-  },
-  '/reward': async (req, res, query) => {
-  const telegramId = query.userid;
-  if (!telegramId) {
-    return { status: 400, body: { error: 'Missing userid parameter' } };
-  }
-
-  try {
-    const user = await User.findOne({ where: { telegramId } });
-    if (!user) {
-      return { status: 404, body: { error: 'User not found' } };
-    }
-
-    // Здесь мы не изменяем tapProfit в базе данных,
-    // так как это временный бонус
-    return { status: 200, body: { success: true, message: 'Reward applied' } };
-  } catch (error) {
-    console.error('Error processing reward:', error);
-    return { status: 500, body: { error: 'Internal server error' } };
-  }
-},
-  POST: {
-    '/sync-user-data': async (req, res) => {
-  let body = '';
-  req.on('data', chunk => {
-    body += chunk.toString();
-  });
-  req.on('end', async () => {
-    try {
-      const data = JSON.parse(body);
-      const { telegramId, balance, tapProfit, hourlyProfit, totalEarnedCoins } = data;
+    '/get-user-data': async (req, res, query) => {
+      const telegramId = query.telegramId;
       
       if (!telegramId) {
-        return { status: 400, body: { error: 'Telegram ID is required' } };
+        return { status: 400, body: { error: 'Missing telegramId parameter' } };
       }
 
-      const [user, created] = await User.findOrCreate({
-        where: { telegramId: telegramId.toString() },
-        defaults: { 
-          balance, 
-          tapProfit, 
-          hourlyProfit, 
-          totalEarnedCoins, 
-          referralCode: crypto.randomBytes(4).toString('hex') 
+      try {
+        const user = await User.findOne({ where: { telegramId } });
+        if (user) {
+          return { status: 200, body: { 
+            balance: user.balance, 
+            tapProfit: user.tapProfit, 
+            hourlyProfit: user.hourlyProfit,
+            totalEarnedCoins: user.totalEarnedCoins
+          }};
+        } else {
+          return { status: 404, body: { error: 'User not found' } };
         }
-      });
+      } catch (error) {
+        console.error('Error in get-user-data:', error);
+        return { status: 500, body: { error: 'Internal server error' } };
+      }
+    },
+    '/watch-ad': async (req, res, query) => {
+      const telegramId = query.telegramId;
+      const uniqueId = query.uniqueId;
 
-      if (!created) {
-        await user.update({ balance, tapProfit, hourlyProfit, totalEarnedCoins });
+      if (!telegramId || !uniqueId) {
+        return { status: 400, body: { error: 'Telegram ID and Unique ID are required' } };
       }
 
-      return { status: 200, body: { message: 'User data updated successfully' } };
-    } catch (error) {
-      console.error('Error in sync-user-data:', error);
-      return { status: 500, body: { error: 'Internal server error', details: error.message } };
+      try {
+        const user = await User.findOne({ where: { telegramId } });
+        if (!user) {
+          return { status: 404, body: { error: 'User not found' } };
+        }
+
+        if (user.lastAdUniqueId === uniqueId) {
+          return { status: 200, body: { message: 'Ad already processed' } };
+        }
+
+        const adWatchCount = (user.adWatchCount || 0) + 1;
+        
+        await user.update({
+          adWatchCount: adWatchCount,
+          lastAdUniqueId: uniqueId,
+          lastAdWatchTime: Date.now()
+        });
+
+        return { status: 200, body: { success: true, adWatchCount } };
+      } catch (error) {
+        console.error('Error processing ad watch:', error);
+        return { status: 500, body: { error: 'Internal server error' } };
+      }
+    },
+    '/reward': async (req, res, query) => {
+      const telegramId = query.userid;
+      if (!telegramId) {
+        return { status: 400, body: { error: 'Missing userid parameter' } };
+      }
+
+      try {
+        const user = await User.findOne({ where: { telegramId } });
+        if (!user) {
+          return { status: 404, body: { error: 'User not found' } };
+        }
+
+        // Здесь мы не изменяем tapProfit в базе данных,
+        // так как это временный бонус
+        return { status: 200, body: { success: true, message: 'Reward applied' } };
+      } catch (error) {
+        console.error('Error processing reward:', error);
+        return { status: 500, body: { error: 'Internal server error' } };
+      }
     }
+  },
+  POST: {
+    '/sync-user-data': async (req, res) => {
+      return new Promise((resolve, reject) => {
+        let body = '';
+        req.on('data', chunk => {
+          body += chunk.toString();
+        });
+        req.on('end', async () => {
+          try {
+            const data = JSON.parse(body);
+            const { telegramId, balance, tapProfit, hourlyProfit, totalEarnedCoins } = data;
+            
+            if (!telegramId) {
+              resolve({ status: 400, body: { error: 'Telegram ID is required' } });
+              return;
+            }
+
+            const [user, created] = await User.findOrCreate({
+              where: { telegramId: telegramId.toString() },
+              defaults: { 
+                balance, 
+                tapProfit, 
+                hourlyProfit, 
+                totalEarnedCoins, 
+                referralCode: crypto.randomBytes(4).toString('hex') 
+              }
+            });
+
+            if (!created) {
+              await user.update({ balance, tapProfit, hourlyProfit, totalEarnedCoins });
+            }
+
+            resolve({ status: 200, body: { message: 'User data updated successfully' } });
+          } catch (error) {
+            console.error('Error in sync-user-data:', error);
+            resolve({ status: 500, body: { error: 'Internal server error', details: error.message } });
+          }
+        });
       });
     }
   }
