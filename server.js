@@ -43,7 +43,7 @@ const User = sequelize.define('User', {
     defaultValue: 0
   },
   totalEarnedCoins: {
-    type: DataTypes.BIGINT,
+    type: DataTypes.DECIMAL(30, 0),
     defaultValue: 0
   },
   adWatchCount: {

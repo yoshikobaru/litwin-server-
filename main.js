@@ -44,6 +44,17 @@ const canThemes = {
     // Добавьте темы для остальных банок здесь
 };
 // Функция для синхронизации данных с сервером
+let dataBuffer = {
+    balance: 0,
+    tapProfit: 0,
+    hourlyProfit: 0,
+    totalEarnedCoins: 0
+};
+
+function updateDataBuffer(key, value) {
+    dataBuffer[key] += value;
+}
+
 function syncDataWithServer() {
     const telegramId = getTelegramUserId();
     if (!telegramId) {
@@ -53,10 +64,7 @@ function syncDataWithServer() {
 
     const data = {
         telegramId: telegramId.toString(),
-        balance: balance,
-        tapProfit: tapProfit,
-        hourlyProfit: hourlyProfit,
-        totalEarnedCoins: totalEarnedCoins
+        ...dataBuffer
     };
 
     fetch('https://litwin-tap.ru/sync-user-data', {
@@ -76,6 +84,13 @@ function syncDataWithServer() {
     })
     .then(data => {
         console.log('Данные успешно синхронизированы с сервером:', data);
+        // Сбрасываем буфер после успешной синхронизации
+        dataBuffer = {
+            balance: 0,
+            tapProfit: 0,
+            hourlyProfit: 0,
+            totalEarnedCoins: 0
+        };
     })
     .catch(error => {
         console.error('Ошибка при синхронизации данных с сервером:', error);
@@ -158,7 +173,7 @@ function updateBalanceDisplay(newBalance) {
     console.log('Баланс сохранен в localStorage:', newBalance);
     
     balance = newBalance;
-    syncDataWithServer();
+    updateDataBuffer();
 }
 function initializeMainPage() {
     console.log('Вызвана функция initializeMainPage');
@@ -220,7 +235,7 @@ function updateTapProfit(newTapProfit) {
         if (tapProfitElement) {
             tapProfitElement.textContent = tapProfit.toLocaleString();
         }
-        syncDataWithServer();
+        updateDataBuffer();
     }
 }
 
@@ -232,7 +247,7 @@ function updateHourlyProfit(newHourlyProfit) {
         if (hourlyProfitElement) {
             hourlyProfitElement.textContent = hourlyProfit.toLocaleString();
         }
-        syncDataWithServer();
+        updateDataBuffer();
     }
 }
 
@@ -848,4 +863,6 @@ document.addEventListener('DOMContentLoaded', initializeFriendsPageFromMain);
 setInterval(syncDataWithServer, 5 * 60 * 1000);
 // Получение данных с сервера при инициализации
 document.addEventListener('DOMContentLoaded', fetchDataFromServer);
-window.addEventListener('beforeunload', syncDataWithServer);
+window.addEventListener('beforeunload', () => {
+    syncDataWithServer();
+});
