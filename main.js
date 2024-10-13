@@ -95,6 +95,7 @@ function syncDataWithServer() {
     })
     .catch(error => {
         console.error('Ошибка при синхронизации данных с сервером:', error);
+        // Не обнуляем буфер в случае ошибки
     });
 }
 
@@ -122,15 +123,22 @@ function fetchDataFromServer() {
     fetch(`https://litwin-tap.ru/get-user-data?telegramId=${telegramId}`)
     .then(response => response.json())
     .then(data => {
+        console.log('Полученные данные с сервера:', data);
         balance = data.balance;
         tapProfit = data.tapProfit;
         hourlyProfit = data.hourlyProfit;
         totalEarnedCoins = data.totalEarnedCoins;
+        
+        localStorage.setItem('balance', balance.toString());
+        localStorage.setItem('tapProfit', tapProfit.toString());
+        localStorage.setItem('hourlyProfit', hourlyProfit.toString());
+        localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
+        
         updateBalanceDisplay();
         updateTapProfit();
         updateHourlyProfit();
         updateProgress();
-        console.log('Данные успешно получены с сервера');
+        console.log('Данные успешно получены с сервера и обновлены в localStorage');
     })
     .catch(error => {
         console.error('Ошибка при получении данных с сервера:', error);
