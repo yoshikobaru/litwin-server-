@@ -262,8 +262,14 @@ const routes = {
       }
 
       const [user, created] = await User.findOrCreate({
-        where: { telegramId },
-        defaults: { balance, tapProfit, hourlyProfit, totalEarnedCoins, referralCode: crypto.randomBytes(4).toString('hex') }
+        where: { telegramId: telegramId.toString() },
+        defaults: { 
+          balance, 
+          tapProfit, 
+          hourlyProfit, 
+          totalEarnedCoins, 
+          referralCode: crypto.randomBytes(4).toString('hex') 
+        }
       });
 
       if (!created) {

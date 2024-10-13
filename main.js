@@ -52,7 +52,7 @@ function syncDataWithServer() {
     }
 
     const data = {
-        telegramId: telegramId,
+        telegramId: telegramId.toString(),
         balance: balance,
         tapProfit: tapProfit,
         hourlyProfit: hourlyProfit,
@@ -68,7 +68,9 @@ function syncDataWithServer() {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json().then(err => {
+                throw new Error(`HTTP error! status: ${response.status}, message: ${err.error}`);
+            });
         }
         return response.json();
     })
