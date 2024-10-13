@@ -67,10 +67,16 @@ function displayReferredFriends(friends) {
             friends.forEach(friend => {
                 const friendItem = document.createElement('div');
                 friendItem.className = 'friend-item';
+                
+                const friendName = friend.username ? `@${friend.username}` : `User${friend.id}`;
+                const rewardKey = `friend_reward_${friend.id}`;
+                const isRewardClaimed = localStorage.getItem(rewardKey) === 'claimed';
+                
                 friendItem.innerHTML = `
-                    <span class="friend-name">@${friend.username}</span>
-                    <button class="friend-reward-button" onclick="claimFriendReward('${friend.id}')">
-                        Забрать награду
+                    <span class="friend-name">${friendName}</span>
+                    <button class="friend-reward-button" onclick="claimFriendReward('${friend.id}')"
+                            ${isRewardClaimed ? 'disabled' : ''}>
+                        ${isRewardClaimed ? 'Награда получена' : 'Забрать награду'}
                     </button>
                 `;
                 friendsList.appendChild(friendItem);
@@ -78,7 +84,14 @@ function displayReferredFriends(friends) {
         }
     }
 }
+
 function claimFriendReward(friendId) {
+    const rewardKey = `friend_reward_${friendId}`;
+    if (localStorage.getItem(rewardKey) === 'claimed') {
+        showPopup('Ошибка', 'Вы уже получили награду за этого друга.');
+        return;
+    }
+
     // Получаем текущую прибыль за тап
     const currentTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
     
@@ -94,17 +107,15 @@ function claimFriendReward(friendId) {
     rewardButton.disabled = true;
     rewardButton.textContent = 'Награда получена';
     
+    // Сохраняем информацию о полученной награде
+    localStorage.setItem(rewardKey, 'claimed');
+    
     // Возвращаем прибыль к исходному значению через 30 секунд
     setTimeout(() => {
         window.updateTapProfit(currentTapProfit);
         showPopup('Бонус закончился', 'Ваша прибыль за тап вернулась к обычному значению.');
     }, 30000);
 }
-    // Проверяем текущую выбранную банку при загрузке страницы
-    const selectedCan = localStorage.getItem('selectedCan');
-    if (selectedCan) {
-        updateCanImage(parseInt(selectedCan));
-    }
 
 
     function showPopup(title, message) {
