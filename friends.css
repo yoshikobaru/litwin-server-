@@ -46,7 +46,20 @@ body {
     width: 100%;
     max-width: 400px;
 }
+.friend-reward-button {
+    background-color: var(--secondary-color);
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+}
 
+.friend-reward-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 .friend-item {
     background-color: var(--tertiary-color);
     border-radius: 10px;

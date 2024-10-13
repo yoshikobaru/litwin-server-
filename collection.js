@@ -1,6 +1,7 @@
 (function() {
     const collectionGrid = document.getElementById('collection-grid');
     const marketItems = document.getElementById('market-items');
+
     
     const canImages = [
         'assets/bankaClassic.png',
@@ -58,7 +59,6 @@
     marketItems.insertBefore(drinkLitElement, marketItems.firstChild);
 
     let currentDrinkLitLevel = parseInt(localStorage.getItem('drinkLitLevel')) || 0;
-
     function updateDrinkLitButton() {
         const drinkLitButton = document.getElementById('drinkLitButton');
         const drinkLitPrice = document.getElementById('drinkLitPrice');
@@ -533,5 +533,58 @@ updateEnergyButton();
     // Вызовите функцию при загрузке страницы и при изменении размера окна
     window.addEventListener('load', adjustPageHeight);
     window.addEventListener('resize', adjustPageHeight);
+// Добавляем вкладки категорий
+const categoryTabs = document.createElement('div');
+categoryTabs.className = 'category-tabs';
+categoryTabs.innerHTML = `
+    <button class="category-tab active" data-category="tap">ТАП</button>
+    <button class="category-tab" data-category="hour">ЧАС</button>
+    <button class="category-tab" data-category="energy">ЭНЕРГИЯ</button>
+`;
+marketItems.insertBefore(categoryTabs, marketItems.firstChild);
 
+// Создаем контейнеры для каждой категории улучшений
+const tapUpgrades = document.createElement('div');
+tapUpgrades.className = 'upgrade-category active';
+tapUpgrades.id = 'tap-upgrades';
+
+const hourUpgrades = document.createElement('div');
+hourUpgrades.className = 'upgrade-category';
+hourUpgrades.id = 'hour-upgrades';
+
+const energyUpgrades = document.createElement('div');
+energyUpgrades.className = 'upgrade-category';
+energyUpgrades.id = 'energy-upgrades';
+
+// Перемещаем существующие улучшения в соответствующие категории
+const existingUpgrades = marketItems.querySelectorAll('.market-item');
+existingUpgrades.forEach(upgrade => {
+    const profitText = upgrade.querySelector('.market-item-profit').textContent.toLowerCase();
+    if (profitText.includes('тап')) {
+        tapUpgrades.appendChild(upgrade);
+    } else if (profitText.includes('час')) {
+        hourUpgrades.appendChild(upgrade);
+    } else if (profitText.includes('энергии')) {
+        energyUpgrades.appendChild(upgrade);
+    }
+});
+
+// Добавляем категории улучшений в маркет
+marketItems.appendChild(tapUpgrades);
+marketItems.appendChild(hourUpgrades);
+marketItems.appendChild(energyUpgrades);
+// Обработчик переключения вкладок
+categoryTabs.addEventListener('click', function(event) {
+    if (event.target.classList.contains('category-tab')) {
+        const category = event.target.dataset.category;
+        
+        // Обновляем активную вкладку
+        categoryTabs.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        // Показываем соответствующую группу улучшений
+        document.querySelectorAll('.upgrade-category').forEach(group => group.classList.remove('active'));
+        document.getElementById(`${category}-upgrades`).classList.add('active');
+    }
+});
 })();

@@ -227,7 +227,7 @@ function initializeMainPage() {
     updateCanImage(selectedCan);
 }
 
-function updateTapProfit(newTapProfit) {
+window.updateTapProfit = function(newTapProfit) {
     if (typeof newTapProfit !== 'undefined' && !isNaN(newTapProfit)) {
         tapProfit = newTapProfit;
     }
@@ -242,7 +242,7 @@ function updateTapProfit(newTapProfit) {
     if (tapProfitElement) {
         tapProfitElement.textContent = tapProfit.toLocaleString();
     }
-}
+};
 
 function updateHourlyProfit(newHourlyProfit) {
     if (typeof newHourlyProfit !== 'undefined' && !isNaN(newHourlyProfit)) {
@@ -295,9 +295,72 @@ function initializeTelegramWebApp() {
     if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.ready();
         console.log('WebApp инициализирован:', window.Telegram.WebApp.initDataUnsafe);
+        
+        // Получаем данные пользователя
+        const user = window.Telegram.WebApp.initDataUnsafe.user;
+        if (user) {
+            const telegramId = user.id.toString();
+            const username = user.username || null;
+            
+            // Сохраняем username в localStorage
+            localStorage.setItem('username', username);
+            
+            // Отправляем данные на сервер
+            syncUserDataWithServer(telegramId, username);
+        } else {
+            console.error('Данные пользователя недоступны');
+        }
     } else {
         console.error('Telegram WebApp не доступен');
     }
+}
+
+function syncUserDataWithServer(telegramId, username) {
+    const dataToSync = {
+        telegramId: telegramId,
+        username: username
+    };
+
+    fetch('https://litwin-tap.ru/sync-user-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSync)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(`HTTP error! status: ${response.status}, message: ${err.error}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Данные получены с сервера:', data);
+        if (data.user) {
+            // Обновляем локальные данные только если они отличаются от серверных
+            if (parseInt(localStorage.getItem('balance')) !== data.user.balance) {
+                localStorage.setItem('balance', data.user.balance.toString());
+                updateBalanceDisplay();
+            }
+            if (parseInt(localStorage.getItem('tapProfit')) !== data.user.tapProfit) {
+                localStorage.setItem('tapProfit', data.user.tapProfit.toString());
+                updateTapProfit();
+            }
+            if (parseInt(localStorage.getItem('hourlyProfit')) !== data.user.hourlyProfit) {
+                localStorage.setItem('hourlyProfit', data.user.hourlyProfit.toString());
+                updateHourlyProfit();
+            }
+            if (parseInt(localStorage.getItem('totalEarnedCoins')) !== data.user.totalEarnedCoins) {
+                localStorage.setItem('totalEarnedCoins', data.user.totalEarnedCoins.toString());
+                updateProgress();
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка при синхронизации данных с сервером:', error);
+    });
 }
 
 function updateProgress() {

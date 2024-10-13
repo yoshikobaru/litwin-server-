@@ -60,24 +60,46 @@ function getReferredFriends() {
 function displayReferredFriends(friends) {
     const friendsList = document.getElementById('friendsList');
     if (friendsList) {
-        friendsList.innerHTML = ''; // Очищаем список перед добавлением новых элементов
+        friendsList.innerHTML = '';
         if (friends.length === 0) {
             friendsList.innerHTML = '<p>У вас пока нет приглашенных друзей.</p>';
         } else {
-            friends.forEach(friendId => {
+            friends.forEach(friend => {
                 const friendItem = document.createElement('div');
                 friendItem.className = 'friend-item';
                 friendItem.innerHTML = `
-                    <span class="friend-name">Друг ID: ${friendId}</span>
-                    <span class="friend-xp">Приглашен</span>
+                    <span class="friend-name">@${friend.username}</span>
+                    <button class="friend-reward-button" onclick="claimFriendReward('${friend.id}')">
+                        Забрать награду
+                    </button>
                 `;
                 friendsList.appendChild(friendItem);
             });
         }
-        console.log('Список друзей отображен');
     }
 }
-
+function claimFriendReward(friendId) {
+    // Получаем текущую прибыль за тап
+    const currentTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
+    
+    // Устанавливаем новую прибыль (x2) на 30 секунд
+    const newTapProfit = currentTapProfit * 2;
+    window.updateTapProfit(newTapProfit);
+    
+    // Показываем сообщение пользователю
+    showPopup('Награда получена!', 'Ваша прибыль за тап удвоена на 30 секунд!');
+    
+    // Отключаем кнопку
+    const rewardButton = event.target;
+    rewardButton.disabled = true;
+    rewardButton.textContent = 'Награда получена';
+    
+    // Возвращаем прибыль к исходному значению через 30 секунд
+    setTimeout(() => {
+        window.updateTapProfit(currentTapProfit);
+        showPopup('Бонус закончился', 'Ваша прибыль за тап вернулась к обычному значению.');
+    }, 30000);
+}
     // Проверяем текущую выбранную банку при загрузке страницы
     const selectedCan = localStorage.getItem('selectedCan');
     if (selectedCan) {

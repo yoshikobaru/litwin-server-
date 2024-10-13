@@ -21,6 +21,10 @@ const User = sequelize.define('User', {
     allowNull: false,
     unique: true
   },
+  username: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   referralCode: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -151,10 +155,13 @@ const routes = {
         if (user) {
           const referredFriends = await User.findAll({
             where: { referredBy: user.referralCode },
-            attributes: ['telegramId']
+            attributes: ['telegramId', 'username']
           });
           console.log('Найдено рефералов:', referredFriends.length);
-          return { status: 200, body: { referredFriends: referredFriends.map(friend => friend.telegramId) } };
+          return { status: 200, body: { referredFriends: referredFriends.map(friend => ({
+            id: friend.telegramId,
+            username: friend.username || `User${friend.telegramId}`
+          })) } };
         } else {
           console.log('Пользователь не найден');
           return { status: 404, body: { error: 'User not found' } };
@@ -243,43 +250,56 @@ const routes = {
   },
   POST: {
     '/sync-user-data': async (req, res) => {
-      return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         let body = '';
         req.on('data', chunk => {
-          body += chunk.toString();
+            body += chunk.toString();
         });
         req.on('end', async () => {
-          try {
-            const data = JSON.parse(body);
-            const { telegramId, balance, tapProfit, hourlyProfit, totalEarnedCoins } = data;
-            
-            if (!telegramId) {
-              resolve({ status: 400, body: { error: 'Telegram ID is required' } });
-              return;
+            try {
+                const data = JSON.parse(body);
+                const { telegramId, username } = data;
+                
+                if (!telegramId) {
+                    resolve({ status: 400, body: { error: 'Telegram ID is required' } });
+                    return;
+                }
+
+                let user = await User.findOne({ where: { telegramId: telegramId.toString() } });
+
+                if (!user) {
+                    // Если пользователь не найден, создаем нового с начальными значениями
+                    user = await User.create({
+                        telegramId: telegramId.toString(),
+                        username,
+                        balance: 0,
+                        tapProfit: 1,
+                        hourlyProfit: 0,
+                        totalEarnedCoins: 0,
+                        referralCode: crypto.randomBytes(4).toString('hex')
+                    });
+                }
+                // Если пользователь существует, просто возвращаем его текущие данные
+
+                // Возвращаем данные пользователя
+                resolve({ 
+                    status: 200, 
+                    body: { 
+                        message: user ? 'User data retrieved successfully' : 'New user created',
+                        user: {
+                            balance: user.balance,
+                            tapProfit: user.tapProfit,
+                            hourlyProfit: user.hourlyProfit,
+                            totalEarnedCoins: user.totalEarnedCoins
+                        }
+                    } 
+                });
+            } catch (error) {
+                console.error('Error in sync-user-data:', error);
+                resolve({ status: 500, body: { error: 'Internal server error', details: error.message } });
             }
-
-            const [user, created] = await User.findOrCreate({
-              where: { telegramId: telegramId.toString() },
-              defaults: { 
-                balance, 
-                tapProfit, 
-                hourlyProfit, 
-                totalEarnedCoins, 
-                referralCode: crypto.randomBytes(4).toString('hex') 
-              }
-            });
-
-            if (!created) {
-              await user.update({ balance, tapProfit, hourlyProfit, totalEarnedCoins });
-            }
-
-            resolve({ status: 200, body: { message: 'User data updated successfully' } });
-          } catch (error) {
-            console.error('Error in sync-user-data:', error);
-            resolve({ status: 500, body: { error: 'Internal server error', details: error.message } });
-          }
         });
-      });
+    });
     }
   }
 };
