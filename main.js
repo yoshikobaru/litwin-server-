@@ -160,7 +160,7 @@ function updateBalanceDisplay(newBalance) {
     console.log('Вызвана функция updateBalanceDisplay с аргументом:', newBalance);
     
     if (typeof newBalance !== 'undefined' && !isNaN(newBalance)) {
-        balance = newBalance;
+        balance += newBalance;
     }
     
     balance = Math.max(0, Math.floor(balance));
@@ -171,7 +171,7 @@ function updateBalanceDisplay(newBalance) {
     }
     
     localStorage.setItem('balance', balance.toString());
-    console.log('Баланс сохранен в localStorage:', balance);
+    console.log('Баланс обновлен и сохранен в localStorage:', balance);
 }
 function initializeMainPage() {
     console.log('Вызвана функция initializeMainPage');
