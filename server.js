@@ -96,9 +96,6 @@ bot.command('start', async (ctx) => {
 
     ctx.reply('Привет! Я бот для игры "LIT⚡️WIN Tap". Нажми на кнопку ниже, чтобы начать игру:', {
       reply_markup: {
-        keyboard: [
-          [{ text: 'Играть!', web_app: { url: webAppUrl } }]
-        ],
         resize_keyboard: true
       }
     });

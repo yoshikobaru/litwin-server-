@@ -467,7 +467,7 @@ updateEnergyDisplay();
         // Устанавливаем новый таймер на синхронизацию
         syncTimer = setTimeout(() => {
             syncDataWithServer();
-        }, 5000); // 5 секунд задержки
+        }, 3000); // 5 секунд задержки
     }
 }
 function updateTotalEarnedCoins(amount) {
