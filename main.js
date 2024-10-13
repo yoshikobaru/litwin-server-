@@ -442,8 +442,7 @@ function handleCanClick() {
         showTapProfit();
 
         updateBalanceDisplay(tapProfit);
-        totalEarnedCoins += tapProfit;
-        localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
+        updateTotalEarnedCoins(tapProfit);
         
         updateProgress();
 
@@ -462,7 +461,12 @@ function handleCanClick() {
         }, 5000); // 5 секунд задержки
     }
 }
-
+function updateTotalEarnedCoins(amount) {
+    totalEarnedCoins = parseInt(localStorage.getItem('totalEarnedCoins')) || 0;
+    totalEarnedCoins += amount;
+    localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
+    console.log('Обновлено totalEarnedCoins:', totalEarnedCoins);
+}
 function showTapProfit() {
     const profitElement = document.createElement('div');
     profitElement.className = 'tap-profit';
