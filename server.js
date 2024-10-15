@@ -370,9 +370,11 @@ const server = https.createServer(options, async (req, res) => {
   }
 });
 
-const port = 443;
-server.listen(port, () => {
-  console.log(`HTTPS Сервер запущен на порту ${port}`);
+const httpsPort = 3000;
+const httpPort = 3001;
+
+server.listen(httpsPort, () => {
+  console.log(`HTTPS Сервер запущен на порту ${httpsPort}`);
   console.log('Telegram бот запущен');
   console.log(`HTTPS Сервер запущен на https://litwin-tap.ru`);
 });
@@ -381,8 +383,9 @@ server.listen(port, () => {
 http.createServer((req, res) => {
   res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
   res.end();
-}).listen(80);
-
+}).listen(httpPort, 'localhost', () => {
+  console.log(`HTTP сервер запущен на порту ${httpPort} для перенаправления на HTTPS`);
+});
 // Graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
