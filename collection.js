@@ -476,21 +476,31 @@ updateEnergyButton();
     
     function updateCanImage(index) {
         const canElement = document.getElementById('can');
-        if (canElement) {
+        const canTypeElement = document.getElementById('canType');
+        if (canElement && canTypeElement) {
             canElement.src = canImages[index];
+            
+            // Обновляем текст типа банки
+            if (index === 0) {
+                canTypeElement.textContent = 'Classic';
+            } else if (index === 1) {
+                canTypeElement.textContent = 'Mango Coconut';
+            } else if (index === 2) {
+                canTypeElement.textContent = 'Blueberry';
+            }
+            
+            // Обновляем изображение в превью коллекции
+            const canPreviewElement = document.querySelector('.can-preview img');
+            if (canPreviewElement) {
+                canPreviewElement.src = canImages[index];
+            }
+            
+            // Обновляем тему приложения
+            updateAppTheme(canImages[index]);
+            
+            // Сохраняем выбранную банку в localStorage
+            localStorage.setItem('selectedCan', index.toString());
         }
-        
-        // Обновляем изображение в превью коллекции
-        const canPreviewElement = document.querySelector('.can-preview img');
-        if (canPreviewElement) {
-            canPreviewElement.src = canImages[index];
-        }
-        
-        // Обновляем тему приложения
-        updateAppTheme(canImages[index]);
-        
-        // Сохраняем выбранную банку в localStorage
-        localStorage.setItem('selectedCan', index.toString());
     }
 
     function changeCan(index) {

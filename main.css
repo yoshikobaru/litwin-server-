@@ -8,8 +8,15 @@ h1, h2, h3 {
 }
 
 .balance {
-    font-weight: 700;
+    font-size: 36px;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 15px; /* Добавляем отступ снизу */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
 
 .footer-btn {
     font-weight: 500;
@@ -27,6 +34,61 @@ body {
     overflow-x: hidden;
     width: 100%;
 }
+body {
+    position: relative;
+    overflow: hidden;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    right: -50%;
+    bottom: -50%;
+    width: 200%;
+    height: 200%;
+    background: transparent;
+    background-image: repeating-linear-gradient(
+        0deg,
+        rgba(255, 255, 255, 0.11) 0,
+        rgba(255, 255, 255, 0.11) 1px,
+        transparent 1px,
+        transparent 20px
+    ),
+    repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.11) 0,
+        rgba(255, 255, 255, 0.11) 1px,
+        transparent 1px,
+        transparent 20px
+    );
+    transform: rotate(45deg);
+    animation: moveBackground 60s linear infinite;
+    z-index: -1;
+}
+
+.background-text {
+    position: fixed;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.07);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: -1;
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.2);
+    opacity: 0;
+    transition: opacity 2s ease-in-out;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}
+.page {
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
 .container {
     position: relative;
     text-align: center;
@@ -36,6 +98,20 @@ body {
     box-sizing: border-box; /* Учитываем padding в общей ширине */
     padding-left: 15px; /* Добавляем отступы слева и справа */
     padding-right: 15px;
+}
+#levelDisplay {
+    font-size: 16px;
+    color: white;
+    white-space: nowrap;
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 5px 10px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+    margin-bottom: 15px; /* Добавляем отступ снизу */
+    display: inline-block; /* Чтобы отступы работали корректно */
 }
 .container > * {
     max-width: 100%;
@@ -48,17 +124,69 @@ body {
     margin-bottom: 4px;
 }
 #watchAdButton {
-    background-color: #000000;
+    position: absolute;
+    right: 20px;
+    bottom: -10px;
+    background-color: var(--secondary-color);
     border: none;
     color: white;
-    padding: 15px 32px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    border-radius: 12px;
+    transition: background-color 0.3s, transform 0.1s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 2;
+}
+
+#watchAdButton:hover {
+    background-color: var(--tertiary-color);
+}
+
+#watchAdButton:active {
+    transform: scale(0.95);
+}
+.ad-confirmation-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--secondary-color);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    z-index: 1001; /* Увеличиваем z-index, чтобы попап был поверх всех элементов */
+    width: 80%; /* Ограничиваем ширину попапа */
+    max-width: 300px; /* Максимальная ширина попапа */
+}
+
+.ad-confirmation-popup p {
+    margin-bottom: 15px;
+    color: white;
+}
+
+.ad-confirmation-popup button {
+    margin: 5px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#confirmAd {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+#cancelAd {
+    background-color: var(--tertiary-color);
+    color: white;
 }
 .footer-btn {
     display: flex;
@@ -522,4 +650,39 @@ body {
 /* Обеспечиваем, чтобы контент не перекрывался футером */
 .page {
     padding-bottom: 70px; /* Увеличьте это значение, если футер всё ещё перекрывает контент */
+}
+.ad-reward-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--secondary-color);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+.ad-reward-popup h2 {
+    margin-top: 0;
+    color: #FFD700;
+}
+
+.ad-reward-popup p {
+    margin-bottom: 20px;
+}
+
+.ad-reward-popup button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.ad-reward-popup button:hover {
+    background-color: var(--tertiary-color);
 }

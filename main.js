@@ -5,7 +5,7 @@ const clicksToFill = 10;
 let lastExitTime, accumulatedCoins;
 let totalEarnedCoins;
 const progressLevels = [100000, 500000, 1000000, 5000000, 10000000];
-
+let adBonusEndTime = 0;
 let isOnline = true;
 let syncTimer;
 let lastEnergyRegenTime;
@@ -158,6 +158,21 @@ function initializeVariables() {
     console.log('Инициализация: lastExitTime =', new Date(lastExitTime), 'accumulatedCoins =', accumulatedCoins);
     console.log('Баланс после инициализации:', balance);
     console.log('Максимальная энергия после инициализации:', maxEnergy);
+
+const savedBonusEndTime = parseInt(localStorage.getItem('adBonusEndTime') || '0');
+    if (savedBonusEndTime > Date.now()) {
+        const originalTapProfit = parseInt(localStorage.getItem('originalTapProfit')) || tapProfit;
+        tapProfit = originalTapProfit * 2;
+        updateTapProfit();
+        
+        const remainingTime = savedBonusEndTime - Date.now();
+        setTimeout(() => {
+            checkAndRemoveAdBonus();
+        }, remainingTime);
+    } else {
+        localStorage.removeItem('adBonusEndTime');
+        localStorage.removeItem('originalTapProfit');
+    }
 }
 
 function updateBalanceDisplay(newBalance) {
@@ -288,6 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateUserProfile();
     syncDataWithServer(); // Добавьте эту строку
+    const selectedCanIndex = parseInt(localStorage.getItem('selectedCan')) || 0;
+    updateCanImage(selectedCanIndex);
 });
 
 // Добавляем обработчик события viewportChanged
@@ -366,6 +383,46 @@ function syncUserDataWithServer(telegramId, username) {
         console.error('Ошибка при синхронизации данных с сервером:', error);
     });
 }
+function createFloatingTexts() {
+    const texts = ['LIT', 'WIN', 'LIT WIN', '⚡️', '🚀'];
+    const container = document.body;
+
+    for (let i = 0; i < 20; i++) {
+        const span = document.createElement('span');
+        span.textContent = texts[Math.floor(Math.random() * texts.length)];
+        span.className = 'background-text';
+        span.style.top = `${Math.random() * 100}%`;
+        span.style.left = `${Math.random() * 100}%`;
+        container.appendChild(span);
+    }
+}
+
+function animateBackgroundTexts() {
+    const texts = document.querySelectorAll('.background-text');
+    texts.forEach(text => {
+        const animate = () => {
+            const duration = 3000 + Math.random() * 7000; // От 3 до 10 секунд
+            const delay = Math.random() * 5000; // Задержка до 5 секунд
+
+            setTimeout(() => {
+                text.style.transition = `opacity ${duration/2}ms ease-in-out`;
+                text.style.opacity = '1';
+
+                setTimeout(() => {
+                    text.style.opacity = '0';
+                    setTimeout(animate, duration/2);
+                }, duration/2);
+            }, delay);
+        };
+
+        animate();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    createFloatingTexts();
+    animateBackgroundTexts();
+});
 
 function updateProgress() {
     currentLevel = 1;
@@ -390,7 +447,7 @@ function updateProgress() {
     
     const levelDisplay = document.getElementById('levelDisplay');
     if (levelDisplay) {
-        levelDisplay.textContent = `Liga ${currentLevel}`;
+        levelDisplay.textContent = `Лига Уровень - ${currentLevel}`;
     }
 
     localStorage.setItem('totalEarnedCoins', totalEarnedCoins.toString());
@@ -775,6 +832,12 @@ function updateAppTheme(canSrc) {
     document.documentElement.style.setProperty('--secondary-color', theme.secondary);
     document.documentElement.style.setProperty('--tertiary-color', theme.tertiary);
     
+    // Обновляем цвет кнопки рекламы
+    const watchAdButton = document.getElementById('watchAdButton');
+    if (watchAdButton) {
+        watchAdButton.style.backgroundColor = theme.secondary;
+    }
+    
     // Отправляем сообщение об изменении темы другим страницам
     const frames = document.querySelectorAll('iframe');
     frames.forEach(frame => {
@@ -836,15 +899,26 @@ function updateFriendsCanImage(index) {
 function updateCanImage(index) {
     console.log('Вызвана функция updateCanImage с индексом:', index);
     const canElement = document.getElementById('can');
-    if (canElement) {
+    const canTypeElement = document.getElementById('canType');
+    if (canElement && canTypeElement) {
         const newCanSrc = canImages[index];
         console.log('Новый источник изображения банки:', newCanSrc);
         canElement.src = newCanSrc;
+        
+        // Обновляем текст типа банки
+        if (index === 0) {
+            canTypeElement.textContent = 'Classic';
+        } else if (index === 1) {
+            canTypeElement.textContent = 'Mango Coconut';
+        } else if (index === 2) {
+            canTypeElement.textContent = 'Blueberry';
+        }
+        
         updateAppTheme(newCanSrc);
         updateFriendsCanImage(index);
         localStorage.setItem('selectedCan', index.toString());
     } else {
-        console.error('Элемент can не найден');
+        console.error('Элемент can или canType не найден');
     }
 }
 
@@ -899,36 +973,96 @@ async function initAdsgram() {
 document.addEventListener('DOMContentLoaded', initAdsgram);
 
 async function watchAd() {
-    if (!AdController) {
-        await initAdsgram();
-    }
-    try {
-        const result = await AdController.show();
-        console.log('User watched ad', result);
-        const telegramId = getTelegramUserId();
-        if (!telegramId) {
-            console.error('Telegram ID not found');
-            return;
+    const confirmed = await showAdConfirmation();
+    if (confirmed) {
+        if (!AdController) {
+            await initAdsgram();
         }
-        const response = await fetch(`https://litwin-tap.ru/reward?userid=${telegramId}`);
-        const data = await response.json();
-        if (data.success) {
-            applyAdBonus();
+        try {
+            const result = await AdController.show();
+            console.log('User watched ad', result);
+            const telegramId = getTelegramUserId();
+            if (!telegramId) {
+                console.error('Telegram ID not found');
+                return;
+            }
+            const response = await fetch(`https://litwin-tap.ru/reward?userid=${telegramId}`);
+            const data = await response.json();
+            if (data.success) {
+                applyAdBonus();
+                showAdRewardPopup();
+            }
+        } catch (error) {
+            console.error('Error showing ad:', error);
         }
-    } catch (error) {
-        console.error('Error showing ad:', error);
     }
 }
 
+function showAdConfirmation() {
+    return new Promise((resolve) => {
+        const popup = document.createElement('div');
+        popup.className = 'ad-confirmation-popup';
+        popup.innerHTML = `
+            <p>Вы собираетесь посмотреть рекламу.</p>
+            <p>В награду вы получите удвоение тапа на 30 секунд!</p>
+            <button id="confirmAd">Смотреть</button>
+            <button id="cancelAd">Отмена</button>
+        `;
+        document.body.appendChild(popup);
+
+        document.getElementById('confirmAd').onclick = () => {
+            popup.remove();
+            resolve(true);
+        };
+        document.getElementById('cancelAd').onclick = () => {
+            popup.remove();
+            resolve(false);
+        };
+    });
+}
+
+
 function applyAdBonus() {
-    const bonusDuration = 30000; // 30 seconds
+    const bonusDuration = 30000; // 30 секунд
     const originalTapProfit = tapProfit;
-    tapProfit += 100;
+    localStorage.setItem('originalTapProfit', originalTapProfit.toString());
+    tapProfit *= 2; // Удваиваем прибыль за тап
     updateTapProfit();
+    
+    adBonusEndTime = Date.now() + bonusDuration;
+    localStorage.setItem('adBonusEndTime', adBonusEndTime.toString());
+    
     setTimeout(() => {
-        tapProfit = originalTapProfit;
-        updateTapProfit();
+        checkAndRemoveAdBonus();
     }, bonusDuration);
+}
+
+function checkAndRemoveAdBonus() {
+    const currentTime = Date.now();
+    const savedBonusEndTime = parseInt(localStorage.getItem('adBonusEndTime') || '0');
+    
+    if (currentTime >= savedBonusEndTime) {
+        tapProfit = parseInt(localStorage.getItem('originalTapProfit')) || tapProfit / 2;
+        updateTapProfit();
+        localStorage.removeItem('adBonusEndTime');
+        localStorage.removeItem('originalTapProfit');
+    } else {
+        const remainingTime = savedBonusEndTime - currentTime;
+        setTimeout(() => {
+            checkAndRemoveAdBonus();
+        }, remainingTime);
+    }
+}
+
+function showAdRewardPopup() {
+    const popup = document.createElement('div');
+    popup.className = 'ad-reward-popup';
+    popup.innerHTML = `
+        <h2>Поздравляю!</h2>
+        <p>Ваша прибыль за тап удвоена!</p>
+        <button onclick="this.parentElement.remove()">OK</button>
+    `;
+    document.body.appendChild(popup);
 }
 // Вызовите эту функцию при загрузке страницы
 document.addEventListener('DOMContentLoaded', initializeFriendsPageFromMain);
