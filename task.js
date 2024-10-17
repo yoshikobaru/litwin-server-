@@ -16,12 +16,15 @@ function applyTheme(theme) {
     const bonusValues = [500, 1000, 1500, 2000, 2500, 3000, 3500];
     const cooldownTime = 5 * 1000; // 5 секунд кулдауна
     const bonusTime = 10 * 1000; // 10 секунд бонусного времени
-    
+
+    let lastClaimedIndex = -1; // Индекс последнего полученного бонуса
+    let lastClaimTime = 0; // Время последнего получения бонуса
+
     function initializeBonusSystem() {
         bonusButtons = document.querySelectorAll('.bonus-item');
         loadBonusState();
         updateBonusButtons();
-        
+
         const dailyBonusContainer = document.querySelector('.daily-bonus');
         if (dailyBonusContainer) {
             dailyBonusContainer.addEventListener('click', handleBonusClick);
@@ -30,7 +33,7 @@ function applyTheme(theme) {
 
     function loadBonusState() {
         const state = JSON.parse(localStorage.getItem('bonusState')) || {};
-        lastClaimedIndex = state.lastClaimedIndex || -1;
+        lastClaimedIndex = state.lastClaimedIndex || 0;
         lastClaimTime = state.lastClaimTime || 0;
     }
 
@@ -55,19 +58,19 @@ function applyTheme(theme) {
     function claimBonus(index) {
         const bonusAmount = bonusValues[index];
         let balance = parseInt(localStorage.getItem('balance')) || 0;
-        balance += bonusAmount;
-        localStorage.setItem('balance', balance.toString());
-        
-        window.parent.postMessage({ type: 'updateBalance', balance: balance }, '*');
-        
-        lastClaimedIndex = index;
-        lastClaimTime = Date.now();
-        saveBonusState();
+        balance=balance+ bonusAmount; // Увеличиваем баланс на сумму бонуса
+        localStorage.setItem('balance', balance.toString()); // Сохраняем новый баланс в локальном хранилище
 
-        updateBonusButtons();
-        showBonusPopup(bonusAmount);
+        window.parent.postMessage({ type: 'updateBalance', balance: balance }, '*'); // Отправляем обновленный баланс
+
+        lastClaimedIndex = index; // Обновляем индекс последнего полученного бонуса
+        lastClaimTime = Date.now(); // Обновляем время последнего получения бонуса
+        saveBonusState(); // Сохраняем состояние бонусов
+
+        updateBonusButtons(); // Обновляем состояние кнопок
+        showBonusPopup(bonusAmount); // Показываем всплывающее окно с информацией о бонусе
     }
-    
+
     function updateBonusButtons() {
         const currentTime = Date.now();
         const timeSinceLastClaim = currentTime - lastClaimTime;
@@ -93,7 +96,7 @@ function applyTheme(theme) {
             if (index === nextUnlockedIndex && !isInCooldown) {
                 setButtonState(button, 'unlocked');
             } else if (index <= lastClaimedIndex) {
-                setButtonState(button, 'claimed');
+                setButtonState(button, 'claimed'); // Делаем кнопку неактивной
             } else {
                 setButtonState(button, 'locked');
             }
@@ -177,13 +180,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Обновляем состояние кнопо каждые 5 секунд
+// Обновляем состояние кнопок каждые 5 секунд
 setInterval(updateBonusButtons, 5000);
-
-
-
-
-
 
 function initializeTasks() {
     console.log('Инициализация задач');
@@ -251,7 +249,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // Добавляем обработчик клика на кнопку задания
 document.addEventListener('DOMContentLoaded', function() {
     const task1Button = document.getElementById('task1Button');
-    if (task1Button) {
+    if (isTask1Completed==true) {
+        disableTask1Button(task1Button);
+    } else {
         task1Button.addEventListener('click', handleTask1Click);
     }
 });

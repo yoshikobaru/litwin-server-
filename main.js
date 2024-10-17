@@ -245,22 +245,19 @@ function initializeMainPage() {
     updateCanImage(selectedCan);
 }
 
-window.updateTapProfit = function(newTapProfit) {
+
+function updateTapProfit(newTapProfit) {
     if (typeof newTapProfit !== 'undefined' && !isNaN(newTapProfit)) {
         tapProfit = newTapProfit;
     }
     localStorage.setItem('tapProfit', tapProfit.toString());
     
-    const tapProfitProfileElement = document.querySelector('.profit-item:first-child .profit-value');
-    if (tapProfitProfileElement) {
-        tapProfitProfileElement.innerHTML = `<img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span>${tapProfit.toLocaleString()}</span>`;
-    }
-
     const tapProfitElement = document.getElementById('tapProfit');
     if (tapProfitElement) {
         tapProfitElement.textContent = tapProfit.toLocaleString();
     }
-};
+}
+
 
 function updateHourlyProfit(newHourlyProfit) {
     if (typeof newHourlyProfit !== 'undefined' && !isNaN(newHourlyProfit)) {
@@ -271,6 +268,17 @@ function updateHourlyProfit(newHourlyProfit) {
     const hourlyProfitElement = document.getElementById('hourlyProfit');
     if (hourlyProfitElement) {
         hourlyProfitElement.textContent = hourlyProfit.toLocaleString();
+    }
+}
+function updateBalance(newBalance) {
+    if (typeof newBalance !== 'undefined' && !isNaN(newBalance)) {
+        balance = newBalance;
+    }
+    localStorage.setItem('balance', balance.toString());
+    
+    const balanceElement = document.getElementById('balance');
+    if (balanceElement) {
+        balanceElement.textContent = balance.toLocaleString();
     }
 }
 
@@ -292,7 +300,7 @@ function updateUserProfile() {
             // Можно добавить здесь код для отображения заглушки или сообщения об ошибке
         }
     } else {
-        console.error('Telegram WebApp не инициализирован');
+        console.error('Telegram WebApp не иницилизирован');
     }
 }
 
@@ -507,7 +515,7 @@ function createBubble() {
 
 // Добавьте эту функцию
 function createMango() {
-    console.log('Creating a mango'); // Отладочное сообщение
+    console.log('Creating a mango'); // Отладочное сообщен��е
     const mango = document.createElement('div');
     mango.classList.add('mango');
     
@@ -731,7 +739,7 @@ function startOfflineEarningInterval() {
             }
             localStorage.setItem('accumulatedCoins', accumulatedCoins.toString());
         }
-    }, 1000); // обновляем каждую секунду
+    }, 1000); // об��овляем каждую секунду
 }
 
 function saveExitTime() {

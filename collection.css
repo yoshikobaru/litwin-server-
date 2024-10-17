@@ -199,3 +199,9 @@ body {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+.collection-item.inactive {
+    pointer-events: none; /* Отключаем клики */
+    opacity: 0.5; /* Делаем элемент полупрозрачным */
+    cursor: not-allowed; /* Изменяем курсор на "не разрешено" */
+}

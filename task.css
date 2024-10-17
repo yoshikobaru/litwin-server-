@@ -236,3 +236,8 @@ h2 {
     width: 20px;
     height: 20px;
 }
+
+.tasks-page .task-item.locked {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
