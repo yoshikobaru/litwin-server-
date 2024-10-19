@@ -165,7 +165,7 @@ improveTapElement.className = 'market-item';
 improveTapElement.innerHTML = `
     <div class="market-item-header">
         <span class="market-item-level">Ур. <span id="improveTapLevel">1</span></span>
-        <span class="market-item-title">Улушить тап</span>
+        <span class="market-item-title">Новая рука</span>
         <span class="market-item-profit">
             Прибыль за тап <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="improveTapProfit">1</span>
         </span>
@@ -248,7 +248,7 @@ improveTapElement1.className = 'market-item';
 improveTapElement1.innerHTML = `
     <div class="market-item-header">
         <span class="market-item-level">Ур. <span id="improveTapLevel1">1</span></span>
-        <span class="market-item-title">Улучшить тап 2</span>
+        <span class="market-item-title">Механическая рука</span>
         <span class="market-item-profit">
             Прибыль за тап <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="improveTapProfit1">1</span>
         </span>
@@ -332,7 +332,7 @@ improveTapElement2.className = 'market-item';
 improveTapElement2.innerHTML = `
     <div class="market-item-header">
         <span class="market-item-level">Ур. <span id="improveTapLevel2">1</span></span>
-        <span class="market-item-title">Улучшить тап 2</span>
+        <span class="market-item-title">Новый палец</span>
         <span class="market-item-profit">
             Прибыль за тап <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="improveTapProfit2">1</span>
         </span>
@@ -416,7 +416,7 @@ improveTapElement3.className = 'market-item';
 improveTapElement3.innerHTML = `
     <div class="market-item-header">
         <span class="market-item-level">Ур. <span id="improveTapLevel3">1</span></span>
-        <span class="market-item-title">Улучшить тап 3</span>
+        <span class="market-item-title">Кибернетический палец</span>
         <span class="market-item-profit">
             Прибыль за тап <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="improveTapProfit3">1</span>
         </span>
@@ -513,7 +513,7 @@ document.addEventListener('DOMContentLoaded', initializeMarketItems);
     drinkLitElement.innerHTML = `
         <div class="market-item-header">
             <span class="market-item-level">Ур. <span id="drinkLitLevel">1</span></span>
-            <span class="market-item-title">Выпить LITWIN</span>
+            <span class="market-item-title">Бахнуть LITWIN</span>
             <span class="market-item-profit">
                 Прибыль за тап <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="drinkLitProfit">1</span>
             </span>
@@ -834,10 +834,10 @@ document.addEventListener('DOMContentLoaded', initializeMarketItems);
     }
     
     // Создаем кнопки для всех четырех категорий
-    createHourButton(hourData1, 'Улучшить час 1', 1);
-    createHourButton(hourData2, 'Улучшить час 2', 2);
-    createHourButton(hourData3, 'Улучшить час 3', 3);
-    createHourButton(hourData4, 'Улучшить час 4', 4);
+    createHourButton(hourData1, 'Новый завод LITWIN', 1);
+    createHourButton(hourData2, 'Билборды с рекламой', 2);
+    createHourButton(hourData3, 'Новая коллаборация', 3);
+    createHourButton(hourData4, 'Привлечь инвесторов', 4);
 
 
 
