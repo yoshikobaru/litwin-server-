@@ -131,7 +131,7 @@ h1, h2 {
 }
 
 .market-item-buy:hover {
-    background-color: rgb(30, 141, 249);
+    background-color: var(--primary-color);
 }
 
 .market-item-buy img.lit-coin {

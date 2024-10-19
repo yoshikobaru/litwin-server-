@@ -1,3 +1,62 @@
+// Добавьте эту функцию в начало файла
+function applyTheme(theme) {
+    document.documentElement.style.setProperty('--primary-color', theme.primary);
+    document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+    document.documentElement.style.setProperty('--tertiary-color', theme.tertiary);
+}
+
+// Добавьте этот обработчик событий
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'updateTheme') {
+        applyTheme(event.data.theme);
+    }
+});
+
+// Добавьте эту функцию в начало файла, если её еще нет
+function applyTheme(theme) {
+    document.documentElement.style.setProperty('--primary-color', theme.primary);
+    document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+    document.documentElement.style.setProperty('--tertiary-color', theme.tertiary);
+}
+
+// Обновите функцию для обновления стилей кнопок улучшения
+function updateUpgradeButtons() {
+    const upgradeButtons = document.querySelectorAll('.market-item-buy');
+    upgradeButtons.forEach(button => {
+        button.style.backgroundColor = 'var(--secondary-color)';
+    });
+}
+
+// Обновите обработчик событий
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'updateTheme') {
+        applyTheme(event.data.theme);
+        updateFooterButtons(); // Если эта функция уже существует
+        updateUpgradeButtons(); // Добавьте эту строку
+    }
+});
+
+// Обновите функцию создания элементов улучшения
+function createUpgradeElement(data, upgradeType) {
+    // ... существующий код ...
+
+    const buyButton = document.createElement('div');
+    buyButton.className = 'market-item-buy';
+    buyButton.style.backgroundColor = 'var(--secondary-color)'; // Добавьте эту строку
+    buyButton.innerHTML = `
+        <img src="assets/litcoin.png" alt="LitCoin" class="lit-coin">
+        <span class="price-value">${data.price}</span>
+    `;
+
+    // ... остальной код ...
+}
+
+// Добавьте вызов функции updateUpgradeButtons при инициализации страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // ... существующий код ...
+    updateUpgradeButtons();
+});
+
 (function() {
     const collectionGrid = document.getElementById('collection-grid');
     const marketItems = document.getElementById('market-items');
@@ -175,7 +234,7 @@ document.getElementById('improveTapButton').addEventListener('click', function()
 
         alert(`Вы успешно улучшили тап и увеличили прибыль за тап на +${nextLevel.profit}!`);
     } else {
-        alert('Недостаточно средств для покупки!');
+        alert('Недостаточно срдств для покупки!');
     }
 });
 
@@ -227,7 +286,7 @@ function updateImproveTapButton1() {
     localStorage.setItem('improveTapLevel1', currentImproveTapLevel1.toString());
 }
 
-// Повторите аналогичные изменения для других кнопок улучшения тапов
+// Поторите аналогичные изменения для других кнопок улучшения тапов
 document.getElementById('improveTapButton1').addEventListener('click', function() {
     if (this.disabled) return;
 
@@ -624,7 +683,7 @@ document.addEventListener('DOMContentLoaded', initializeMarketItems);
 
             updateBalance();
 
-            alert(`Вы успешно улучшили Фармилк�� до уровня ${nextLevel.level} и увеличили прибыль в час на +${nextLevel.profit}!`);
+            alert(`Вы успешно улучшили Фарми до уровня ${nextLevel.level} и увеличили прибыль в час на +${nextLevel.profit}!`);
         } else {
             alert('Недостаточно средств для покупки!');
         }

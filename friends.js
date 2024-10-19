@@ -62,9 +62,9 @@ function displayReferredFriends(friends) {
     if (friendsList) {
         friendsList.innerHTML = '';
         if (friends.length === 0) {
-            friendsList.innerHTML = '<p>У вас пока нет приглашенных друзей.</p>';
+            friendsList.innerHTML = '<p class="no-friends-message"></p>';
         } else {
-            friends.forEach(friend => {
+            friends.forEach((friend, index) => {
                 const friendItem = document.createElement('div');
                 friendItem.className = 'friend-item';
                 
@@ -72,35 +72,44 @@ function displayReferredFriends(friends) {
                 const rewardKey = `friend_reward_${friend.id}`;
                 const isRewardClaimed = localStorage.getItem(rewardKey) === 'claimed';
                 
+                const avatarInitial = friendName.charAt(1).toUpperCase();
+                
                 friendItem.innerHTML = `
+                    <div class="friend-avatar">
+                        <span class="friend-avatar-text">${avatarInitial}</span>
+                    </div>
                     <span class="friend-name">${friendName}</span>
-                    <button class="friend-reward-button" onclick="claimFriendReward('${friend.id}')"
+                    <button class="friend-reward-button" onclick="claimFriendReward('${friend.id}', ${index})"
                             ${isRewardClaimed ? 'disabled' : ''}>
-                        ${isRewardClaimed ? 'Награда получена' : 'Забрать награду'}
+                        ${isRewardClaimed ? 'Награда получена' : '+750 к прибыли в час'}
                     </button>
                 `;
                 friendsList.appendChild(friendItem);
             });
         }
     }
+    
 }
 
-function claimFriendReward(friendId) {
+function claimFriendReward(friendId, friendIndex) {
     const rewardKey = `friend_reward_${friendId}`;
     if (localStorage.getItem(rewardKey) === 'claimed') {
         showPopup('Ошибка', 'Вы уже получили награду за этого друга.');
         return;
     }
 
-    // Получаем текущую прибыль за тап
-    const currentTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
+    // Получаем текущую прибыль в час
+    const currentHourlyProfit = parseInt(localStorage.getItem('hourlyProfit')) || 0;
     
-    // Устанавливаем новую прибыль (x2) на 30 секунд
-    const newTapProfit = currentTapProfit * 2;
-    window.updateTapProfit(newTapProfit);
+    // Увеличиваем прибыль в час на 750
+    const newHourlyProfit = currentHourlyProfit + 750;
+    localStorage.setItem('hourlyProfit', newHourlyProfit.toString());
+    
+    // Обновляем отображение прибыли в час
+    window.postMessage({ type: 'updateHourlyProfit', hourlyProfit: newHourlyProfit }, '*');
     
     // Показываем сообщение пользователю
-    showPopup('Награда получена!', 'Ваша прибыль за тап удвоена на 30 секунд!');
+    showPopup('Награда получена!', 'Ваша прибыль в час увеличена на 750!');
     
     // Отключаем кнопку
     const rewardButton = event.target;
@@ -110,11 +119,12 @@ function claimFriendReward(friendId) {
     // Сохраняем информацию о полученной награде
     localStorage.setItem(rewardKey, 'claimed');
     
-    // Возвращаем прибыль к исходному значению через 30 секунд
-    setTimeout(() => {
-        window.updateTapProfit(currentTapProfit);
-        showPopup('Бонус закончился', 'Ваша прибыль за тап вернулась к обычному значению.');
-    }, 30000);
+    // Сохраняем общее количество полученных наград от друзей
+    const totalRewardsClaimed = parseInt(localStorage.getItem('totalFriendRewardsClaimed') || '0') + 1;
+    localStorage.setItem('totalFriendRewardsClaimed', totalRewardsClaimed.toString());
+    
+    // Синхронизируем данные с сервером
+    syncDataWithServer();
 }
 
 
@@ -273,7 +283,7 @@ function claimFriendReward(friendId) {
         });
     }
 window.addEventListener('message', function(event) {
-    console.log('��лучено сообщение:', event.data);
+    console.log('лучено сообщение:', event.data);
     if (event.data.type === 'updateCan') {
         const canSrc = event.data.canSrc;
         console.log('Получен новый источник изображения банки:', canSrc);
@@ -309,3 +319,18 @@ document.addEventListener('DOMContentLoaded', checkCansImage);
 
 // Добавьте эту функцию в конец файла
 document.addEventListener('DOMContentLoaded', initializeFriendsPage);
+
+// Добавьте эту функцию в начало файла
+function applyTheme(theme) {
+    document.documentElement.style.setProperty('--primary-color', theme.primary);
+    document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+    document.documentElement.style.setProperty('--tertiary-color', theme.tertiary);
+}
+
+// Добавьте этот обработчик событий
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'updateTheme') {
+        applyTheme(event.data.theme);
+    }
+});
+

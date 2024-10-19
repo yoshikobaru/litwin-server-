@@ -323,7 +323,7 @@ if (window.Telegram && window.Telegram.WebApp) {
 function initializeTelegramWebApp() {
     if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.ready();
-        console.log('WebApp инициализирован:', window.Telegram.WebApp.initDataUnsafe);
+        console.log('WebApp инииализирован:', window.Telegram.WebApp.initDataUnsafe);
         
         // Получаем данные пользователя
         const user = window.Telegram.WebApp.initDataUnsafe.user;
@@ -388,50 +388,9 @@ function syncUserDataWithServer(telegramId, username) {
         }
     })
     .catch(error => {
-        console.error('Ошибка при синхронизации данных с сервером:', error);
+        console.error('Ошибка при снхронизаии данных с сервером:', error);
     });
 }
-function createFloatingTexts() {
-    const texts = ['LIT', 'WIN', 'LIT WIN', '⚡️', '🚀'];
-    const container = document.body;
-
-    for (let i = 0; i < 20; i++) {
-        const span = document.createElement('span');
-        span.textContent = texts[Math.floor(Math.random() * texts.length)];
-        span.className = 'background-text';
-        span.style.top = `${Math.random() * 100}%`;
-        span.style.left = `${Math.random() * 100}%`;
-        container.appendChild(span);
-    }
-}
-
-function animateBackgroundTexts() {
-    const texts = document.querySelectorAll('.background-text');
-    texts.forEach(text => {
-        const animate = () => {
-            const duration = 3000 + Math.random() * 7000; // От 3 до 10 секунд
-            const delay = Math.random() * 5000; // Задержка до 5 секунд
-
-            setTimeout(() => {
-                text.style.transition = `opacity ${duration/2}ms ease-in-out`;
-                text.style.opacity = '1';
-
-                setTimeout(() => {
-                    text.style.opacity = '0';
-                    setTimeout(animate, duration/2);
-                }, duration/2);
-            }, delay);
-        };
-
-        animate();
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    createFloatingTexts();
-    animateBackgroundTexts();
-});
-
 function updateProgress() {
     currentLevel = 1;
     for (let i = 0; i < progressLevels.length; i++) {
@@ -515,7 +474,7 @@ function createBubble() {
 
 // Добавьте эту функцию
 function createMango() {
-    console.log('Creating a mango'); // Отладочное сообщен��е
+    console.log('Creating a mango'); // Отладочное сообщене
     const mango = document.createElement('div');
     mango.classList.add('mango');
     
@@ -739,7 +698,7 @@ function startOfflineEarningInterval() {
             }
             localStorage.setItem('accumulatedCoins', accumulatedCoins.toString());
         }
-    }, 1000); // об��овляем каждую секунду
+    }, 1000); // обовляем каждую секунду
 }
 
 function saveExitTime() {
@@ -773,6 +732,11 @@ window.addEventListener('message', function(event) {
         const newBalance = event.data.balance;
         updateBalanceDisplay(newBalance);
     }
+    if (event.data.type === 'updateHourlyProfit') {
+        const newHourlyProfit = event.data.hourlyProfit;
+        updateHourlyProfit(newHourlyProfit);
+    }
+    // ... обработка других типов сообщений ...
 });
 
 
@@ -807,7 +771,7 @@ function updateEnergyDisplay() {
 
 function updateMaxEnergy(increase) {
     maxEnergy += increase;
-    energy = Math.min(energy + increase, maxEnergy); // Увеличиваем текущую энергию, но не больше нового максимума
+    energy = Math.min(energy + increase, maxEnergy); // Увеличиваем текущую энегию, но не больше нового максимума
     updateEnergyDisplay();
     localStorage.setItem('maxEnergy', maxEnergy.toString());
     localStorage.setItem('energy', energy.toString());
@@ -922,7 +886,16 @@ function updateCanImage(index) {
             canTypeElement.textContent = 'Blueberry';
         }
         
-        updateAppTheme(newCanSrc);
+        const selectedTheme = canThemes[canImages[index]];
+        if (selectedTheme) {
+            document.documentElement.style.setProperty('--primary-color', selectedTheme.primary);
+            document.documentElement.style.setProperty('--secondary-color', selectedTheme.secondary);
+            document.documentElement.style.setProperty('--tertiary-color', selectedTheme.tertiary);
+        }
+        
+        // Отправляем сообщение другим страницам об обновлении темы
+        window.postMessage({ type: 'updateTheme', theme: selectedTheme }, '*');
+        
         updateFriendsCanImage(index);
         localStorage.setItem('selectedCan', index.toString());
     } else {
@@ -1077,3 +1050,61 @@ document.addEventListener('DOMContentLoaded', initializeFriendsPageFromMain);
 // Получение данных с сервера при инициализации
 document.addEventListener('DOMContentLoaded', fetchDataFromServer);
 
+// Проверяем состояние задания при каждом переключении на вкладку задач
+document.querySelector('button[data-page="tasks"]').addEventListener('click', function() {
+    if (typeof window.checkTask1State === 'function') {
+        const isTask1Completed = window.checkTask1State();
+        const task1Button = document.getElementById('task1Button');
+        const task1Element = document.getElementById('task1');
+        if (task1Button && task1Element) {
+            if (isTask1Completed) {
+                task1Button.disabled = true;
+                task1Element.classList.add('completed');
+            } else {
+                task1Button.disabled = false;
+                task1Element.classList.remove('completed');
+            }
+        }
+    }
+});
+
+// Добавьте эту функцию после функции updateCanImage
+function updateFooterButtons() {
+    const footerButtons = document.querySelectorAll('.footer-btn');
+    footerButtons.forEach(button => {
+        if (button.classList.contains('active')) {
+            button.style.backgroundColor = 'var(--secondary-color)';
+        } else {
+            button.style.backgroundColor = 'transparent';
+        }
+    });
+}
+
+// Обновите функцию updateCanImage
+function updateCanImage(index) {
+    // ... существующий код ...
+    
+    const selectedTheme = canThemes[canImages[index]];
+    if (selectedTheme) {
+        document.documentElement.style.setProperty('--primary-color', selectedTheme.primary);
+        document.documentElement.style.setProperty('--secondary-color', selectedTheme.secondary);
+        document.documentElement.style.setProperty('--tertiary-color', selectedTheme.tertiary);
+        
+        updateFooterButtons(); // Добавьте эту строку
+    }
+    
+    // Отправляем сообщение другим страницам об обновлении темы
+    window.postMessage({ type: 'updateTheme', theme: selectedTheme }, '*');
+}
+
+// Добавьте обработчик клика для кнопок футера
+document.addEventListener('DOMContentLoaded', function() {
+    const footerButtons = document.querySelectorAll('.footer-btn');
+    footerButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            footerButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            updateFooterButtons();
+        });
+    });
+});

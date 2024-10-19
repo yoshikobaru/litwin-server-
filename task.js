@@ -13,9 +13,9 @@ function applyTheme(theme) {
 (function() {
     console.log('Скрипт task.js загружен');
     let bonusButtons;
-    const bonusValues = [500, 1000, 1500, 2000, 2500, 3000, 3500];
-    const cooldownTime = 5 * 1000; // 5 секунд кулдауна
-    const bonusTime = 10 * 1000; // 10 секунд бонусного времени
+    const bonusValues = [500, 1000, 7000, 15000, 45000, 75000, 125000];
+    const cooldownTime = 24 * 60 * 60 * 1000; // 24 часа кулдауна
+    const bonusTime = 24 * 60 * 60 * 1000; // 24 часа бонусного времени
 
     let lastClaimedIndex = -1; // Индекс последнего полученного бонуса
     let lastClaimTime = 0; // Время последнего получения бонуса
@@ -59,7 +59,7 @@ function applyTheme(theme) {
         const bonusAmount = bonusValues[index];
         let balance = parseInt(localStorage.getItem('balance')) || 0;
         balance=balance+ bonusAmount; // Увеличиваем баланс на сумму бонуса
-        localStorage.setItem('balance', balance.toString()); // Сохраняем новый баланс в локальном хранилище
+        localStorage.setItem('balance', balance.toString()); // Сохраняем новый баланс в локальном ранилище
 
         window.parent.postMessage({ type: 'updateBalance', balance: balance }, '*'); // Отправляем обновленный баланс
 
@@ -148,6 +148,9 @@ function applyTheme(theme) {
         `;
         document.body.appendChild(popup);
 
+        popup.style.backgroundColor = 'var(--tertiary-color)';
+        popup.style.color = '#fff';
+
         popup.querySelector('.closePopup').addEventListener('click', () => {
             popup.remove();
         });
@@ -185,17 +188,17 @@ setInterval(updateBonusButtons, 5000);
 
 function initializeTasks() {
     console.log('Инициализация задач');
-    // Глобальная переменная для отслеживания состояния задания
-    let isTask1Completed = false;
-    isTask1Completed = localStorage.getItem('task1Completed') === 'true';
+    // Проверяем состояние задания в localStorage
+    const isTask1Completed = localStorage.getItem('task1Completed') === 'true';
     console.log('Состояние task1Completed:', isTask1Completed);
     
     const task1Button = document.getElementById('task1Button');
-    if (task1Button) {
+    const task1Element = document.getElementById('task1');
+    if (task1Button && task1Element) {
         if (isTask1Completed) {
-            disableTask1Button(task1Button);
+            disableTask1Button(task1Button, task1Element);
         } else {
-            enableTask1Button(task1Button);
+            enableTask1Button(task1Button, task1Element);
         }
     }
 }
@@ -212,14 +215,14 @@ function handleTask1Click() {
     localStorage.setItem('balance', currentBalance.toString());
 
     // Отмечаем задание как выполненное
-    isTask1Completed = true;
     localStorage.setItem('task1Completed', 'true');
     console.log('Задание отмечено как выполненное');
 
     // Обновляем отображение задания
     const task1Button = document.getElementById('task1Button');
-    if (task1Button) {
-        disableTask1Button(task1Button);
+    const task1Element = document.getElementById('task1');
+    if (task1Button && task1Element) {
+        disableTask1Button(task1Button, task1Element);
     }
 
     // Отправляем сообщение об обновлении баланса
@@ -228,15 +231,15 @@ function handleTask1Click() {
     console.log('New balance:', currentBalance);
 }
 
-function disableTask1Button(button) {
+function disableTask1Button(button, element) {
     button.disabled = true;
-    button.parentElement.classList.add('completed');
+    element.classList.add('completed');
     console.log('Кнопка задания деактивирована');
 }
 
-function enableTask1Button(button) {
+function enableTask1Button(button, element) {
     button.disabled = false;
-    button.parentElement.classList.remove('completed');
+    element.classList.remove('completed');
     console.log('Кнопка задания активирована');
 }
 
@@ -244,14 +247,20 @@ function enableTask1Button(button) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM загружен');
     initializeTasks();
-});
-
-// Добавляем обработчик клика на кнопку задания
-document.addEventListener('DOMContentLoaded', function() {
+    
+    // Добавляем обработчик клика на кнопку задания
     const task1Button = document.getElementById('task1Button');
-    if (isTask1Completed==true) {
-        disableTask1Button(task1Button);
-    } else {
+    if (task1Button) {
         task1Button.addEventListener('click', handleTask1Click);
     }
 });
+
+// Добавляем функцию для проверки состояния задания
+function checkTask1State() {
+    const isTask1Completed = localStorage.getItem('task1Completed') === 'true';
+    console.log('Проверка состояния task1Completed:', isTask1Completed);
+    return isTask1Completed;
+}
+
+// Экспортируем функцию для использования в других скриптах
+window.checkTask1State = checkTask1State;
