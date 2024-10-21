@@ -165,7 +165,7 @@ improveTapElement.className = 'market-item';
 improveTapElement.innerHTML = `
     <div class="market-item-header">
         <span class="market-item-level">Ур. <span id="improveTapLevel">1</span></span>
-        <span class="market-item-title">Новая рука</span>
+        <span class="market-item-title">Выйти на межпланетарный уровень</span>
         <span class="market-item-profit">
             Прибыль за тап <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="improveTapProfit">1</span>
         </span>
@@ -248,7 +248,7 @@ improveTapElement1.className = 'market-item';
 improveTapElement1.innerHTML = `
     <div class="market-item-header">
         <span class="market-item-level">Ур. <span id="improveTapLevel1">1</span></span>
-        <span class="market-item-title">Механическая рука</span>
+        <span class="market-item-title">Войти в кондициицввц</span>
         <span class="market-item-profit">
             Прибыль за тап <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="improveTapProfit1">1</span>
         </span>
@@ -332,7 +332,7 @@ improveTapElement2.className = 'market-item';
 improveTapElement2.innerHTML = `
     <div class="market-item-header">
         <span class="market-item-level">Ур. <span id="improveTapLevel2">1</span></span>
-        <span class="market-item-title">Новый палец</span>
+        <span class="market-item-title">Аккуратный тап</span>
         <span class="market-item-profit">
             Прибыль за тап <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="improveTapProfit2">1</span>
         </span>
@@ -416,7 +416,7 @@ improveTapElement3.className = 'market-item';
 improveTapElement3.innerHTML = `
     <div class="market-item-header">
         <span class="market-item-level">Ур. <span id="improveTapLevel3">1</span></span>
-        <span class="market-item-title">Кибернетический палец</span>
+        <span class="market-item-title">Родный тап</span>
         <span class="market-item-profit">
             Прибыль за тап <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="improveTapProfit3">1</span>
         </span>
@@ -616,7 +616,7 @@ document.addEventListener('DOMContentLoaded', initializeMarketItems);
     farmElement.innerHTML = `
         <div class="market-item-header">
             <span class="market-item-level">Ур. <span id="farmLevel">1</span></span>
-            <span class="market-item-title">Войти в кондиции</span>
+            <span class="market-item-title">Построить завод LITWIN</span>
             <span class="market-item-profit">
                 Прибыль в час <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="farmProfit">100</span>
             </span>
@@ -834,10 +834,10 @@ document.addEventListener('DOMContentLoaded', initializeMarketItems);
     }
     
     // Создаем кнопки для всех четырех категорий
-    createHourButton(hourData1, 'Новый завод LITWIN', 1);
-    createHourButton(hourData2, 'Билборды с рекламой', 2);
-    createHourButton(hourData3, 'Новая коллаборация', 3);
-    createHourButton(hourData4, 'Привлечь инвесторов', 4);
+    createHourButton(hourData1, 'Заехать в кофеманию', 1);
+    createHourButton(hourData2, 'Подписать нового бойца', 2);
+    createHourButton(hourData3, 'Выиграть в футбол медиалиге', 3);
+    createHourButton(hourData4, 'Выйиграть гонку', 4);
 
 
 
