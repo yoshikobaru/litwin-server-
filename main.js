@@ -507,6 +507,10 @@ function createMango() {
 
 function handleCanClick() {
     if (energy > 0) {
+        // Добавляем лёгкую вибрацию
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+            window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        }
         canElement.classList.add('shake');
         setTimeout(() => canElement.classList.remove('shake'), 200);
 

@@ -166,6 +166,10 @@ function claimFriendReward(friendId, friendIndex) {
     window.handleInviteButtonClick = function(event) {
         console.log('Функция handleInviteButtonClick вызвана');
         event.preventDefault();
+        // Добавляем лёгкую вибрацию
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+            window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        }
         
         if (!window.Telegram || !window.Telegram.WebApp) {
             console.error('Telegram WebApp не доступен');
@@ -237,6 +241,10 @@ function claimFriendReward(friendId, friendIndex) {
     function handleShareLinkButtonClick(event) {
         console.log('Функция handleShareLinkButtonClick вызвана');
         event.preventDefault();
+        // Добавляем лёгкую вибрацию
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+            window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        }
         
         if (!window.Telegram || !window.Telegram.WebApp) {
             console.error('Telegram WebApp не доступен');
