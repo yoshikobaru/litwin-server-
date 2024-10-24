@@ -101,6 +101,12 @@
     justify-content: space-between;
     align-items: center;
     background-color: var(--tertiary-color);
+    /* Стили для задания */
+    margin-bottom: 15px; /* Отступ между заданиями */
+    padding: 10px; /* Отступ внутри задания */
+    background-color: rgba(255, 255, 255, 0.1); /* Полупрозрачный фон */
+    border-radius: 10px; /* Закругленные углы */
+    transition: background-color 0.3s; /* Плавный переход фона */
 }
 
 .tasks-page .task-info {
@@ -240,4 +246,11 @@ h2 {
 .tasks-page .task-item.locked {
     cursor: not-allowed;
     opacity: 0.5;
+}
+
+/* Стили для нового задания, если нужно */
+
+
+.tasks-page .task-item:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Изменение фона при наведении */
 }

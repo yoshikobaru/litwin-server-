@@ -248,7 +248,7 @@ improveTapElement1.className = 'market-item';
 improveTapElement1.innerHTML = `
     <div class="market-item-header">
         <span class="market-item-level">Ур. <span id="improveTapLevel1">1</span></span>
-        <span class="market-item-title">Войти в кондициицввц</span>
+        <span class="market-item-title">Войти в кондиции</span>
         <span class="market-item-profit">
             Прибыль за тап <img src="assets/litcoin.png" alt="LIT" class="lit-coin-small">+<span id="improveTapProfit1">1</span>
         </span>

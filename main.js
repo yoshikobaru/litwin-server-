@@ -313,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
     syncDataWithServer(); // Добавьте эту строку
     const selectedCanIndex = parseInt(localStorage.getItem('selectedCan')) || 0;
     updateCanImage(selectedCanIndex);
+    updateTask2State(); // Обновляем состояние задания при загрузке
 });
 
 // Добавляем обработчик события viewportChanged

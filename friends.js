@@ -125,6 +125,9 @@ function claimFriendReward(friendId, friendIndex) {
     
     // Синхронизируем данные с сервером
     syncDataWithServer();
+    
+    // Увеличиваем счетчик приглашенных друзей
+    onFriendInvited();
 }
 
 
@@ -294,7 +297,7 @@ window.addEventListener('message', function(event) {
     console.log('лучено сообщение:', event.data);
     if (event.data.type === 'updateCan') {
         const canSrc = event.data.canSrc;
-        console.log('Получен новый источник изображения банки:', canSrc);
+        console.log('По��учен новый источник изображения банки:', canSrc);
         const cansImage = document.getElementById('cansImage');
         if (cansImage) {
             console.log('Элемент cansImage найден');
@@ -341,4 +344,5 @@ window.addEventListener('message', function(event) {
         applyTheme(event.data.theme);
     }
 });
+
 

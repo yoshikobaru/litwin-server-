@@ -120,6 +120,8 @@ function applyTheme(theme) {
     }
 
     function updateBonusTimer(seconds) {
+        // Удалите или закомментируйте этот код, чтобы скрыть таймер
+        /*
         let timerElement = document.getElementById('bonusTimer');
         if (!timerElement) {
             timerElement = document.createElement('div');
@@ -127,13 +129,17 @@ function applyTheme(theme) {
             document.querySelector('.daily-bonus').appendChild(timerElement);
         }
         timerElement.textContent = `Бонусное время: ${seconds} сек`;
+        */
     }
 
     function hideBonusTimer() {
+        // Удалите или закомментируйте этот код, чтобы скрыть таймер
+        /*
         const timerElement = document.getElementById('bonusTimer');
         if (timerElement) {
             timerElement.remove();
         }
+        */
     }
 
     function showBonusPopup(amount) {
@@ -170,7 +176,7 @@ function resetBonuses() {
     updateBonusButtons();
 }
 
-// Вызывайте эту функцию при загрузке страницы
+// Выывайте эту функцию при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     initializeBonusSystem();
     
@@ -264,3 +270,37 @@ function checkTask1State() {
 
 // Экспортируем функцию для использования в других скриптах
 window.checkTask1State = checkTask1State;
+
+let invitedFriendsCount = 0; // Счетчик приглашенных друзей
+
+function updateTask2State() {
+    const task2Button = document.getElementById('task2Button');
+    const task2Element = document.getElementById('task2');
+    const friendsCounter = document.getElementById('friendsCounter'); // Получаем элемент счетчика
+
+    friendsCounter.textContent = `${invitedFriendsCount}/3`; // Обновляем текст счетчика
+
+    if (invitedFriendsCount >= 3) {
+        task2Button.disabled = false;
+        task2Element.classList.remove('completed');
+    } else {
+        task2Button.disabled = true;
+        task2Element.classList.add('completed');
+    }
+}
+
+function handleTask2Click() {
+    if (invitedFriendsCount >= 3) {
+        const currentBalance = parseInt(localStorage.getItem('balance')) || 0;
+        const newBalance = currentBalance + 10000;
+        localStorage.setItem('balance', newBalance.toString());
+        alert('Вы получили 10,000 монет!');
+        updateTask2State(); // Обновляем состояние задания
+    }
+}
+
+// Вызовите эту функцию, когда пользователь приглашает друга
+function onFriendInvited() {
+    invitedFriendsCount++;
+    updateTask2State(); // Обновляем состояние задания
+}
