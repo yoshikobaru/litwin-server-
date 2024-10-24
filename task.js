@@ -59,7 +59,7 @@ function applyTheme(theme) {
         const bonusAmount = bonusValues[index];
         let balance = parseInt(localStorage.getItem('balance')) || 0;
         balance=balance+ bonusAmount; // Увеличиваем баланс на сумму бонуса
-        localStorage.setItem('balance', balance.toString()); // Сохраняем новый баланс в локальном ранилище
+        localStorage.setItem('balance', balance.toString()); // Сохраняем новый баланс в окльном ранилище
 
         window.parent.postMessage({ type: 'updateBalance', balance: balance }, '*'); // Отправляем обновленный баланс
 
@@ -120,7 +120,7 @@ function applyTheme(theme) {
     }
 
     function updateBonusTimer(seconds) {
-        // Удалите или закомментируйте этот код, чтобы скрыть таймер
+        // Удалите или закомментируйте эот код, чтобы скрыть таймер
         /*
         let timerElement = document.getElementById('bonusTimer');
         if (!timerElement) {
@@ -304,3 +304,43 @@ function onFriendInvited() {
     invitedFriendsCount++;
     updateTask2State(); // Обновляем состояние задания
 }
+
+function updateTask3State() {
+    const task3Button = document.getElementById('task3Button');
+    const currentLevel = parseInt(localStorage.getItem('currentLevel')) || 1; // Получаем текущий уровень
+    const isTask3Completed = localStorage.getItem('task3Completed') === 'true'; // Проверяем состояние задания
+
+    if (isTask3Completed) {
+        task3Button.disabled = true; // Деактивируем кнопку, если задание уже выполнено
+        task3Button.classList.add('completed'); // Добавляем класс для серого цвета
+    } else if (currentLevel > 1) {
+        task3Button.disabled = false; // Активируем кнопку, если уровень больше 1 и задание не выполнено
+    } else {
+        task3Button.disabled = true; // Деактивируем кнопку, если уровень 1 или меньше
+    }
+}
+
+function handleTask3Click() {
+    const currentLevel = parseInt(localStorage.getItem('currentLevel')) || 1; // Получаем текущий уровень
+    const isTask3Completed = localStorage.getItem('task3Completed') === 'true'; // Проверяем состояние задания
+
+    if (currentLevel > 1 && !isTask3Completed) {
+        const currentBalance = parseInt(localStorage.getItem('balance')) || 0;
+        const newBalance = currentBalance + 7000;
+        localStorage.setItem('balance', newBalance.toString());
+        localStorage.setItem('task3Completed', 'true'); // Устанавливаем состояние задания как выполненное
+        alert('Вы получили 7000 монет!');
+        updateBalanceDisplay(newBalance); // Обновляем отображение баланса
+        updateTask3State(); // Обновляем состояние задания
+    }
+}
+
+// Вызовите эту функцию при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    updateTask3State(); // Обновляем состояние задания при загрузке
+    // Также обновите состояние для других заданий, если необходимо
+    updateTask1State(); // Предполагается, что у вас есть аналогичная функция для задания 1
+    updateTask2State(); // Предполагается, что у вас есть аналогичная функция для задания 2
+});
+
+console.log(localStorage.getItem('task3Completed')); // Должно выводить 'true'

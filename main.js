@@ -314,6 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedCanIndex = parseInt(localStorage.getItem('selectedCan')) || 0;
     updateCanImage(selectedCanIndex);
     updateTask2State(); // Обновляем состояние задания при загрузке
+    updateTask3State(); // Обновляем состояние задания при загрузке
 });
 
 // Добавляем обработчик события viewportChanged
@@ -1113,3 +1114,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+

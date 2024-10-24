@@ -249,8 +249,25 @@ h2 {
 }
 
 /* Стили для нового задания, если нужно */
-
+.tasks-page .task-item {
+    margin-bottom: 15px; /* Отступ между заданиями */
+    padding: 10px; /* Отступ внутри задания */
+    background-color: rgba(255, 255, 255, 0.1); /* Полупрозрачный фон */
+    border-radius: 10px; /* Закругленные углы */
+    transition: background-color 0.3s; /* Плавный переход фона */
+}
 
 .tasks-page .task-item:hover {
     background-color: rgba(255, 255, 255, 0.2); /* Изменение фона при наведении */
+}
+.task-reward-button:disabled {
+    background-color: #888; /* Серый цвет фона для неактивной кнопки */
+    color: #ccc; /* Цвет текста для неактивной кнопки */
+    cursor: not-allowed; /* Указатель для неактивной кнопки */
+    opacity: 0.5; /* Полупрозрачность для неактивной кнопки */
+}
+
+.completed {
+    background-color: gray; /* Или любой другой цвет, который вы хотите */
+    color: white; /* Цвет текста, если необходимо */
 }
