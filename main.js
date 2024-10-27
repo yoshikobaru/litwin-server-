@@ -43,22 +43,6 @@ const canThemes = {
     },
     // Добавьте темы для остальных банок здесь
 };
-if (window.Telegram && window.Telegram.WebApp) {
-    window.Telegram.WebApp.onEvent('viewportChanged', function() {
-        if (window.Telegram.WebApp.isExpanded) {
-            // Приложение развернуто
-        } else {
-            // Приложение свернуто, пользователь пытается выйти
-            window.Telegram.WebApp.showConfirm('Вы уверены, что хотите выйти?', function(confirmed) {
-                if (confirmed) {
-                    // Пользователь подтвердил выход
-                    syncDataWithServer(); // Синхронизируем данные перед выходом
-                    window.Telegram.WebApp.close();
-                }
-            });
-        }
-    });
-}
 
 function syncDataWithServer() {
     const telegramId = getTelegramUserId();
@@ -1058,6 +1042,7 @@ document.addEventListener('DOMContentLoaded', fetchDataFromServer);
 
 // Проверяем состояние задания при каждом переключении на вкладку задач
 document.querySelector('button[data-page="tasks"]').addEventListener('click', function() {
+    // Проверка для task1
     if (typeof window.checkTask1State === 'function') {
         const isTask1Completed = window.checkTask1State();
         const task1Button = document.getElementById('task1Button');
@@ -1069,6 +1054,22 @@ document.querySelector('button[data-page="tasks"]').addEventListener('click', fu
             } else {
                 task1Button.disabled = false;
                 task1Element.classList.remove('completed');
+            }
+        }
+    }
+
+    // Проверка для task4
+    if (typeof window.checkTask4State === 'function') {
+        const isTask4Completed = window.checkTask4State();
+        const task4Button = document.getElementById('task4Button');
+        const task4Element = document.getElementById('task4');
+        if (task4Button && task4Element) {
+            if (isTask4Completed) {
+                task4Button.disabled = true;
+                task4Element.classList.add('completed');
+            } else {
+                task4Button.disabled = false;
+                task4Element.classList.remove('completed');
             }
         }
     }

@@ -1,25 +1,16 @@
-// Добавьте эту функцию в начало файла
 function applyTheme(theme) {
     document.documentElement.style.setProperty('--primary-color', theme.primary);
     document.documentElement.style.setProperty('--secondary-color', theme.secondary);
     document.documentElement.style.setProperty('--tertiary-color', theme.tertiary);
 }
 
-// Добавьте этот обработчик событий
 window.addEventListener('message', function(event) {
     if (event.data.type === 'updateTheme') {
         applyTheme(event.data.theme);
+        updateUpgradeButtons();
     }
 });
 
-// Добавьте эту функцию в начало файла, если её еще нет
-function applyTheme(theme) {
-    document.documentElement.style.setProperty('--primary-color', theme.primary);
-    document.documentElement.style.setProperty('--secondary-color', theme.secondary);
-    document.documentElement.style.setProperty('--tertiary-color', theme.tertiary);
-}
-
-// Обновите функцию для обновления стилей кнопок улучшения
 function updateUpgradeButtons() {
     const upgradeButtons = document.querySelectorAll('.market-item-buy');
     upgradeButtons.forEach(button => {
@@ -27,41 +18,80 @@ function updateUpgradeButtons() {
     });
 }
 
-// Обновите обработчик событий
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'updateTheme') {
-        applyTheme(event.data.theme);
-        updateFooterButtons(); // Если эта функция уже существует
-        updateUpgradeButtons(); // Добавьте эту строку
-    }
-});
+function updateUpgradeElements() {
+    const defaultUpgrades = [
+        { id: 'drinkLit', title: 'Бахнуть LITWIN', emoji: '🍺' },
+        { id: 'improveTap', title: 'Выйти на межпланетарный уровень', emoji: '🌍' },
+        { id: 'improveTap1', title: 'Войти в кондиции', emoji: '💪' },
+        { id: 'improveTap2', title: 'Аккуратный тап', emoji: '🎯' },
+        { id: 'improveTap3', title: 'Родный тап', emoji: '🏠' },
+        { id: 'farm', title: 'Построить завод LITWIN', emoji: '🏭' },
+        { id: 'hour1', title: 'Заехать в кофеманию', emoji: '☕' },
+        { id: 'hour2', title: 'Подписать нового бойца', emoji: '🥊' },
+        { id: 'hour3', title: 'Выиграть в футбол медиалиге', emoji: '⚽' },
+        { id: 'hour4', title: 'Выиграть гонку', emoji: '🏎️' },
+        { id: 'energy', title: 'Заряд энергии', emoji: '⚡' }
+    ];
 
-// Обновите функцию создания элементов улучшения
-function createUpgradeElement(data, upgradeType) {
-    // ... существующий код ...
+    const marketItems = document.querySelectorAll('.market-item');
+    marketItems.forEach(element => {
+        const header = element.querySelector('.market-item-header');
+        const button = element.querySelector('.market-item-buy');
+        if (header && button) {
+            let upgradeId = button.id.replace('Button', '');
+            // Для hourData1, hourData2 и т.д. используем специальные id
+            if (upgradeId.startsWith('hourButton')) {
+                upgradeId = 'hour' + upgradeId.replace('hourButton', '');
+            }
+            let upgrade = defaultUpgrades.find(u => u.id === upgradeId);
+            
+            if (!upgrade) {
+                // Если улучшение не найдено в списке, создаем для него дефолтный эмодзи
+                const title = header.querySelector('.market-item-title').textContent;
+                upgrade = { id: upgradeId, title: title, emoji: '🔧' }; // Используем 🔧 как дефолтный эмодзи
+            }
 
-    const buyButton = document.createElement('div');
-    buyButton.className = 'market-item-buy';
-    buyButton.style.backgroundColor = 'var(--secondary-color)'; // Добавьте эту строку
-    buyButton.innerHTML = `
-        <img src="assets/litcoin.png" alt="LitCoin" class="lit-coin">
-        <span class="price-value">${data.price}</span>
-    `;
-
-    // ... остальной код ...
+            const level = header.querySelector('.market-item-level');
+            const title = header.querySelector('.market-item-title');
+            const profit = header.querySelector('.market-item-profit');
+            
+            // Вставляем эмодзи перед заголовком
+            title.insertAdjacentHTML('beforebegin', `<span class="market-item-emoji">${upgrade.emoji}</span>`);
+        }
+    });
 }
 
-// Добавьте вызов функции updateUpgradeButtons при инициализации страницы
+// Добавьте стили для эмодзи (если еще не добавлены)
+const style = document.createElement('style');
+style.textContent = `
+    .market-item-emoji {
+        font-size: 1.2em;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+    .market-item-header {
+        display: flex;
+        align-items: center;
+    }
+    .market-item-title {
+        flex-grow: 1;
+    }
+`;
+document.head.appendChild(style);
+
+// Вызовите функцию updateUpgradeElements при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    // ... существующий код ...
-    updateUpgradeButtons();
+    setTimeout(function() {
+        updateUpgradeElements();
+        updateUpgradeButtons();
+    }, 100); // небольшая задержка для уверенности, что все элементы загружены
 });
 
+// Остальной код остается без изменений
 (function() {
     const collectionGrid = document.getElementById('collection-grid');
     const marketItems = document.getElementById('market-items');
 
-    
     const canImages = [
         'assets/bankaClassic.png',
         'assets/bankamango.png',
@@ -79,14 +109,12 @@ document.addEventListener('DOMContentLoaded', function() {
         itemElement.className = 'collection-item';
         itemElement.dataset.index = i;
 
-        // Проверяем, если это четвертая банка или выше
         if (i >= 3) {
-            itemElement.classList.add('inactive'); // Добавляем класс для неактивных элементов
+            itemElement.classList.add('inactive');
             itemElement.innerHTML = `<img src="${canImages[i]}" alt="Банка ${i + 1}" class="can-icon">`;
         } else {
             itemElement.innerHTML = `<img src="${canImages[i]}" alt="Банка ${i + 1}" class="can-icon">`;
             itemElement.addEventListener('click', function() {
-                // Логика для обработки клика на активные банки
                 console.log(`Вы выбрали банку ${i + 1}`);
             });
         }
@@ -94,7 +122,6 @@ document.addEventListener('DOMContentLoaded', function() {
         collectionGrid.appendChild(itemElement);
     }
     
-    // Обновляем отображение разблокированных банок
     updateUnlockedCans();
     
     // Данные для задания "Выпить LIT"
@@ -837,7 +864,7 @@ document.addEventListener('DOMContentLoaded', initializeMarketItems);
     createHourButton(hourData1, 'Заехать в кофеманию', 1);
     createHourButton(hourData2, 'Подписать нового бойца', 2);
     createHourButton(hourData3, 'Выиграть в футбол медиалиге', 3);
-    createHourButton(hourData4, 'Выйиграть гонку', 4);
+    createHourButton(hourData4, 'Выиграть гонку', 4);
 
 
 

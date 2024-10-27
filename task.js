@@ -194,12 +194,18 @@ setInterval(updateBonusButtons, 5000);
 
 function initializeTasks() {
     console.log('Инициализация задач');
-    // Проверяем состояние задания в localStorage
+    // Проверяем состояние заданий в localStorage
     const isTask1Completed = localStorage.getItem('task1Completed') === 'true';
+    const isTask4Completed = localStorage.getItem('task4Completed') === 'true';
+    
     console.log('Состояние task1Completed:', isTask1Completed);
+    console.log('Состояние task4Completed:', isTask4Completed);
     
     const task1Button = document.getElementById('task1Button');
     const task1Element = document.getElementById('task1');
+    const task4Button = document.getElementById('task4Button');
+    const task4Element = document.getElementById('task4');
+
     if (task1Button && task1Element) {
         if (isTask1Completed) {
             disableTask1Button(task1Button, task1Element);
@@ -207,8 +213,19 @@ function initializeTasks() {
             enableTask1Button(task1Button, task1Element);
         }
     }
-}
 
+    if (task4Button && task4Element) {
+        if (isTask4Completed) {
+            disableTask4Button(task4Button, task4Element);
+        } else {
+            enableTask4Button(task4Button, task4Element);
+        }
+    }
+
+    // Инициализация других заданий...
+    updateTask2State();
+    updateTask3State();
+}
 function handleTask1Click() {
     console.log('Task 1 clicked');
     
@@ -249,15 +266,20 @@ function enableTask1Button(button, element) {
     console.log('Кнопка задания активирована');
 }
 
-// Вызываем функцию инициализации при загрузке страницы
+// Обновите обработчик событий DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM загружен');
     initializeTasks();
     
-    // Добавляем обработчик клика на кнопку задания
+    // Добавляем обработчики клика на кнопки заданий
     const task1Button = document.getElementById('task1Button');
     if (task1Button) {
         task1Button.addEventListener('click', handleTask1Click);
+    }
+    
+    const task4Button = document.getElementById('task4Button');
+    if (task4Button) {
+        task4Button.addEventListener('click', handleTask4Click);
     }
 });
 
@@ -267,7 +289,11 @@ function checkTask1State() {
     console.log('Проверка состояния task1Completed:', isTask1Completed);
     return isTask1Completed;
 }
-
+function checkTask4State() {
+    const isTask4Completed = localStorage.getItem('task4Completed') === 'true';
+    console.log('Проверка состояния task4Completed:', isTask4Completed);
+    return isTask4Completed;
+}
 // Экспортируем функцию для использования в других скриптах
 window.checkTask1State = checkTask1State;
 
@@ -335,12 +361,65 @@ function handleTask3Click() {
     }
 }
 
-// Вызовите эту функцию при загрузке страницы
+function handleTask4Click() {
+    console.log('Task 4 clicked');
+    
+    // Открываем ссылку на группу Method в Telegram
+    window.open('https://t.me/method_community', '_blank');
+
+    // Обновляем баланс
+    let currentBalance = parseInt(localStorage.getItem('balance')) || 0;
+    currentBalance += 1000;
+    localStorage.setItem('balance', currentBalance.toString());
+
+    // Отмечаем задание как выполненное
+    localStorage.setItem('task4Completed', 'true');
+    console.log('Задание 4 отмечено как выполненное');
+
+    // Обновляем отображение задания
+    const task4Button = document.getElementById('task4Button');
+    const task4Element = document.getElementById('task4');
+    if (task4Button && task4Element) {
+        disableTask4Button(task4Button, task4Element);
+    }
+
+    // Отправляем сообщение об обновлении баланса
+    window.parent.postMessage({ type: 'updateBalance', balance: currentBalance }, '*');
+    
+    console.log('New balance:', currentBalance);
+}
+
+function disableTask4Button(button, element) {
+    button.disabled = true;
+    element.classList.add('completed');
+    console.log('Кнопка задания 4 деактивирована');
+}
+
+function enableTask4Button(button, element) {
+    button.disabled = false;
+    element.classList.remove('completed');
+    console.log('Кнопка задания 4 активирована');
+}
+
+
+
+// Обновите обработчик событий DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function() {
-    updateTask3State(); // Обновляем состояние задания при загрузке
-    // Также обновите состояние для других заданий, если необходимо
-    updateTask1State(); // Предполагается, что у вас есть аналогичная функция для задания 1
-    updateTask2State(); // Предполагается, что у вас есть аналогичная функция для задания 2
+    console.log('DOM загружен');
+    initializeTasks();
+    
+    // Добавляем обработчики клика на кнопки заданий
+    const task1Button = document.getElementById('task1Button');
+    if (task1Button) {
+        task1Button.addEventListener('click', handleTask1Click);
+    }
+    
+    const task4Button = document.getElementById('task4Button');
+    if (task4Button) {
+        task4Button.addEventListener('click', handleTask4Click);
+    }
 });
 
-console.log(localStorage.getItem('task3Completed')); // Должно выводить 'true'
+// Экспортируем функции для использования в других скриптах
+window.checkTask1State = checkTask1State;
+window.checkTask4State = checkTask4State;

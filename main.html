@@ -130,7 +130,7 @@
             <div id="tasks-list">
                 <div class="task-item" id="task1">
                     <div class="task-info">
-                        <div class="task-circle"></div>
+                        <span class="task-emoji">📢</span>
                         <span class="task-name">Подпишись на группу LIT⚡️WIN </span>
                     </div>
                     <button class="task-reward-button" id="task1Button" onclick="handleTask1Click()">
@@ -140,9 +140,9 @@
                 </div>
                 <div class="task-item" id="task2">
                     <div class="task-info">
-                        <div class="task-circle"></div>
+                        <span class="task-emoji">👥</span>
                         <span class="task-name">Пригласить 3 друзей</span>
-                        <span id="friendsCounter" class="friends-counter">0/3</span> <!-- Счетчик друзей -->
+                        <span id="friendsCounter" class="friends-counter">0/3</span>
                     </div>
                     <button class="task-reward-button" id="task2Button" onclick="handleTask2Click()">
                         <span class="reward-value">10000</span>
@@ -151,11 +151,21 @@
                 </div>
                 <div class="task-item" id="task3">
                     <div class="task-info">
-                        <div class="task-circle"></div>
+                        <span class="task-emoji">🏆</span>
                         <span class="task-name">Достичь второй лиги</span>
                     </div>
                     <button class="task-reward-button" id="task3Button" onclick="handleTask3Click()">
                         <span class="reward-value">7000</span>
+                        <img src="assets/litcoin.png" alt="LitCoin" class="reward-coin">
+                    </button>
+                </div>
+                <div class="task-item" id="task4">
+                    <div class="task-info">
+                        <span class="task-emoji">📢</span>
+                        <span class="task-name">Подпишись на Method</span>
+                    </div>
+                    <button class="task-reward-button" id="task4Button" onclick="handleTask4Click()">
+                        <span class="reward-value">1000</span>
                         <img src="assets/litcoin.png" alt="LitCoin" class="reward-coin">
                     </button>
                 </div>
