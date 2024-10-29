@@ -1089,7 +1089,53 @@ function updateFooterButtons() {
 }
 let pressTimer = null;
 let isLongPress = false;
-const LONG_PRESS_DURATION = 5000; // 5 секунд для длительного нажатия
+const LONG_PRESS_DURATION = 3000; // 5 секунд
+let progressBarElement = null; // Глобальная переменная для отслеживания прогресс-бара
+
+function startLongPressTimer() {
+    // Удаляем существующий прогресс-бар, если он есть
+    if (progressBarElement) {
+        progressBarElement.remove();
+    }
+    
+    progressBarElement = document.createElement('div');
+    progressBarElement.className = 'long-press-progress';
+    document.body.appendChild(progressBarElement);
+    
+    let startTime = Date.now();
+    
+    requestAnimationFrame(function updateProgress() {
+        if (!pressTimer) {
+            clearProgressBar();
+            return;
+        }
+        
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / LONG_PRESS_DURATION * 100, 100);
+        if (progressBarElement) {
+            progressBarElement.style.width = `${progress}%`;
+        }
+        
+        if (progress < 100) {
+            requestAnimationFrame(updateProgress);
+        } else {
+            handleLongPress();
+            clearProgressBar();
+        }
+    });
+}
+
+function clearProgressBar() {
+    if (progressBarElement) {
+        progressBarElement.style.opacity = '0';
+        setTimeout(() => {
+            if (progressBarElement) {
+                progressBarElement.remove();
+                progressBarElement = null;
+            }
+        }, 300);
+    }
+}
 
 function handleLongPress() {
     isLongPress = true;
@@ -1101,7 +1147,7 @@ function handleLongPress() {
     }
     
     // Создаем взрывной эффект частиц
-    for (let i = 0; i < 30; i++) { // Увеличиваем количество частиц
+    for (let i = 0; i < 30; i++) {
         setTimeout(() => {
             const selectedCan = localStorage.getItem('selectedCan') || '0';
             const canSrc = canImages[parseInt(selectedCan)];
@@ -1114,7 +1160,7 @@ function handleLongPress() {
             } else {
                 createBubble();
             }
-        }, i * 30); // Уменьшаем интервал для более интенсивного эффекта
+        }, i * 30);
     }
     
     // Даем одноразовый бонус
@@ -1122,15 +1168,47 @@ function handleLongPress() {
     updateBalance(bonusCoins);
     updateTotalEarnedCoins(bonusCoins);
     
-    // Показываем уведомление о бонусе
-    showBonusNotification('🚀 БОНУС ЗА ВЫДЕРЖКУ!');
+    // Добавляем эффект встряски банки с повторением
+    const can = document.getElementById('can');
+    can.classList.add('super-shake');
     
-    // Добавляем эффект встряски банки
-    canElement.classList.add('super-shake');
+    // Удаляем класс после окончания анимации
     setTimeout(() => {
-        canElement.classList.remove('super-shake');
+        can.classList.remove('super-shake');
     }, 1000);
 }
+// Обновляем обработчики событий
+document.addEventListener('DOMContentLoaded', function() {
+    const canElement = document.getElementById('can');
+    if (canElement) {
+        canElement.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            if (!pressTimer) {
+                pressTimer = true;
+                startLongPressTimer();
+            }
+        });
+        
+        canElement.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!pressTimer) {
+                pressTimer = true;
+                startLongPressTimer();
+            }
+        }, { passive: false });
+        
+        // Обработчики отпускания
+        const endPress = () => {
+            pressTimer = null;
+            clearProgressBar(); // Добавляем явный вызов очистки
+        };
+        
+        canElement.addEventListener('mouseup', endPress);
+        canElement.addEventListener('mouseleave', endPress);
+        canElement.addEventListener('touchend', endPress);
+        canElement.addEventListener('touchcancel', endPress);
+    }
+});
 // Обновите функцию updateCanImage
 function updateCanImage(index) {
     

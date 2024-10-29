@@ -15,9 +15,13 @@
     align-items: center;
     padding: 15px;
     width: 100%;
-    height: calc(100vh - 70px);
-    box-sizing: border-box; /* Важно! Чтобы padding не добавлял ширину */
+    /* Убираем фиксированную высоту */
+    min-height: calc(100vh - 70px);
+    box-sizing: border-box;
+    padding-bottom: 85px; /* Добавляем отступ снизу для футера */
+    overflow-y: auto; /* Добавляем прокрутку если контент не помещается */
 }
+
 
 /* Секция с изображением банок */
 .cans-section {
@@ -91,7 +95,13 @@
 .invite-button:last-child {
     margin-bottom: 0;
 }
-
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
 .invite-button:hover {
     background-color: var(--tertiary-color);
     transform: translateY(-2px);
@@ -103,6 +113,7 @@
     padding: 15px;
     width: 100%;
     box-sizing: border-box;
+    margin-bottom: 20px; /* Добавляем отступ снизу */
 }
 
 .friends-section h2 {
