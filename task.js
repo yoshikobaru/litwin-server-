@@ -299,37 +299,51 @@ window.checkTask1State = checkTask1State;
 
 let invitedFriendsCount = 0; // Счетчик приглашенных друзей
 
-function updateTask2State() {
+function updateTask2State(friendsCount) {
     const task2Button = document.getElementById('task2Button');
     const task2Element = document.getElementById('task2');
-    const friendsCounter = document.getElementById('friendsCounter'); // Получаем элемент счетчика
+    const friendsCounter = document.getElementById('friendsCounter');
+    
+    // Получаем актуальное количество друзей
+    const currentFriendsCount = friendsCount || parseInt(localStorage.getItem('invitedFriendsCount')) || 0;
+    
+    // Обновляем счетчик
+    if (friendsCounter) {
+        friendsCounter.textContent = `${currentFriendsCount}/3`;
+    }
 
-    friendsCounter.textContent = `${invitedFriendsCount}/3`; // Обновляем текст счетчика
+    // Проверяем выполнено ли уже задание
+    const isTask2Completed = localStorage.getItem('task2Completed') === 'true';
 
-    if (invitedFriendsCount >= 3) {
+    if (currentFriendsCount >= 3 && !isTask2Completed) {
+        // Активируем кнопку только если задание еще не выполнено
         task2Button.disabled = false;
         task2Element.classList.remove('completed');
     } else {
         task2Button.disabled = true;
-        task2Element.classList.add('completed');
+        if (isTask2Completed) {
+            task2Element.classList.add('completed');
+        }
     }
 }
 
 function handleTask2Click() {
-    if (invitedFriendsCount >= 3) {
+    const currentFriendsCount = parseInt(localStorage.getItem('invitedFriendsCount')) || 0;
+    
+    if (currentFriendsCount >= 3 && localStorage.getItem('task2Completed') !== 'true') {
         const currentBalance = parseInt(localStorage.getItem('balance')) || 0;
         const newBalance = currentBalance + 10000;
         localStorage.setItem('balance', newBalance.toString());
-        alert('Вы получили 10,000 монет!');
-        updateTask2State(); // Обновляем состояние задания
+        localStorage.setItem('task2Completed', 'true');
+        
+        showPopup('Поздравляем!', 'Вы получили 10,000 монет!');
+        updateTask2State();
+        
+        // Синхронизируем с сервером
+        syncDataWithServer();
     }
 }
 
-// Вызовите эту функцию, когда пользователь приглашает друга
-function onFriendInvited() {
-    invitedFriendsCount++;
-    updateTask2State(); // Обновляем состояние задания
-}
 
 function updateTask3State() {
     const task3Button = document.getElementById('task3Button');
@@ -355,7 +369,7 @@ function handleTask3Click() {
         const newBalance = currentBalance + 7000;
         localStorage.setItem('balance', newBalance.toString());
         localStorage.setItem('task3Completed', 'true'); // Устанавливаем состояние задания как выполненное
-        alert('Вы получили 7000 монет!');
+        showPopup('Поздравляем!', 'Вы получили 7000 монет!');
         updateBalanceDisplay(newBalance); // Обновляем отображение баланса
         updateTask3State(); // Обновляем состояние задания
     }

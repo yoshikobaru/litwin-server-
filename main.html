@@ -78,14 +78,23 @@
     </div>
     
     <div id="collection-page" class="page" style="display: none;">
-        <div class="container">
-            <h1>Твоя коллекция</h1>
-            <div id="collection-grid"></div>
-            <hr class="divider">
-            <h2>Маркет</h2>
-            <div id="market-items">
-                <!-- Вкладки и группы улучшений будут добавлены сюда динамически -->
-            </div>
+        <div class="container collection-page">
+            <section class="collection-section">
+                <h1>Твоя коллекция</h1>
+                <div id="collection-grid"></div>
+            </section>
+    
+            <div class="collection-divider"></div>
+    
+            <section class="market-section">
+                <h2>Маркет</h2>
+                <div class="category-tabs">
+                    <!-- Существующие табы -->
+                </div>
+                <div id="market-items">
+                    <!-- Существующие элементы маркета -->
+                </div>
+            </section>
         </div>
     </div>
     
@@ -180,12 +189,27 @@
     
     <div id="friends-page" class="page" style="display: none;">
         <div class="friends-container">
-            <img src="assets/twobanka.png" alt="Две банки" class="cans-image" id="cansImage">
-            <button class="invite-button" id="inviteButton">⚡Пригласить друга!</button>
-            <button class="invite-button" id="shareLinkButton">🚀Поделиться ссылкой!</button>
-            <div class="friends-list" id="friendsList">
-                <!-- Список друзей будет добавлен динамически -->
-            </div>
+            <section class="cans-section">
+                <img src="assets/twobanka.png" alt="Две банки" class="cans-image" id="cansImage">
+            </section>
+    
+            <section class="invite-section">
+                <button class="invite-button" id="inviteButton">
+                    ⚡ Пригласить друга!
+                </button>
+                <button class="invite-button" id="shareLinkButton">
+                    🚀 Поделиться ссылкой!
+                </button>
+            </section>
+    
+            <div class="friends-divider"></div>
+    
+            <section class="friends-section">
+                <h2>Твои друзья</h2>
+                <div class="friends-list" id="friendsList">
+                    <!-- Список друзей будет добавлен динамически -->
+                </div>
+            </section>
         </div>
     </div>
 

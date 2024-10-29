@@ -3,24 +3,75 @@
     padding: 20px;
 }
 
-h1, h2 {
-    text-align: center;
-    color: white;
+/* Стили для разделов */
+.collection-page section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
+/* Заголовки секций */
+.collection-page h1, .collection-page h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Иконки для заголовков */
+.collection-page h1::before {
+    content: "🎮";
+    font-size: 28px;
+}
+
+.collection-page h2::before {
+    content: "🛍️";
+    font-size: 28px;
+}
+
+/* Разделитель между секциями */
+.collection-divider {
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+    margin: 30px 0;
+    position: relative;
+}
+
+.collection-divider::after {
+    content: "💎";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--primary-color);
+    padding: 0 15px;
+    font-size: 20px;
+}
 #collection-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    margin-bottom: 15px;
 }
 .category-tabs {
     display: flex;
     justify-content: space-around;
-    margin-bottom: 15px;
-    background-color: var(--tertiary-color);
-    border-radius: 15px;
-    padding: 5px;
+    margin-bottom: 5px;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 8px;
+    gap: 50px;
 }
 
 .category-tab {
@@ -30,12 +81,14 @@ h1, h2 {
     padding: 10px 20px;
     cursor: pointer;
     font-weight: bold;
-    border-radius: 10px;
-    transition: background-color 0.3s;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    flex: 1;
 }
 
 .category-tab.active {
     background-color: var(--secondary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .upgrade-category {
@@ -47,23 +100,26 @@ h1, h2 {
 }
 .collection-item {
     aspect-ratio: 1;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .collection-item:hover {
-    background-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    background-color: rgba(255, 255, 255, 0.15);
 }
 
 .collection-item.unlocked {
-    background-color: rgba(0, 255, 0, 0.2);
+    background-color: rgba(0, 255, 0, 0.1);
+    border-color: rgba(0, 255, 0, 0.2);
 }
-
 .collection-item.unlocked:hover {
     background-color: rgba(0, 255, 0, 0.3);
 }
@@ -87,17 +143,17 @@ h1, h2 {
 }
 
 .market-item {
-    background-color: var(--tertiary-color);
-    border-radius: 15px;
-    padding: 10px;
-    color: white;
+    border-radius: 18px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    background: none; /* Убираем фон у всей карточки */
 }
 
+/* Верхняя часть с полупрозрачным фоном */
 .market-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    border-radius: 12px 12px 0 0;
 }
 
 .market-item-level {

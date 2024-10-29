@@ -116,6 +116,9 @@ document.addEventListener('DOMContentLoaded', function() {
             itemElement.innerHTML = `<img src="${canImages[i]}" alt="Банка ${i + 1}" class="can-icon">`;
             itemElement.addEventListener('click', function() {
                 console.log(`Вы выбрали банку ${i + 1}`);
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                    window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+                }
             });
         }
 
@@ -233,6 +236,9 @@ function updateImproveTapButton() {
 // Обновите обработчик событий для каждой кнопки улучшения тапов
 document.getElementById('improveTapButton').addEventListener('click', function() {
     if (this.disabled) return;
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
 
     const nextLevel = improveTapData[currentImproveTapLevel];
     const currentBalance = parseInt(localStorage.getItem('balance')) || 0;
@@ -259,9 +265,9 @@ document.getElementById('improveTapButton').addEventListener('click', function()
 
         updateBalance();
 
-        alert(`Вы успешно улучшили тап и увеличили прибыль за тап на +${nextLevel.profit}!`);
+        showPopup('Поздравляем!', `Вы успешно увеличили прибыль за тап на +${nextLevel.profit}!`);
     } else {
-        alert('Недостаточно срдств для покупки!');
+        showPopup('Ой!', 'Недостаточно средств для покупки!');
     }
 });
 
@@ -342,9 +348,9 @@ document.getElementById('improveTapButton1').addEventListener('click', function(
 
         updateBalance();
 
-        alert(`Вы успешно улучшили тап 2 и увеличили прибыль за тап на +${nextLevel.profit}!`);
+        showPopup('Поздравляем!', `Вы успешно увеличили прибыль за тап на +${nextLevel.profit}!`);
     } else {
-        alert('Недостаточно средств для покупки!');
+        showPopup('Ой!', 'Недостаточно средств для покупки!');
     }
 });
 
@@ -426,9 +432,9 @@ document.getElementById('improveTapButton2').addEventListener('click', function(
 
         updateBalance();
 
-        alert(`Вы успешно улучшили тап 2 и увеличили прибыль за тап на +${nextLevel.profit}!`);
+        showPopup('Поздравляем!', `Вы успешно увеличили прибыль за тап на +${nextLevel.profit}!`);
     } else {
-        alert('Недостаточно средств для покупки!');
+        showPopup('Ой!', 'Недостаточно средств для покупки!');
     }
 });
 
@@ -510,9 +516,9 @@ document.getElementById('improveTapButton3').addEventListener('click', function(
 
         updateBalance();
 
-        alert(`Вы успешно улучшили тап 3 и увеличили прибыль за тап на +${nextLevel.profit}!`);
+        showPopup('Поздравляем!', `Вы успешно увеличили прибыль за тап на +${nextLevel.profit}!`);
     } else {
-        alert('Недостаточно средств для покупки!');
+        showPopup('Ой!', 'Недостаточно средств для покупки!');
     }
 });
 
@@ -606,9 +612,9 @@ document.addEventListener('DOMContentLoaded', initializeMarketItems);
 
             updateBalance();
 
-            alert(`Вы успешно выпили LIT и увеличили прибыль за тап на +${nextLevel.profit}!`);
+            showPopup('Поздравляем!', `Вы успешно увеличили прибыль за тап на +${nextLevel.profit}!`);
         } else {
-            alert('Недостаточно средств для покупки!');
+            showPopup('Ой!', 'Недостаточно средств для покупки!');
         }
     });
 
@@ -710,9 +716,9 @@ document.addEventListener('DOMContentLoaded', initializeMarketItems);
 
             updateBalance();
 
-            alert(`Вы успешно улучшили Фарми до уровня ${nextLevel.level} и увеличили прибыль в час на +${nextLevel.profit}!`);
+            showPopup('Поздравляем!', `Вы успешно увеличили прибыль в час на +${nextLevel.profit}!`);
         } else {
-            alert('Недостаточно средств для покупки!');
+            showPopup('Ой!', 'Недостаточно средств для покупки!');
         }
     });
 
@@ -848,9 +854,9 @@ document.addEventListener('DOMContentLoaded', initializeMarketItems);
     
                 updateBalance();
     
-                alert(`Вы успешно улучшили ${title} до уровня ${nextLevel.level} и увеличили прибыль в час на +${nextLevel.profit}!`);
+                showPopup('Поздравляем!', `Вы успешно увеличили прибыль в час на +${nextLevel.profit}!`);
             } else {
-                alert('Недостаточно средств для покупки!');
+                showPopup('Ой!', 'Недостаточно средств для покупки!');
             }
         });
     
@@ -964,9 +970,9 @@ document.getElementById('energyButton').addEventListener('click', function() {
 
         updateBalance();
 
-        alert(`Вы успешно увеличили максимальную энергию на +${nextLevel.profit}!`);
+        showPopup('Поздравляем!', `Вы успешно увеличили максимальную энергию на +${nextLevel.profit}!`);
     } else {
-        alert('Недостаточно средств для покупки!');
+        showPopup('Ой!', 'Недостаточно средств для покупки!');
     }
 });
 
@@ -1046,9 +1052,9 @@ updateEnergyButton();
             // Обновляем отображение баланса
             updateBalance();
 
-            alert(`Вы успешно купили "${item.title}"!`);
+            showPopup('Поздравляем!', `Вы успешно купили "${item.title}"!`);
         } else {
-            alert('Недостаточно средств для покупки!');
+            showPopup('Ой!', 'Недостаточно средств для покупки!');
         }
     }
 
@@ -1124,7 +1130,7 @@ updateEnergyButton();
     function changeCan(index) {
         if (index >= 0 && index < canImages.length) {
             updateCanImage(index);
-            alert('Банка успешно изменена!');
+            showPopup('Да вы в кондициях!', 'Банка успешно изменена!');
         }
     }
 

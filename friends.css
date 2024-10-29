@@ -13,19 +13,62 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 0;
-    margin: 0;
+    padding: 15px;
     width: 100%;
-    height: calc(100vh - 70px); /* Учитываем высоту футера */
+    height: calc(100vh - 70px);
+    box-sizing: border-box; /* Важно! Чтобы padding не добавлял ширину */
+}
+
+/* Секция с изображением банок */
+.cans-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .cans-image {
     width: 100%;
-    max-height: 45vh; /* Адаптивная высота */
-    object-fit: contain; /* Сохраняем пропорции */
+    max-height: 35vh;
+    object-fit: contain;
     display: block;
     margin: 0;
     padding: 0;
+}
+
+/* Разделитель */
+.friends-divider {
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+    margin: 20px 0;
+    position: relative;
+    width: 100%;
+}
+
+.friends-divider::after {
+    content: "👥";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--primary-color);
+    padding: 0 15px;
+    font-size: 20px;
+}
+
+
+/* Секция с кнопками приглашения */
+.invite-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .invite-button {
@@ -33,36 +76,73 @@
     color: #fff;
     border: none;
     padding: 15px 30px;
-    border-radius: 5px;
-    font-size: 18px;
-    margin-bottom: 20px;
+    border-radius: 10px;
+    font-size: 16px;
+    margin-bottom: 15px;
     cursor: pointer;
     width: 100%;
-    max-width: 400px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.invite-button:last-child {
+    margin-bottom: 0;
+}
+
+.invite-button:hover {
+    background-color: var(--tertiary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Секция со списком друзей */
+.friends-section {
+    padding: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.friends-section h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.friends-section h2::before {
+    content: "🤝";
+    font-size: 28px;
 }
 
 .friends-list {
-    width: 100%;
-    max-width: 400px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+    width: 100%;
 }
 
 .friend-item {
-    border-radius: 15px;
-    padding: 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 15px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .friend-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .friend-avatar {

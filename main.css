@@ -95,33 +95,7 @@ body::before {
     vertical-align: middle;
     margin-bottom: 4px;
 }
-#watchAdButton {
-    position: absolute;
-    right: 20px;
-    bottom: 10px;
-    background-color: var(--secondary-color);
-    border: none;
-    color: white;
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    z-index: 2;
-}
 
-#watchAdButton:hover {
-    background-color: var(--tertiary-color);
-}
-
-#watchAdButton:active {
-    transform: scale(0.95);
-}
 .ad-confirmation-popup {
     position: fixed;
     top: 50%;
@@ -310,14 +284,41 @@ body::before {
     0% { transform: translate(0, 0) scale(0); opacity: 1; }
     100% { transform: translate(var(--tx), var(--ty)) scale(1); opacity: 0; }
 }
-.energy {
-    position: absolute;
-    left: 20px;
-    bottom: 5px;
+.energy, #watchAdButton {
+    position: fixed;
+    bottom: 95px; /* Увеличиваем отступ от футера */
     display: flex;
     align-items: center;
-    font-size: 18px;
-    z-index: 1; /* Изменяем с 10 на 1 */
+    font-size: 16px;
+    z-index: 999;
+    background-color: var(--secondary-color);
+    padding: 8px 12px;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+/* Специфичные стили для энергии */
+.energy {
+    left: 15px;
+}
+
+/* Специфичные стили для кнопки рекламы */
+#watchAdButton {
+    right: 15px;
+    width: auto; /* Убираем фиксированную ширину */
+    height: auto; /* Убираем фиксированную высоту */
+    border-radius: 20px;
+    font-size: 28px;
+}
+
+/* Медиа-запрос для маленьких экранов */
+@media screen and (max-height: 700px) {
+    .energy, #watchAdButton {
+        bottom: 85px;
+        font-size: 14px;
+        padding: 6px 10px;
+    }
 }
 
 .energy-icon {
@@ -724,4 +725,36 @@ html, body {
     height: 24px;
     object-fit: contain;
     margin-bottom: 4px;
+}
+@keyframes superShake {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    10% { transform: translate(-5px, -5px) rotate(-5deg); }
+    20% { transform: translate(5px, -5px) rotate(5deg); }
+    30% { transform: translate(-5px, 5px) rotate(-5deg); }
+    40% { transform: translate(5px, 5px) rotate(5deg); }
+    50% { transform: translate(-5px, -5px) rotate(-5deg); }
+    60% { transform: translate(5px, -5px) rotate(5deg); }
+    70% { transform: translate(-5px, 5px) rotate(-5deg); }
+    80% { transform: translate(5px, 5px) rotate(5deg); }
+    90% { transform: translate(-5px, -5px) rotate(-5deg); }
+}
+
+.super-shake {
+    animation: superShake 1s ease-in-out;
+}
+
+.bonus-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 1000;
+    animation: popIn 0.3s ease-out;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }

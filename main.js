@@ -1087,10 +1087,52 @@ function updateFooterButtons() {
         }
     });
 }
+let pressTimer = null;
+let isLongPress = false;
+const LONG_PRESS_DURATION = 5000; // 5 секунд для длительного нажатия
 
+function handleLongPress() {
+    isLongPress = true;
+    
+    // Сильная вибрация
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
+    }
+    
+    // Создаем взрывной эффект частиц
+    for (let i = 0; i < 30; i++) { // Увеличиваем количество частиц
+        setTimeout(() => {
+            const selectedCan = localStorage.getItem('selectedCan') || '0';
+            const canSrc = canImages[parseInt(selectedCan)];
+            
+            if (canSrc === 'assets/bankamango.png') {
+                createFruit('mango');
+                createFruit('coconut');
+            } else if (canSrc === 'assets/bankablueberry.png') {
+                createFruit('blueberry');
+            } else {
+                createBubble();
+            }
+        }, i * 30); // Уменьшаем интервал для более интенсивного эффекта
+    }
+    
+    // Даем одноразовый бонус
+    const bonusCoins = tapProfit * 3;
+    updateBalance(bonusCoins);
+    updateTotalEarnedCoins(bonusCoins);
+    
+    // Показываем уведомление о бонусе
+    showBonusNotification('🚀 БОНУС ЗА ВЫДЕРЖКУ!');
+    
+    // Добавляем эффект встряски банки
+    canElement.classList.add('super-shake');
+    setTimeout(() => {
+        canElement.classList.remove('super-shake');
+    }, 1000);
+}
 // Обновите функцию updateCanImage
 function updateCanImage(index) {
-    // ... существующий код ...
     
     const selectedTheme = canThemes[canImages[index]];
     if (selectedTheme) {

@@ -61,6 +61,12 @@ function displayReferredFriends(friends) {
     const friendsList = document.getElementById('friendsList');
     if (friendsList) {
         friendsList.innerHTML = '';
+        // Обновляем счетчик друзей для задания
+        const invitedFriendsCount = friends.length;
+        localStorage.setItem('invitedFriendsCount', invitedFriendsCount);
+        
+        // Обновляем состояние задания
+        updateTask2State(invitedFriendsCount);
         if (friends.length === 0) {
             friendsList.innerHTML = '<p class="no-friends-message"></p>';
         } else {
@@ -126,45 +132,43 @@ function claimFriendReward(friendId, friendIndex) {
     // Синхронизируем данные с сервером
     syncDataWithServer();
     
-    // Увеличиваем счетчик приглашенных друзей
-    onFriendInvited();
 }
 
 
-    function showPopup(title, message) {
-        const popup = document.createElement('div');
-        popup.style.position = 'fixed';
-        popup.style.left = '50%';
-        popup.style.top = '50%';
-        popup.style.transform = 'translate(-50%, -50%)';
-        popup.style.backgroundColor = 'var(--tertiary-color)'; // Используем цвет из CSS переменных
-        popup.style.color = '#fff'; // Белый текст для контраста
-        popup.style.padding = '20px';
-        popup.style.borderRadius = '10px';
-        popup.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
-        popup.style.zIndex = '1000';
-        popup.style.maxWidth = '80%'; // Ограничиваем ширину попапа
-        popup.style.textAlign = 'center'; // Центрируем текст
-    
-        const closeButton = document.createElement('button');
-        closeButton.textContent = 'OK';
-        closeButton.style.backgroundColor = 'var(--secondary-color)';
-        closeButton.style.color = '#fff';
-        closeButton.style.border = 'none';
-        closeButton.style.padding = '10px 20px';
-        closeButton.style.borderRadius = '5px';
-        closeButton.style.marginTop = '15px';
-        closeButton.style.cursor = 'pointer';
-        closeButton.onclick = () => popup.remove();
-    
-        popup.innerHTML = `
-            <h2 style="margin-top: 0; color: #FFD700;">${title}</h2>
-            <p style="margin-bottom: 20px;">${message}</p>
-        `;
-        popup.appendChild(closeButton);
-    
-        document.body.appendChild(popup);
-    }
+window.showPopup = function(title, message) {
+    const popup = document.createElement('div');
+    popup.style.position = 'fixed';
+    popup.style.left = '50%';
+    popup.style.top = '50%';
+    popup.style.transform = 'translate(-50%, -50%)';
+    popup.style.backgroundColor = 'var(--tertiary-color)';
+    popup.style.color = '#fff';
+    popup.style.padding = '20px';
+    popup.style.borderRadius = '10px';
+    popup.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+    popup.style.zIndex = '1000';
+    popup.style.maxWidth = '80%';
+    popup.style.textAlign = 'center';
+
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'OK';
+    closeButton.style.backgroundColor = 'var(--secondary-color)';
+    closeButton.style.color = '#fff';
+    closeButton.style.border = 'none';
+    closeButton.style.padding = '10px 20px';
+    closeButton.style.borderRadius = '5px';
+    closeButton.style.marginTop = '15px';
+    closeButton.style.cursor = 'pointer';
+    closeButton.onclick = () => popup.remove();
+
+    popup.innerHTML = `
+        <h2 style="margin-top: 0; color: #FFD700;">${title}</h2>
+        <p style="margin-bottom: 20px;">${message}</p>
+    `;
+    popup.appendChild(closeButton);
+
+    document.body.appendChild(popup);
+}
 
     window.handleInviteButtonClick = function(event) {
         console.log('Функция handleInviteButtonClick вызвана');
