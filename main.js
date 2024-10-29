@@ -612,6 +612,7 @@ function handleFooterButtonClick(event) {
     event.target.closest('.footer-btn').classList.add('active');
 }
 function showPage(pageName) {
+    
     document.querySelectorAll('.page').forEach(page => {
         page.style.display = 'none';
     });

@@ -1,23 +1,31 @@
 :root {
-    --primary-color: rgb(18,131,255);
+    --primary-color: rgb(18, 131, 255);
     --secondary-color: rgb(7,119,240);
     --tertiary-color: rgb(1,43,89);
+}
+
+#friends-page {
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 .friends-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
-    min-height: 100vh;
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: calc(100vh - 70px); /* Учитываем высоту футера */
 }
 
 .cans-image {
     width: 100%;
-    height: auto;
+    max-height: 45vh; /* Адаптивная высота */
+    object-fit: contain; /* Сохраняем пропорции */
     display: block;
+    margin: 0;
+    padding: 0;
 }
 
 .invite-button {

@@ -12,10 +12,52 @@
     display: flex;
     flex-direction: column;
 }
+.tasks-page section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
 
 .tasks-page h1, .tasks-page h2 {
     text-align: center;
     margin-bottom: 20px;
+    font-size: 24px;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.tasks-page h1::before {
+    content: "🎁";
+    font-size: 28px;
+}
+
+.tasks-page h2::before {
+    content: "📋";
+    font-size: 28px;
+}
+/* Разделитель между секциями */
+.tasks-divider {
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+    margin: 20px 0;
+    position: relative;
+}
+
+.tasks-divider::after {
+    content: "⚡";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--primary-color);
+    padding: 0 15px;
+    font-size: 20px;
 }
 
 .tasks-page .daily-bonus {
@@ -28,6 +70,7 @@
     gap: 10px;
     justify-content: center;
 }
+
 
 .tasks-page .bonus-item {
     background-color: var(--secondary-color);
@@ -44,6 +87,11 @@
     width: 100%;
 }
 
+
+.bonus-item.unlocked:hover {
+    /* Убираем transform, оставляем только тень */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
 .tasks-page .bonus-item.locked {
     cursor: not-allowed;
     opacity: 0.5;
@@ -93,29 +141,44 @@
     gap: 10px;
 }
 
-.tasks-page .task-item {
-    background-color: var(--secondary-color);
-    border-radius: 10px;
+.task-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
     padding: 15px;
+    margin-bottom: 15px;
+    transition: box-shadow 0.2s; /* Убираем transform из transition */
+    border: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    background-color: var(--tertiary-color);
-    /* Стили для задания */
-    margin-bottom: 15px; /* Отступ между заданиями */
-    padding: 10px; /* Отступ внутри задания */
-    background-color: rgba(255, 255, 255, 0.1); /* Полупрозрачный фон */
-    border-radius: 10px; /* Закругленные углы */
-    transition: background-color 0.3s; /* Плавный переход фона */
+    gap: 10px;
 }
 
-.tasks-page .task-info {
+.task-item:hover {
+    /* Убираем transform, оставляем только тень */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+.task-progress {
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.task-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    transition: width 0.3s ease;
+}
+.task-info {
     display: flex;
     align-items: center;
     gap: 10px;
-    color: white;
+    width: 100%;
+    justify-content: center;
+    text-align: center;
 }
-
 .tasks-page .task-name {
     flex-grow: 1;
 }
@@ -218,12 +281,15 @@ h2 {
 .task-reward-button {
     display: flex;
     align-items: center;
+    justify-content: center;
     background-color: var(--secondary-color);
     border: none;
-    border-radius: 5px;
-    padding: 5px 10px;
+    border-radius: 8px;
+    padding: 8px 20px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s;
+    gap: 8px;
+    margin-top: 5px;
 }
 
 .task-reward-button:hover {
