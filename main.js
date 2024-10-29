@@ -1150,6 +1150,27 @@ function updateCanImage(index) {
 // Добавьте обработчик клика для кнопок футера
 document.addEventListener('DOMContentLoaded', function() {
     const footerButtons = document.querySelectorAll('.footer-btn');
+      // Отключаем контекстное меню
+      canElement.addEventListener('contextmenu', (e) => e.preventDefault());
+      // Отключаем длительное нажатие на мобильных
+      canElement.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          if (pressTimer === null) {
+              pressTimer = setTimeout(handleLongPress, LONG_PRESS_DURATION);
+          }
+      }, { passive: false });
+      
+      // Обработка отпускания на мобильных
+      canElement.addEventListener('touchend', () => {
+          if (pressTimer !== null) {
+              clearTimeout(pressTimer);
+              pressTimer = null;
+          }
+          if (!isLongPress) {
+              handleCanClick();
+          }
+          isLongPress = false;
+      });
     footerButtons.forEach(button => {
         button.addEventListener('click', function() {
             footerButtons.forEach(btn => btn.classList.remove('active'));

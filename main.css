@@ -245,6 +245,13 @@ body::before {
     transform: translateY(-30px);
 }
 .can {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version */
+    touch-action: none; /* Отключает стандартные жесты браузера */
     width: 280px;  /* Установите желаемую ширину */
     height: auto;  /* то позволит сохранить пропорции изображения */
     position: relative;
