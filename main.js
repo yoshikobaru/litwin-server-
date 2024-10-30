@@ -1136,6 +1136,10 @@ function clearProgressBar() {
         }, 300);
     }
 }
+// Создаем аудио элемент заранее
+const bonusSound = new Audio('assets/condicii.mp3');
+// Предварительно загружаем звук
+bonusSound.load();
 
 function handleLongPress() {
     isLongPress = true;
@@ -1144,6 +1148,24 @@ function handleLongPress() {
     if (window.Telegram?.WebApp?.HapticFeedback) {
         window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         window.Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
+    }
+    
+    // Воспроизводим звук
+    try {
+        // Сначала перематываем в начало (если звук уже воспроизводился)
+        bonusSound.currentTime = 0;
+        
+        // Воспроизводим звук
+        const playPromise = bonusSound.play();
+        
+        // Обрабатываем Promise для iOS
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.log("Ошибка воспроизведения звука:", error);
+            });
+        }
+    } catch (error) {
+        console.log("Ошибка при работе со звуком:", error);
     }
     
     // Создаем взрывной эффект частиц
@@ -1163,16 +1185,13 @@ function handleLongPress() {
         }, i * 30);
     }
     
-    // Даем одноразовый бонус
     const bonusCoins = tapProfit * 3;
     updateBalance(bonusCoins);
     updateTotalEarnedCoins(bonusCoins);
     
-    // Добавляем эффект встряски банки с повторением
     const can = document.getElementById('can');
     can.classList.add('super-shake');
     
-    // Удаляем класс после окончания анимации
     setTimeout(() => {
         can.classList.remove('super-shake');
     }, 1000);
