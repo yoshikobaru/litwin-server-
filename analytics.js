@@ -1,35 +1,51 @@
-// Создаем глобальный объект аналитики
 window.Analytics = class {
     constructor() {
         this.initialized = false;
+        this.queue = []; // Очередь для отложенных событий
         this.init();
     }
 
     init() {
         if (window.Telegram?.WebApp) {
             window.Telegram.WebApp.ready();
-            setTimeout(() => {
+            
+            // Пытаемся инициализировать несколько раз
+            const initAttempt = () => {
                 if (window.ym) {
-                    const user = window.Telegram.WebApp.initDataUnsafe.user;
-                    if (user) {
-                        ym(98779515, 'userParams', {
-                            UserID: user.id,
-                            Username: user.username,
-                            TelegramClient: window.Telegram.WebApp.platform
-                        });
+                    try {
+                        const user = window.Telegram.WebApp.initDataUnsafe.user;
+                        if (user) {
+                            ym(98779515, 'userParams', {
+                                UserID: user.id,
+                                Username: user.username,
+                                TelegramClient: window.Telegram.WebApp.platform
+                            });
+                        }
+                        this.initialized = true;
+                        console.log('Аналитика успешно инициализирована');
+                        
+                        // Отправляем накопленные события
+                        this.processQueue();
+                    } catch (error) {
+                        console.error('Ошибка при инициализации:', error);
                     }
-                    this.initialized = true;
+                } else {
+                    setTimeout(initAttempt, 1000);
                 }
-            }, 1000);
+            };
+
+            initAttempt();
         }
     }
 
-    trackEvent(eventName, parameters = {}) {
-        if (!this.initialized) {
-            console.warn('Аналитика не инициализирована');
-            return;
+    processQueue() {
+        while (this.queue.length > 0) {
+            const {eventName, parameters} = this.queue.shift();
+            this._sendEvent(eventName, parameters);
         }
+    }
 
+    _sendEvent(eventName, parameters) {
         try {
             if (window.ym) {
                 ym(98779515, 'reachGoal', eventName);
@@ -37,7 +53,7 @@ window.Analytics = class {
                 ym(98779515, 'params', {
                     event_name: eventName,
                     ...parameters,
-                    telegram_user_id: getTelegramUserId(),
+                    telegram_user_id: window.Telegram?.WebApp?.initDataUnsafe?.user?.id,
                     timestamp: new Date().toISOString()
                 });
                 
@@ -46,6 +62,16 @@ window.Analytics = class {
         } catch (error) {
             console.error('Ошибка при отправке события:', error);
         }
+    }
+
+    trackEvent(eventName, parameters = {}) {
+        if (!this.initialized) {
+            console.log('Аналитика не инициализирована, добавляем событие в очередь:', eventName);
+            this.queue.push({eventName, parameters});
+            return;
+        }
+
+        this._sendEvent(eventName, parameters);
     }
 }
 
