@@ -1267,25 +1267,23 @@ function initializeMetrika() {
 function trackEvent(eventName, parameters = {}) {
     try {
         if (window.ym) {
-            // Добавляем базовые параметры
-            const baseParams = {
-                timestamp: new Date().toISOString(),
-                platform: window.Telegram?.WebApp?.platform || 'unknown',
-                version: window.Telegram?.WebApp?.version || 'unknown',
-                userId: getTelegramUserId() || 'anonymous'
-            };
-
-            // Объединяем базовые параметры с переданными
-            const allParams = { ...baseParams, ...parameters };
-
-            // Отправляем событие
-            ym(98779515, 'reachGoal', eventName, allParams);
+            // Отправляем событие двумя способами для надежности
+            ym(98779515, 'reachGoal', eventName);
             
-            // Отправляем также как пользовательское событие
-            ym(98779515, 'params', { [eventName]: allParams });
+            // Отправляем также как пользовательское событие с параметрами
+            ym(98779515, 'params', {
+                event_name: eventName,
+                ...parameters,
+                telegram_user_id: getTelegramUserId(),
+                timestamp: new Date().toISOString()
+            });
+            
+            console.log('Событие отправлено:', eventName, parameters);
+        } else {
+            console.warn('ym не инициализирован');
         }
     } catch (error) {
-        console.error('Error tracking event:', error);
+        console.error('Ошибка при отправке события:', error);
     }
 }
 document.addEventListener('DOMContentLoaded', initializeMetrika);
