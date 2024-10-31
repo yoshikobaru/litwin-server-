@@ -125,7 +125,6 @@ function getTelegramUserId() {
     return null;
 }
 function initializeVariables() {
-    console.log('Инициализация переменных');
     balance = parseInt(localStorage.getItem('balance')) || 0;
     if (isNaN(balance)) {
         console.warn('Баланс в localStorage некорректен, сбрасываем на 0');
@@ -139,9 +138,6 @@ function initializeVariables() {
     lastExitTime = parseInt(localStorage.getItem('lastExitTime')) || Date.now();
     accumulatedCoins = parseFloat(localStorage.getItem('accumulatedCoins')) || 0;
     totalEarnedCoins = parseInt(localStorage.getItem('totalEarnedCoins')) || 0;
-    console.log('Инициализация: lastExitTime =', new Date(lastExitTime), 'accumulatedCoins =', accumulatedCoins);
-    console.log('Баланс после инициализации:', balance);
-    console.log('Максимальная энергия после инициализации:', maxEnergy);
 
 const savedBonusEndTime = parseInt(localStorage.getItem('adBonusEndTime') || '0');
     if (savedBonusEndTime > Date.now()) {
@@ -160,29 +156,22 @@ const savedBonusEndTime = parseInt(localStorage.getItem('adBonusEndTime') || '0'
 }
 
 function updateBalanceDisplay(newBalance) {
-    console.log('Вызвана функция updateBalanceDisplay с аргументом:', newBalance);
     
     if (typeof newBalance === 'undefined' || isNaN(newBalance)) {
-        console.log('newBalance не определен или NaN, получаем значение из localStorage');
+    
         newBalance = parseInt(localStorage.getItem('balance')) || 0;
     }
     
     newBalance = Math.max(0, Math.floor(newBalance));
-    console.log('Обработанный новый баланс:', newBalance);
     
     const balanceElement = document.getElementById('balance');
     if (balanceElement) {
         balanceElement.textContent = newBalance.toLocaleString();
-        console.log('Баланс обновлен в DOM:', newBalance);
     } else {
     }
-    
     localStorage.setItem('balance', newBalance.toString());
-    console.log('Баланс сохранен в localStorage:', newBalance);
 }
 function initializeMainPage() {
-    console.log('Вызвана функция initializeMainPage');
-    
     progressBar = document.getElementById('progressBar');
     balanceElement = document.getElementById('balance');
     canElement = document.getElementById('can');
@@ -410,7 +399,6 @@ function updateProgress() {
     window.postMessage({ type: 'levelUp', level: currentLevel }, '*');
 }
 function updateBalance(amount) {
-    console.log('Вызвана функция updateBalance с аргументом:', amount);
     let currentBalance = parseInt(localStorage.getItem('balance')) || 0;
     if (isNaN(currentBalance)) {
         console.warn('Текущий баланс в localStorage нкорректен, сбрасываем на 0');
@@ -460,7 +448,6 @@ function createBubble() {
 
 // Добавьте эту функцию
 function createMango() {
-    console.log('Creating a mango'); // Отладочное сообщене
     const mango = document.createElement('div');
     mango.classList.add('mango');
     
@@ -506,7 +493,6 @@ function handleCanClick() {
         console.log('Selected can:', canSrc);
 
         if (canSrc === 'assets/bankamango.png') {
-            console.log('Creating mangoes and coconuts');
             for (let i = 0; i < 5; i++) {
                 setTimeout(() => {
                     createFruit('mango');
@@ -514,14 +500,12 @@ function handleCanClick() {
                 }, Math.random() * 200);
             }
         } else if (canSrc === 'assets/bankablueberry.png') {
-            console.log('Creating blueberries');
             for (let i = 0; i < 10; i++) {
                 setTimeout(() => {
                     createFruit('blueberry');
                 }, Math.random() * 200);
             }
         } else {
-            console.log('Creating bubbles');
             for (let i = 0; i < 7; i++) {
                 setTimeout(() => {
                     createBubble();
@@ -549,6 +533,11 @@ updateEnergyDisplay();
         syncTimer = setTimeout(() => {
             syncDataWithServer();
         }, 3000); // 5 секунд задержки
+        window.eventBus.emit('canClick', {
+            tapProfit,
+            balance,
+            canType: localStorage.getItem('selectedCan') || '0'
+        });
     }
 }
 function updateTotalEarnedCoins(amount) {
@@ -661,9 +650,6 @@ function calculateOfflineEarnings() {
         totalEarnedCoins += earnedWholeCoins;
         accumulatedCoins -= earnedWholeCoins;
 
-        console.log('Заработано монет:', earnedCoins, 'Целых монет:', earnedWholeCoins);
-        console.log('Новый баланс:', balance, 'Остаток:', accumulatedCoins);
-
         updateBalanceDisplay(balance);
         updateProgress();
     }
@@ -685,7 +671,6 @@ function startOfflineEarningInterval() {
                 accumulatedCoins -= earnedWholeCoins;
                 updateBalanceDisplay(balance);
                 updateProgress();
-                console.log('Интервал: заработано', earnedWholeCoins, 'монет. Новый баланс:', balance);
             }
             localStorage.setItem('accumulatedCoins', accumulatedCoins.toString());
         }
@@ -809,7 +794,6 @@ function updateAppTheme(canSrc) {
 }
 
 function createFruit(type) {
-    console.log(`Creating a ${type}`); // Отладочное сообщение
     const fruit = document.createElement('div');
     fruit.classList.add('fruit', type);
     
@@ -841,9 +825,7 @@ function createFruit(type) {
 }
 
 function updateFriendsCanImage(index) {
-    console.log('Вызвана функция updateFriendsCanImage с индексом:', index);
     const canSrc = canImages[index];
-    console.log('Новый источник изображения банки:', canSrc);
     const cansImage = document.getElementById('cansImage');
     if (cansImage) {
         if (canSrc === 'assets/bankamango.png') {
@@ -860,12 +842,10 @@ function updateFriendsCanImage(index) {
 }
 
 function updateCanImage(index) {
-    console.log('Вызвана функция updateCanImage с индексом:', index);
     const canElement = document.getElementById('can');
     const canTypeElement = document.getElementById('canType');
     if (canElement && canTypeElement) {
         const newCanSrc = canImages[index];
-        console.log('Новый источник изображения банки:', newCanSrc);
         canElement.src = newCanSrc;
         
         // Обновляем текст типа банки
@@ -910,7 +890,6 @@ function initializeFriendsPageFromMain() {
     if (friendsPage) {
         const inviteButton = friendsPage.querySelector('#inviteButton');
         if (inviteButton) {
-            console.log('Кнопка найдена в main.js, добавляем обработчик');
             inviteButton.addEventListener('click', window.handleInviteButtonClick);
         } else {
             console.error('Кнопка приглашения не найдена в main.js');
@@ -967,6 +946,11 @@ async function watchAd() {
         } catch (error) {
             console.error('Error showing ad:', error);
         }
+    }
+    if (data.success) {
+        window.eventBus.emit('adComplete', {
+            result: 'success'
+        });
     }
 }
 
@@ -1195,6 +1179,9 @@ function handleLongPress() {
     setTimeout(() => {
         can.classList.remove('super-shake');
     }, 1000);
+    window.eventBus.emit('longPressBonus', {
+        bonusAmount: tapProfit * 3
+    });
 }
 // Обновляем обработчики событий
 document.addEventListener('DOMContentLoaded', function() {
@@ -1243,144 +1230,28 @@ function updateCanImage(index) {
     // Отправляем сообщение другим страницам об обновлении темы
     window.postMessage({ type: 'updateTheme', theme: selectedTheme }, '*');
 }
-function initializeMetrika() {
-    if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.ready();
-        // Ждем небольшую паузу перед инициализацией
-        setTimeout(() => {
-            if (window.ym) {
-                // Отправляем информацию о пользователе
-                const user = window.Telegram.WebApp.initDataUnsafe.user;
-                if (user) {
-                    ym(98779515, 'userParams', {
-                        UserID: user.id,
-                        Username: user.username,
-                        TelegramClient: window.Telegram.WebApp.platform
-                    });
-                }
-            }
-        }, 1000);
-    }
-}
-
-// Функция для отправки событий в Метрику
-function trackEvent(eventName, parameters = {}) {
-    try {
-        if (window.ym) {
-            // Отправляем событие двумя способами для надежности
-            ym(98779515, 'reachGoal', eventName);
-            
-            // Отправляем также как пользовательское событие с параметрами
-            ym(98779515, 'params', {
-                event_name: eventName,
-                ...parameters,
-                telegram_user_id: getTelegramUserId(),
-                timestamp: new Date().toISOString()
-            });
-            
-            console.log('Событие отправлено:', eventName, parameters);
-        } else {
-            console.warn('ym не инициализирован');
-        }
-    } catch (error) {
-        console.error('Ошибка при отправке события:', error);
-    }
-}
-document.addEventListener('DOMContentLoaded', initializeMetrika);
-
-// Отслеживание времени в приложении
-let sessionStartTime = Date.now();
-let currentPage = 'main';
-
-// Добавляем отслеживание событий при инициализации
-document.addEventListener('DOMContentLoaded', function() {
-    // Отслеживаем начало сессии
-    trackEvent('session_start', {
-        telegramId: getTelegramUserId(),
-        username: getTelegramUsername()
+document.addEventListener('DOMContentLoaded', () => {
+    // Подписываемся на события
+    window.eventBus.on('canClick', (data) => {
+        window.analytics.trackEvent('can_click', data);
     });
 
-    // Отслеживаем переключение страниц
-    document.querySelectorAll('.footer-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const newPage = this.dataset.page;
-            trackEvent('page_view', {
-                from: currentPage,
-                to: newPage
-            });
-            currentPage = newPage;
-        });
+    window.eventBus.on('longPressBonus', (data) => {
+        window.analytics.trackEvent('long_press_bonus', data);
     });
 
-    // Отслеживаем клики по банке
-    const canElement = document.getElementById('can');
-    if (canElement) {
-        canElement.addEventListener('click', () => {
-            trackEvent('can_click', {
-                tapProfit: tapProfit,
-                canType: document.getElementById('canType').textContent
-            });
-        });
-    }
+    window.eventBus.on('adComplete', (data) => {
+        window.analytics.trackEvent('ad_complete', data);
+    });
 
-    // Отслеживаем получение бонуса за длительное нажатие
-    const originalHandleLongPress = handleLongPress;
-    handleLongPress = function() {
-        originalHandleLongPress();
-        trackEvent('long_press_bonus', {
-            bonusAmount: tapProfit * 3
-        });
-    };
+    window.eventBus.on('taskComplete', (data) => {
+        window.analytics.trackEvent('task_complete', data);
+    });
 
-    // Отслеживаем просмотр рекламы
-    const originalWatchAd = watchAd;
-    watchAd = async function() {
-        trackEvent('ad_start');
-        await originalWatchAd();
-        trackEvent('ad_complete');
-    };
-});
-
-// Отслеживаем время выхода из приложения
-window.addEventListener('beforeunload', () => {
-    const sessionDuration = Math.floor((Date.now() - sessionStartTime) / 1000);
-    trackEvent('session_end', {
-        duration: sessionDuration,
-        earnedCoins: totalEarnedCoins
+    window.eventBus.on('itemPurchase', (data) => {
+        window.analytics.trackEvent('item_purchase', data);
     });
 });
-
-// Отслеживаем покупки в коллекции
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'purchase') {
-        trackEvent('item_purchase', {
-            itemId: event.data.itemId,
-            price: event.data.price
-        });
-    }
-});
-
-// Отслеживаем выполнение заданий
-function trackTaskCompletion(taskId, reward) {
-    trackEvent('task_complete', {
-        taskId: taskId,
-        reward: reward
-    });
-}
-
-// Добавляем отслеживание в функции заданий
-const originalHandleTask1Click = handleTask1Click;
-handleTask1Click = function() {
-    originalHandleTask1Click();
-    trackTaskCompletion('task1', 1000);
-};
-
-const originalHandleTask2Click = handleTask2Click;
-handleTask2Click = function() {
-    originalHandleTask2Click();
-    trackTaskCompletion('task2', 10000);
-};
-
 // Добавьте обработчик клика для кнопок футера
 document.addEventListener('DOMContentLoaded', function() {
     const footerButtons = document.querySelectorAll('.footer-btn');

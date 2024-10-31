@@ -171,7 +171,6 @@ window.showPopup = function(title, message) {
 }
 
     window.handleInviteButtonClick = function(event) {
-        console.log('Функция handleInviteButtonClick вызвана');
         event.preventDefault();
         // Добавляем лёгкую вибрацию
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
@@ -246,7 +245,6 @@ window.showPopup = function(title, message) {
         });
     }
     function handleShareLinkButtonClick(event) {
-        console.log('Функция handleShareLinkButtonClick вызвана');
         event.preventDefault();
         // Добавляем лёгкую вибрацию
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
@@ -298,13 +296,10 @@ window.showPopup = function(title, message) {
         });
     }
 window.addEventListener('message', function(event) {
-    console.log('лучено сообщение:', event.data);
     if (event.data.type === 'updateCan') {
         const canSrc = event.data.canSrc;
-        console.log('По��учен новый источник изображения банки:', canSrc);
         const cansImage = document.getElementById('cansImage');
         if (cansImage) {
-            console.log('Элемент cansImage найден');
             if (canSrc === 'assets/bankamango.png') {
                 cansImage.src = 'assets/twobankamango.png';
             } else if (canSrc === 'assets/bankablueberry.png') {
@@ -312,7 +307,6 @@ window.addEventListener('message', function(event) {
             } else {
                 cansImage.src = 'assets/twobanka.png';
             }
-            console.log('Новое изображение установлено:', cansImage.src);
         } else {
             console.error('Элемент cansImage не найден');
         }
@@ -323,7 +317,6 @@ window.addEventListener('message', function(event) {
 function checkCansImage() {
     const cansImage = document.getElementById('cansImage');
     if (cansImage) {
-        console.log('Элемент cansImage найден, текущий src:', cansImage.src);
     } else {
         console.error('Элемент cansImage не найден');
     }
