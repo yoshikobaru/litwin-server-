@@ -1243,13 +1243,52 @@ function updateCanImage(index) {
     // Отправляем сообщение другим страницам об обновлении темы
     window.postMessage({ type: 'updateTheme', theme: selectedTheme }, '*');
 }
+function initializeMetrika() {
+    if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.ready();
+        // Ждем небольшую паузу перед инициализацией
+        setTimeout(() => {
+            if (window.ym) {
+                // Отправляем информацию о пользователе
+                const user = window.Telegram.WebApp.initDataUnsafe.user;
+                if (user) {
+                    ym(98779515, 'userParams', {
+                        UserID: user.id,
+                        Username: user.username,
+                        TelegramClient: window.Telegram.WebApp.platform
+                    });
+                }
+            }
+        }, 1000);
+    }
+}
 
 // Функция для отправки событий в Метрику
 function trackEvent(eventName, parameters = {}) {
-    if (window.ym) {
-        ym(98779515, 'reachGoal', eventName, parameters);
+    try {
+        if (window.ym) {
+            // Добавляем базовые параметры
+            const baseParams = {
+                timestamp: new Date().toISOString(),
+                platform: window.Telegram?.WebApp?.platform || 'unknown',
+                version: window.Telegram?.WebApp?.version || 'unknown',
+                userId: getTelegramUserId() || 'anonymous'
+            };
+
+            // Объединяем базовые параметры с переданными
+            const allParams = { ...baseParams, ...parameters };
+
+            // Отправляем событие
+            ym(98779515, 'reachGoal', eventName, allParams);
+            
+            // Отправляем также как пользовательское событие
+            ym(98779515, 'params', { [eventName]: allParams });
+        }
+    } catch (error) {
+        console.error('Error tracking event:', error);
     }
 }
+document.addEventListener('DOMContentLoaded', initializeMetrika);
 
 // Отслеживание времени в приложении
 let sessionStartTime = Date.now();
