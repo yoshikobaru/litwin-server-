@@ -942,15 +942,18 @@ async function watchAd() {
             if (data.success) {
                 applyAdBonus();
                 showAdRewardPopup();
+                window.eventBus.emit('adComplete', {
+                    result: 'success',
+                    timestamp: new Date().toISOString()
+                });
             }
         } catch (error) {
-            console.error('Error showing ad:', error);
+            console.error('Ошибка при показе рекламы:', error);
+            window.eventBus.emit('adComplete', {
+                result: 'error',
+                error: error.message
+            });
         }
-    }
-    if (data.success) {
-        window.eventBus.emit('adComplete', {
-            result: 'success'
-        });
     }
 }
 
