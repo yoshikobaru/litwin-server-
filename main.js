@@ -1244,6 +1244,106 @@ function updateCanImage(index) {
     window.postMessage({ type: 'updateTheme', theme: selectedTheme }, '*');
 }
 
+// Функция для отправки событий в Метрику
+function trackEvent(eventName, parameters = {}) {
+    if (window.ym) {
+        ym(98779515, 'reachGoal', eventName, parameters);
+    }
+}
+
+// Отслеживание времени в приложении
+let sessionStartTime = Date.now();
+let currentPage = 'main';
+
+// Добавляем отслеживание событий при инициализации
+document.addEventListener('DOMContentLoaded', function() {
+    // Отслеживаем начало сессии
+    trackEvent('session_start', {
+        telegramId: getTelegramUserId(),
+        username: getTelegramUsername()
+    });
+
+    // Отслеживаем переключение страниц
+    document.querySelectorAll('.footer-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const newPage = this.dataset.page;
+            trackEvent('page_view', {
+                from: currentPage,
+                to: newPage
+            });
+            currentPage = newPage;
+        });
+    });
+
+    // Отслеживаем клики по банке
+    const canElement = document.getElementById('can');
+    if (canElement) {
+        canElement.addEventListener('click', () => {
+            trackEvent('can_click', {
+                tapProfit: tapProfit,
+                canType: document.getElementById('canType').textContent
+            });
+        });
+    }
+
+    // Отслеживаем получение бонуса за длительное нажатие
+    const originalHandleLongPress = handleLongPress;
+    handleLongPress = function() {
+        originalHandleLongPress();
+        trackEvent('long_press_bonus', {
+            bonusAmount: tapProfit * 3
+        });
+    };
+
+    // Отслеживаем просмотр рекламы
+    const originalWatchAd = watchAd;
+    watchAd = async function() {
+        trackEvent('ad_start');
+        await originalWatchAd();
+        trackEvent('ad_complete');
+    };
+});
+
+// Отслеживаем время выхода из приложения
+window.addEventListener('beforeunload', () => {
+    const sessionDuration = Math.floor((Date.now() - sessionStartTime) / 1000);
+    trackEvent('session_end', {
+        duration: sessionDuration,
+        earnedCoins: totalEarnedCoins
+    });
+});
+
+// Отслеживаем покупки в коллекции
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'purchase') {
+        trackEvent('item_purchase', {
+            itemId: event.data.itemId,
+            price: event.data.price
+        });
+    }
+});
+
+// Отслеживаем выполнение заданий
+function trackTaskCompletion(taskId, reward) {
+    trackEvent('task_complete', {
+        taskId: taskId,
+        reward: reward
+    });
+}
+
+// Добавляем отслеживание в функции заданий
+const originalHandleTask1Click = handleTask1Click;
+handleTask1Click = function() {
+    originalHandleTask1Click();
+    trackTaskCompletion('task1', 1000);
+};
+
+const originalHandleTask2Click = handleTask2Click;
+handleTask2Click = function() {
+    originalHandleTask2Click();
+    trackTaskCompletion('task2', 10000);
+};
+
 // Добавьте обработчик клика для кнопок футера
 document.addEventListener('DOMContentLoaded', function() {
     const footerButtons = document.querySelectorAll('.footer-btn');
