@@ -1291,28 +1291,28 @@ async function purchaseStarBoost(upgrade) {
         
         // Создаем Promise для обработки результата попапа
         const popupPromise = new Promise((resolve) => {
-            const popupHandler = (event) => {
-                if (event.eventType === 'popup_closed') {
-                    window.Telegram.WebApp.offEvent('popup_closed', popupHandler);
-                    resolve(event.eventData);
-                }
+            const popupHandler = (eventData) => {
+                console.log('Popup closed event:', eventData);
+                resolve(eventData);
             };
-            window.Telegram.WebApp.onEvent('popup_closed', popupHandler);
             
-            window.Telegram.WebApp.showPopup({
-                title: 'Подтверждение покупки',
-                message: `Купить ${upgrade.title} за ${upgrade.stars} ⭐?`,
-                buttons: [
-                    {id: 'ok', text: 'Купить', type: 'ok'},
-                    {id: 'cancel', text: 'Отмена', type: 'cancel'}
-                ]
-            });
+            window.Telegram.WebApp.onEvent('popup_closed', popupHandler);
         });
 
-        const confirmResult = await popupPromise;
-        console.log('Confirm result:', confirmResult);
+        // Показываем попап
+        window.Telegram.WebApp.showPopup({
+            title: 'Подтверждение покупки',
+            message: `Купить ${upgrade.title} за ${upgrade.stars} ⭐?`,
+            buttons: [
+                {id: 'ok', text: 'Купить', type: 'ok'},
+                {id: 'cancel', text: 'Отмена', type: 'cancel'}
+            ]
+        });
 
-        if (confirmResult?.button_id === 'ok') {
+        const result = await popupPromise;
+        console.log('Popup result:', result);
+
+        if (result && result.button_id === 'ok') {
             console.log('User confirmed purchase');
             
             localStorage.setItem('pendingBoost', JSON.stringify({
