@@ -1278,12 +1278,13 @@ async function purchaseStarBoost(upgrade) {
             title: 'Подтверждение покупки',
             message: `Купить ${upgrade.title} за ${upgrade.stars} ⭐?`,
             buttons: [
-                {text: 'Купить', type: 'ok'},
-                {text: 'Отмена', type: 'cancel'}
+                {id: 'ok', text: 'Купить', type: 'ok'},
+                {id: 'cancel', text: 'Отмена', type: 'cancel'}
             ]
         });
 
-        if (result === 'ok') {
+        // Проверяем button_id вместо значения result
+        if (result && result.button_id === 'ok') {
             // Сохраняем информацию о бусте перед открытием Fragment
             localStorage.setItem('pendingBoost', JSON.stringify({
                 multiplier: upgrade.multiplier,
@@ -1307,16 +1308,21 @@ async function purchaseStarBoost(upgrade) {
 // Проверяем статус покупки при возврате в приложение
 window.addEventListener('focus', async () => {
     const pendingBoost = localStorage.getItem('pendingBoost');
+    console.log('Checking pending boost:', pendingBoost);
+    
     if (pendingBoost) {
         const { multiplier, title } = JSON.parse(pendingBoost);
+        console.log('Processing boost:', { multiplier, title });
         
         try {
             const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+            console.log('Activating boost for user:', telegramId);
+            
             const boostResponse = await fetch(`/activate-boost?telegramId=${telegramId}&multiplier=${multiplier}&duration=${24 * 60 * 60 * 1000}`);
             const boostData = await boostResponse.json();
+            console.log('Boost activation response:', boostData);
 
             if (boostData.success) {
-                // Показываем уведомление об успешной покупке
                 window.Telegram.WebApp.showPopup({
                     title: '✨ Успех!',
                     message: `${title} успешно активирован!\nМножитель x${multiplier} действует 24 часа.`
@@ -1325,7 +1331,7 @@ window.addEventListener('focus', async () => {
                 // Обновляем статус буста на странице
                 updateBoostStatus();
                 
-                // Отправляем сообщение родительскому окну для обновления множителя
+                // Отправляем сообщение родительскому окну
                 window.parent.postMessage({ 
                     type: 'updateBoostMultiplier', 
                     multiplier: multiplier 
@@ -1337,10 +1343,10 @@ window.addEventListener('focus', async () => {
                 title: 'Ошибка',
                 message: 'Не удалось активировать буст'
             });
+        } finally {
+            // Удаляем информацию о незавершенной покупке
+            localStorage.removeItem('pendingBoost');
         }
-
-        // Удаляем информацию о незавершенной покупке
-        localStorage.removeItem('pendingBoost');
     }
 });
 
