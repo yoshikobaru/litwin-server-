@@ -281,43 +281,32 @@ const routes = {
         return { status: 500, body: { error: 'Internal server error' } };
       }
     },
-
-    '/activate-boost': async (req, res, query) => {
-      const { telegramId, multiplier, duration } = query;
-      
-      if (!telegramId || !multiplier || !duration) {
+'/create-stars-invoice': async (req, res, query) => {
+    const { telegramId, stars } = query;
+    
+    if (!telegramId || !stars) {
         return { status: 400, body: { error: 'Missing required parameters' } };
-      }
+    }
 
-      try {
-        const user = await User.findOne({ where: { telegramId } });
-        if (!user) {
-          return { status: 404, body: { error: 'User not found' } };
-        }
-
-        const activeBoosts = JSON.parse(user.activeBoosts || '[]');
-        activeBoosts.push({
-          multiplier: parseInt(multiplier),
-          startTime: Date.now(),
-          duration: parseInt(duration)
+    try {
+        // Создаем Invoice для оплаты звездами через бота
+        const invoice = await bot.telegram.createInvoice({
+            title: `Буст x${stars}`,
+            description: 'Покупка буста в LITWIN TAP',
+            payload: `boost_${telegramId}_${Date.now()}`,
+            provider_token: '', // Пустой токен для оплаты звездами
+            currency: 'XTR', // Специальный код для звезд
+            prices: [{
+                label: 'Звезды',
+                amount: parseInt(stars)
+            }]
         });
 
-        await user.update({
-          activeBoosts: JSON.stringify(activeBoosts)
-        });
-
-        return { 
-          status: 200, 
-          body: { 
-            success: true,
-            message: 'Boost activated successfully',
-            activeBoosts 
-          } 
-        };
-      } catch (error) {
-        console.error('Error:', error);
-        return { status: 500, body: { error: 'Internal server error' } };
-      }
+        return { status: 200, body: { slug: invoice.slug } };
+    } catch (error) {
+        console.error('Error creating stars invoice:', error);
+        return { status: 500, body: { error: 'Failed to create invoice' } };
+    }
     }
   },
 
