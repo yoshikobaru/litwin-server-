@@ -348,23 +348,19 @@ const routes = {
 
     try {
         // Создаем Invoice для оплаты звездами через Telegraf
-        const invoice = await bot.telegram.sendInvoice(
-            parseInt(telegramId),
-            {
-                title: `Буст x${stars}`,
-                description: 'Покупка буста в LITWIN TAP',
-                payload: `boost_${telegramId}_${Date.now()}`,
-                provider_token: '', // Пустой для звезд
-                currency: 'XTR',
-                prices: [{
-                    label: `${stars} звезд`,
-                    amount: parseInt(stars)
-                }],
-                start_parameter: `boost_${stars}`
-            }
-        );
+        const invoice = await bot.telegram.createInvoiceLink({
+            title: `Буст x${stars}`,
+            description: 'Покупка буста в LITWIN TAP',
+            payload: `boost_${telegramId}_${Date.now()}`,
+            provider_token: '', // Пустой для звезд
+            currency: 'XTR',
+            prices: [{
+                label: `${stars} звезд`,
+                amount: parseInt(stars)
+            }]
+        });
 
-        return { status: 200, body: { message_id: invoice.message_id } };
+        return { status: 200, body: { slug: invoice } };
     } catch (error) {
         console.error('Error creating stars invoice:', error);
         return { status: 500, body: { 
