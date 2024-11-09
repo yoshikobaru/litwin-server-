@@ -1283,6 +1283,8 @@ async function purchaseStarBoost(upgrade) {
             ]
         });
 
+        console.log('Confirm result:', confirmResult);
+
         if (confirmResult && confirmResult.button_id === 'ok') {
             // Сохраняем информацию о бусте
             const boostInfo = {
@@ -1293,8 +1295,8 @@ async function purchaseStarBoost(upgrade) {
             };
             localStorage.setItem('pendingBoost', JSON.stringify(boostInfo));
             
-            // Открываем Fragment для покупки звезд
-            window.Telegram.WebApp.openTelegramLink(`https://t.me/fragment?stars=${upgrade.stars}`);
+            // Используем openLink вместо openTelegramLink
+            window.Telegram.WebApp.openLink(`https://t.me/fragment?stars=${upgrade.stars}&bot=LITWIN_TAP_BOT&comment=${encodeURIComponent(upgrade.title)}`);
         }
     } catch (error) {
         console.error('Ошибка при покупке буста:', error);
