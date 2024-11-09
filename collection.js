@@ -1289,43 +1289,19 @@ async function purchaseStarBoost(upgrade) {
     try {
         console.log('Starting purchaseStarBoost with upgrade:', upgrade);
         
-        // Создаем Promise для обработки результата попапа
-        const popupPromise = new Promise((resolve) => {
-            const popupHandler = (eventData) => {
-                console.log('Popup closed event:', eventData);
-                resolve(eventData);
-            };
-            
-            window.Telegram.WebApp.onEvent('popup_closed', popupHandler);
-        });
+        // Сразу сохраняем информацию о бусте
+        localStorage.setItem('pendingBoost', JSON.stringify({
+            multiplier: upgrade.multiplier,
+            title: upgrade.title,
+            stars: upgrade.stars,
+            timestamp: Date.now()
+        }));
 
-        // Показываем попап
-        window.Telegram.WebApp.showPopup({
-            title: 'Подтверждение покупки',
-            message: `Купить ${upgrade.title} за ${upgrade.stars} ⭐?`,
-            buttons: [
-                {id: 'ok', text: 'Купить', type: 'ok'},
-                {id: 'cancel', text: 'Отмена', type: 'cancel'}
-            ]
-        });
-
-        const result = await popupPromise;
-        console.log('Popup result:', result);
-
-        if (result && result.button_id === 'ok') {
-            console.log('User confirmed purchase');
-            
-            localStorage.setItem('pendingBoost', JSON.stringify({
-                multiplier: upgrade.multiplier,
-                title: upgrade.title,
-                stars: upgrade.stars,
-                timestamp: Date.now()
-            }));
-
-            const slug = `stars_${upgrade.stars}`;
-            console.log('Opening invoice with slug:', slug);
-            window.Telegram.WebApp.openInvoice(slug);
-        }
+        // Открываем окно оплаты звездами
+        const slug = `stars_${upgrade.stars}`;
+        console.log('Opening invoice with slug:', slug);
+        window.Telegram.WebApp.openInvoice(slug);
+        
     } catch (error) {
         console.error('Error in purchaseStarBoost:', error);
         localStorage.removeItem('pendingBoost');
