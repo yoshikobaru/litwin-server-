@@ -1289,7 +1289,6 @@ async function purchaseStarBoost(upgrade) {
     try {
         console.log('Starting purchaseStarBoost with upgrade:', upgrade);
         
-        // Сразу сохраняем информацию о бусте
         localStorage.setItem('pendingBoost', JSON.stringify({
             multiplier: upgrade.multiplier,
             title: upgrade.title,
@@ -1297,8 +1296,8 @@ async function purchaseStarBoost(upgrade) {
             timestamp: Date.now()
         }));
 
-        // Открываем окно оплаты звездами
-        const slug = `stars_${upgrade.stars}`;
+        // Используем полный URL для invoice
+        const slug = `https://t.me/stars/${upgrade.stars}`;
         console.log('Opening invoice with slug:', slug);
         window.Telegram.WebApp.openInvoice(slug);
         
