@@ -1286,25 +1286,24 @@ async function purchaseStarBoost(upgrade) {
         if (confirmResult?.button_id === 'ok') {
             const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
             
-            // Получаем slug для оплаты звездами
-            const response = await fetch(`/create-stars-invoice?telegramId=${telegramId}&stars=${upgrade.stars}`);
-            const data = await response.json();
-            
-            if (data.slug) {
-                localStorage.setItem('pendingBoost', JSON.stringify({
-                    multiplier: upgrade.multiplier,
-                    title: upgrade.title,
-                    stars: upgrade.stars,
-                    timestamp: Date.now()
-                }));
-                
-                // Открываем окно оплаты звездами
-                window.Telegram.WebApp.openInvoice(data.slug);
-            }
+            // Сохраняем информацию о бусте
+            localStorage.setItem('pendingBoost', JSON.stringify({
+                multiplier: upgrade.multiplier,
+                title: upgrade.title,
+                stars: upgrade.stars,
+                timestamp: Date.now()
+            }));
+
+            // Открываем окно оплаты звездами
+            window.Telegram.WebApp.openInvoice(`stars_${upgrade.stars}`);
         }
     } catch (error) {
         console.error('Ошибка при покупке буста:', error);
         localStorage.removeItem('pendingBoost');
+        window.Telegram.WebApp.showPopup({
+            title: 'Ошибка',
+            message: 'Произошла ошибка при создании счета'
+        });
     }
 }
 
