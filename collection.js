@@ -1273,7 +1273,15 @@ function createPremiumUpgrade(upgrade) {
 
 // Функция покупки буста за звезды
 function purchaseStarBoost(upgrade) {
-    // Сначала показываем попап подтверждения
+    // Сохраняем информацию о бусте заранее
+    const boostInfo = {
+        multiplier: upgrade.multiplier,
+        title: upgrade.title,
+        stars: upgrade.stars,
+        timestamp: Date.now()
+    };
+    
+    // Показываем попап подтверждения
     window.Telegram.WebApp.showPopup({
         title: 'Подтверждение покупки',
         message: `Купить ${upgrade.title} за ${upgrade.stars} ⭐?`,
@@ -1281,33 +1289,25 @@ function purchaseStarBoost(upgrade) {
             {id: 'ok', text: 'Купить', type: 'ok'},
             {id: 'cancel', text: 'Отмена', type: 'cancel'}
         ]
-    }).then(result => {
-        console.log('Popup result:', result);
-        
-        if (result?.button_id === 'ok') {
-            // Сохраняем информацию о бусте
-            const boostInfo = {
-                multiplier: upgrade.multiplier,
-                title: upgrade.title,
-                stars: upgrade.stars,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('pendingBoost', JSON.stringify(boostInfo));
-            
-            // Открываем Fragment
-            const fragmentUrl = `https://t.me/fragment?stars=${upgrade.stars}&bot=LITWIN_TAP_BOT&comment=${encodeURIComponent(upgrade.title)}`;
-            console.log('Opening Fragment URL:', fragmentUrl);
-            window.Telegram.WebApp.openLink(fragmentUrl);
-        }
-    }).catch(error => {
-        console.error('Ошибка при покупке буста:', error);
-        localStorage.removeItem('pendingBoost');
-        window.Telegram.WebApp.showPopup({
-            title: 'Ошибка',
-            message: 'Не удалось совершить покупку'
-        });
     });
 }
+
+// Обработчик закрытия попапа
+window.Telegram.WebApp.onEvent('popupClosed', (data) => {
+    console.log('Popup closed with data:', data);
+    
+    const pendingBoost = localStorage.getItem('pendingBoost');
+    if (data?.button_id === 'ok' && pendingBoost) {
+        const boostData = JSON.parse(pendingBoost);
+        
+        // Открываем Fragment
+        const fragmentUrl = `https://t.me/fragment?stars=${boostData.stars}&bot=LITWIN_TAP_BOT&comment=${encodeURIComponent(boostData.title)}`;
+        console.log('Opening Fragment URL:', fragmentUrl);
+        window.Telegram.WebApp.openLink(fragmentUrl);
+    } else {
+        localStorage.removeItem('pendingBoost');
+    }
+});
 
 // Проверяем статус покупки при возврате в приложение
 window.addEventListener('focus', async () => {
