@@ -1284,8 +1284,6 @@ async function purchaseStarBoost(upgrade) {
         });
 
         if (confirmResult?.button_id === 'ok') {
-            const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
-            
             // Сохраняем информацию о бусте
             localStorage.setItem('pendingBoost', JSON.stringify({
                 multiplier: upgrade.multiplier,
@@ -1294,7 +1292,7 @@ async function purchaseStarBoost(upgrade) {
                 timestamp: Date.now()
             }));
 
-            // Открываем окно оплаты звездами
+            // Открываем окно оплаты звездами с правильным форматом slug'а
             window.Telegram.WebApp.openInvoice(`stars_${upgrade.stars}`);
         }
     } catch (error) {
