@@ -1284,24 +1284,65 @@ async function purchaseStarBoost(upgrade) {
         });
 
         if (result === 'ok') {
-            // Открываем окно оплаты звездами
+            // Сохраняем информацию о бусте перед открытием Fragment
+            localStorage.setItem('pendingBoost', JSON.stringify({
+                multiplier: upgrade.multiplier,
+                title: upgrade.title,
+                timestamp: Date.now()
+            }));
+
+            // Открываем окно оплаты Fragment
             const invoiceUrl = `https://t.me/fragment?stars=${upgrade.stars}&comment=${encodeURIComponent(upgrade.title)}`;
             window.Telegram.WebApp.openLink(invoiceUrl);
-
-            // После успешной оплаты активируем буст
-            const response = await fetch(`/activate-boost?telegramId=${window.Telegram.WebApp.initDataUnsafe.user.id}&stars=${upgrade.stars}&multiplier=${upgrade.multiplier}&duration=${24 * 60 * 60 * 1000}`);
-            const data = await response.json();
-
-            if (data.success) {
-                showPopup('Успех!', 'Буст успешно активирован!');
-                updateBoostStatus();
-            }
         }
     } catch (error) {
         console.error('Ошибка при покупке буста:', error);
-        showPopup('Ошибка', 'Не удалось совершить покупку');
+        window.Telegram.WebApp.showPopup({
+            title: 'Ошибка',
+            message: 'Не удалось совершить покупку'
+        });
     }
 }
+
+// Проверяем статус покупки при возврате в приложение
+window.addEventListener('focus', async () => {
+    const pendingBoost = localStorage.getItem('pendingBoost');
+    if (pendingBoost) {
+        const { multiplier, title } = JSON.parse(pendingBoost);
+        
+        try {
+            const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+            const boostResponse = await fetch(`/activate-boost?telegramId=${telegramId}&multiplier=${multiplier}&duration=${24 * 60 * 60 * 1000}`);
+            const boostData = await boostResponse.json();
+
+            if (boostData.success) {
+                // Показываем уведомление об успешной покупке
+                window.Telegram.WebApp.showPopup({
+                    title: '✨ Успех!',
+                    message: `${title} успешно активирован!\nМножитель x${multiplier} действует 24 часа.`
+                });
+
+                // Обновляем статус буста на странице
+                updateBoostStatus();
+                
+                // Отправляем сообщение родительскому окну для обновления множителя
+                window.parent.postMessage({ 
+                    type: 'updateBoostMultiplier', 
+                    multiplier: multiplier 
+                }, '*');
+            }
+        } catch (error) {
+            console.error('Ошибка при активации буста:', error);
+            window.Telegram.WebApp.showPopup({
+                title: 'Ошибка',
+                message: 'Не удалось активировать буст'
+            });
+        }
+
+        // Удаляем информацию о незавершенной покупке
+        localStorage.removeItem('pendingBoost');
+    }
+});
 
 // Добавляем стили
 const premiumStyles = `
@@ -1337,3 +1378,81 @@ const premiumStyles = `
 const styleSheet = document.createElement('style');
 styleSheet.textContent = premiumStyles;
 document.head.appendChild(styleSheet);
+
+// Функция проверки бустов при загрузке страницы
+async function checkBoosts() {
+    try {
+        const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+        const response = await fetch(`/verify-premium?telegramId=${telegramId}`);
+        const data = await response.json();
+        
+        if (data.activeBoosts && data.activeBoosts.length > 0) {
+            const maxBoost = Math.max(...data.activeBoosts.map(b => b.multiplier));
+            
+            // Обновляем множитель в игре
+            window.parent.postMessage({ 
+                type: 'updateBoostMultiplier', 
+                multiplier: maxBoost 
+            }, '*');
+
+            // Обновляем таймеры локально
+            startLocalBoostTimer(data.activeBoosts);
+        }
+    } catch (error) {
+        console.error('Ошибка при проверке бустов:', error);
+    }
+}
+
+// Функция для локального отсчета времени буста
+function startLocalBoostTimer(boosts) {
+    const timerContainer = document.querySelector('.premium-item');
+    if (!timerContainer) return;
+
+    // Очищаем предыдущие таймеры
+    const oldTimers = timerContainer.querySelectorAll('.boost-timer');
+    oldTimers.forEach(timer => timer.remove());
+
+    // Создаем новый таймер
+    const timerElement = document.createElement('div');
+    timerElement.className = 'boost-timer';
+    timerContainer.appendChild(timerElement);
+
+    // Функция обновления таймера
+    function updateTimer() {
+        const currentTime = Date.now();
+        const activeBoosts = boosts.filter(boost => 
+            (boost.startTime + boost.duration) > currentTime
+        );
+
+        if (activeBoosts.length === 0) {
+            timerElement.remove();
+            // Сбрасываем множитель
+            window.parent.postMessage({ 
+                type: 'updateBoostMultiplier', 
+                multiplier: 1 
+            }, '*');
+            return;
+        }
+
+        const maxBoost = Math.max(...activeBoosts.map(b => b.multiplier));
+        const longestBoost = activeBoosts.reduce((a, b) => 
+            (a.startTime + a.duration) > (b.startTime + b.duration) ? a : b
+        );
+
+        const timeLeft = (longestBoost.startTime + longestBoost.duration) - currentTime;
+        const hours = Math.floor(timeLeft / (60 * 60 * 1000));
+        const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+        
+        timerElement.textContent = `Буст x${maxBoost} активен еще ${hours}ч ${minutes}м`;
+    }
+
+    // Обновляем каждую минуту локально
+    updateTimer();
+    const timerId = setInterval(updateTimer, 60 * 1000);
+
+    // Очищаем интервал при уничтожении компонента
+    window.addEventListener('unload', () => clearInterval(timerId));
+}
+
+// Проверяем бусты только при загрузке страницы
+document.addEventListener('DOMContentLoaded', checkBoosts);

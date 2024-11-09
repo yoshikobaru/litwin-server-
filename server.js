@@ -120,61 +120,58 @@ bot.launch();
 const routes = {
   GET: {
     '/get-referral-link': async (req, res, query) => {
-      console.log('Получен запрос на /get-referral-link');
       const telegramId = query.telegramId;
       
       if (!telegramId) {
-        console.log('Отсутствует telegramId');
         return { status: 400, body: { error: 'Missing telegramId parameter' } };
       }
 
       try {
-        console.log('Поиск пользователя с telegramId:', telegramId);
         const user = await User.findOne({ where: { telegramId } });
         if (user) {
           const inviteLink = `https://t.me/LITWIN_TAP_BOT?start=${user.referralCode}`;
-          console.log('Сгенерирована ссылка:', inviteLink);
           return { status: 200, body: { inviteLink } };
         } else {
-          console.log('Пользователь не найден');
           return { status: 404, body: { error: 'User not found' } };
         }
       } catch (error) {
-        console.error('Ошибка при обработке запроса:', error);
+        console.error('Error:', error);
         return { status: 500, body: { error: 'Internal server error' } };
       }
     },
+
     '/get-referred-friends': async (req, res, query) => {
-      console.log('Получен запрос на /get-referred-friends');
       const telegramId = query.telegramId;
       
       if (!telegramId) {
-        console.log('Отсутствует telegramId');
         return { status: 400, body: { error: 'Missing telegramId parameter' } };
       }
 
       try {
-        console.log('Поиск рефералов для пользователя с telegramId:', telegramId);
         const user = await User.findOne({ where: { telegramId } });
         if (user) {
           const referredFriends = await User.findAll({
             where: { referredBy: user.referralCode },
             attributes: ['telegramId', 'username']
           });
-          console.log('Найдено рефералов:', referredFriends.length);
-          return { status: 200, body: { referredFriends: referredFriends.map(friend => ({
-            id: friend.telegramId,
-            username: friend.username || `User${friend.telegramId}`
-          })) } };
+          return { 
+            status: 200, 
+            body: { 
+              referredFriends: referredFriends.map(friend => ({
+                id: friend.telegramId,
+                username: friend.username || `User${friend.telegramId}`
+              })) 
+            } 
+          };
         } else {
-          console.log('Пользователь не найден');
           return { status: 404, body: { error: 'User not found' } };
         }
       } catch (error) {
-        console.error('Ошибка при обработке запроса:', error);
+        console.error('Error:', error);
         return { status: 500, body: { error: 'Internal server error' } };
       }
     },
+
     '/get-user-data': async (req, res, query) => {
       const telegramId = query.telegramId;
       
@@ -185,23 +182,26 @@ const routes = {
       try {
         const user = await User.findOne({ where: { telegramId } });
         if (user) {
-          return { status: 200, body: { 
-            balance: user.balance, 
-            tapProfit: user.tapProfit, 
-            hourlyProfit: user.hourlyProfit,
-            totalEarnedCoins: user.totalEarnedCoins
-          }};
+          return { 
+            status: 200, 
+            body: { 
+              balance: user.balance, 
+              tapProfit: user.tapProfit, 
+              hourlyProfit: user.hourlyProfit,
+              totalEarnedCoins: user.totalEarnedCoins
+            }
+          };
         } else {
           return { status: 404, body: { error: 'User not found' } };
         }
       } catch (error) {
-        console.error('Error in get-user-data:', error);
+        console.error('Error:', error);
         return { status: 500, body: { error: 'Internal server error' } };
       }
     },
+
     '/watch-ad': async (req, res, query) => {
-      const telegramId = query.telegramId;
-      const uniqueId = query.uniqueId;
+      const { telegramId, uniqueId } = query;
 
       if (!telegramId || !uniqueId) {
         return { status: 400, body: { error: 'Telegram ID and Unique ID are required' } };
@@ -220,19 +220,21 @@ const routes = {
         const adWatchCount = (user.adWatchCount || 0) + 1;
         
         await user.update({
-          adWatchCount: adWatchCount,
+          adWatchCount,
           lastAdUniqueId: uniqueId,
           lastAdWatchTime: Date.now()
         });
 
         return { status: 200, body: { success: true, adWatchCount } };
       } catch (error) {
-        console.error('Error processing ad watch:', error);
+        console.error('Error:', error);
         return { status: 500, body: { error: 'Internal server error' } };
       }
     },
+
     '/reward': async (req, res, query) => {
       const telegramId = query.userid;
+      
       if (!telegramId) {
         return { status: 400, body: { error: 'Missing userid parameter' } };
       }
@@ -243,16 +245,14 @@ const routes = {
           return { status: 404, body: { error: 'User not found' } };
         }
 
-        // Здесь мы не изменяем tapProfit в базе данных,
-        // так как это временный бонус
         return { status: 200, body: { success: true, message: 'Reward applied' } };
       } catch (error) {
-        console.error('Error processing reward:', error);
+        console.error('Error:', error);
         return { status: 500, body: { error: 'Internal server error' } };
       }
-    }
-  },
-  '/verify-premium': async (req, res, query) => {
+    },
+
+    '/verify-premium': async (req, res, query) => {
       const telegramId = query.telegramId;
       
       if (!telegramId) {
@@ -265,29 +265,27 @@ const routes = {
           return { status: 404, body: { error: 'User not found' } };
         }
 
-        // Проверяем активные бусты
         const activeBoosts = JSON.parse(user.activeBoosts || '[]');
         const currentTime = Date.now();
-        const validBoosts = activeBoosts.filter(boost => boost.endTime > currentTime);
+        const validBoosts = activeBoosts.filter(boost => 
+          (boost.startTime + boost.duration) > currentTime
+        );
 
-        await user.update({ activeBoosts: JSON.stringify(validBoosts) });
+        if (validBoosts.length !== activeBoosts.length) {
+          await user.update({ activeBoosts: JSON.stringify(validBoosts) });
+        }
 
-        return { 
-          status: 200, 
-          body: { 
-            activeBoosts: validBoosts
-          }
-        };
+        return { status: 200, body: { activeBoosts: validBoosts } };
       } catch (error) {
-        console.error('Error verifying premium:', error);
+        console.error('Error:', error);
         return { status: 500, body: { error: 'Internal server error' } };
       }
     },
 
     '/activate-boost': async (req, res, query) => {
-      const { telegramId, stars, multiplier, duration } = query;
+      const { telegramId, multiplier, duration } = query;
       
-      if (!telegramId || !stars || !multiplier || !duration) {
+      if (!telegramId || !multiplier || !duration) {
         return { status: 400, body: { error: 'Missing required parameters' } };
       }
 
@@ -297,95 +295,89 @@ const routes = {
           return { status: 404, body: { error: 'User not found' } };
         }
 
-        const currentTime = Date.now();
-        const endTime = currentTime + parseInt(duration);
-        
         const activeBoosts = JSON.parse(user.activeBoosts || '[]');
         activeBoosts.push({
-          stars: parseInt(stars),
-          multiplier: parseFloat(multiplier),
-          startTime: currentTime,
-          endTime: endTime
+          multiplier: parseInt(multiplier),
+          startTime: Date.now(),
+          duration: parseInt(duration)
         });
 
-        await user.update({ activeBoosts: JSON.stringify(activeBoosts) });
+        await user.update({
+          activeBoosts: JSON.stringify(activeBoosts)
+        });
 
         return { 
           status: 200, 
           body: { 
             success: true,
-            boost: {
-              stars,
-              multiplier,
-              endTime
-            }
-          }
+            message: 'Boost activated successfully',
+            activeBoosts 
+          } 
         };
       } catch (error) {
-        console.error('Error activating boost:', error);
+        console.error('Error:', error);
         return { status: 500, body: { error: 'Internal server error' } };
       }
-    },
+    }
+  },
+
   POST: {
     '/sync-user-data': async (req, res) => {
-    return new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         let body = '';
         req.on('data', chunk => {
-            body += chunk.toString();
+          body += chunk.toString();
         });
         req.on('end', async () => {
-            try {
-                const data = JSON.parse(body);
-                const { telegramId, username, balance, tapProfit, hourlyProfit, totalEarnedCoins } = data;
-                
-                if (!telegramId) {
-                    resolve({ status: 400, body: { error: 'Telegram ID is required' } });
-                    return;
-                }
-
-                let user = await User.findOne({ where: { telegramId: telegramId.toString() } });
-
-                if (!user) {
-                    // Если пользователь не найден, создаем нового с полученными значениями
-                    user = await User.create({
-                        telegramId: telegramId.toString(),
-                        username,
-                        balance,
-                        tapProfit,
-                        hourlyProfit,
-                        totalEarnedCoins,
-                        referralCode: crypto.randomBytes(4).toString('hex')
-                    });
-                } else {
-                    // Если пользователь существует, обновляем его данные
-                    await user.update({
-                        username,
-                        balance,
-                        tapProfit,
-                        hourlyProfit,
-                        totalEarnedCoins
-                    });
-                }
-
-                // Возвращаем обновленные данные пользователя
-                resolve({ 
-                    status: 200, 
-                    body: { 
-                        message: user ? 'User data updated successfully' : 'New user created',
-                        user: {
-                            balance: user.balance,
-                            tapProfit: user.tapProfit,
-                            hourlyProfit: user.hourlyProfit,
-                            totalEarnedCoins: user.totalEarnedCoins
-                        }
-                    } 
-                });
-            } catch (error) {
-                console.error('Error in sync-user-data:', error);
-                resolve({ status: 500, body: { error: 'Internal server error', details: error.message } });
+          try {
+            const data = JSON.parse(body);
+            const { telegramId, username, balance, tapProfit, hourlyProfit, totalEarnedCoins } = data;
+            
+            if (!telegramId) {
+              resolve({ status: 400, body: { error: 'Telegram ID is required' } });
+              return;
             }
+
+            let user = await User.findOne({ where: { telegramId: telegramId.toString() } });
+
+            if (!user) {
+              user = await User.create({
+                telegramId: telegramId.toString(),
+                username,
+                balance,
+                tapProfit,
+                hourlyProfit,
+                totalEarnedCoins,
+                referralCode: crypto.randomBytes(4).toString('hex')
+              });
+            } else {
+              await user.update({
+                username,
+                balance,
+                tapProfit,
+                hourlyProfit,
+                totalEarnedCoins
+              });
+            }
+
+            resolve({ 
+              status: 200, 
+              body: { 
+                message: user ? 'User data updated successfully' : 'New user created',
+                user: {
+                  balance: user.balance,
+                  tapProfit: user.tapProfit,
+                  hourlyProfit: user.hourlyProfit,
+                  totalEarnedCoins: user.totalEarnedCoins
+                }
+              } 
+            });
+          } catch (error) {
+            console.error('Error:', error);
+            resolve({ status: 500, body: { error: 'Internal server error', details: error.message } });
+          }
         });
-    });
+      });
     }
   }
 };
