@@ -289,13 +289,13 @@ const routes = {
     }
 
     try {
-        // Создаем Invoice для оплаты звездами через бота
+        // Создаем Invoice для оплаты звездами
         const invoice = await bot.telegram.createInvoice({
             title: `Буст x${stars}`,
             description: 'Покупка буста в LITWIN TAP',
             payload: `boost_${telegramId}_${Date.now()}`,
-            provider_token: '', // Пустой токен для оплаты звездами
-            currency: 'XTR', // Специальный код для звезд
+            provider_token: process.env.PROVIDER_TOKEN, // Токен платежной системы
+            currency: 'STARS',
             prices: [{
                 label: 'Звезды',
                 amount: parseInt(stars)

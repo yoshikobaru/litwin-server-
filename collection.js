@@ -1289,6 +1289,15 @@ async function purchaseStarBoost(upgrade) {
     try {
         console.log('Starting purchaseStarBoost with upgrade:', upgrade);
         
+        // Сначала получаем slug от сервера
+        const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+        const response = await fetch(`/create-stars-invoice?telegramId=${telegramId}&stars=${upgrade.stars}`);
+        const data = await response.json();
+        
+        if (!data.slug) {
+            throw new Error('No slug received from server');
+        }
+
         localStorage.setItem('pendingBoost', JSON.stringify({
             multiplier: upgrade.multiplier,
             title: upgrade.title,
@@ -1296,10 +1305,8 @@ async function purchaseStarBoost(upgrade) {
             timestamp: Date.now()
         }));
 
-        // Используем полный URL для invoice
-        const slug = `https://t.me/stars/${upgrade.stars}`;
-        console.log('Opening invoice with slug:', slug);
-        window.Telegram.WebApp.openInvoice(slug);
+        console.log('Opening invoice with slug:', data.slug);
+        window.Telegram.WebApp.openInvoice(data.slug);
         
     } catch (error) {
         console.error('Error in purchaseStarBoost:', error);
