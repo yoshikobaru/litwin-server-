@@ -61,6 +61,10 @@ const User = sequelize.define('User', {
   lastAdWatchTime: {
     type: DataTypes.DATE,
     allowNull: true
+  },
+  activeBoosts: {
+    type: DataTypes.TEXT,
+    defaultValue: '[]'
   }
 });
 
@@ -248,6 +252,80 @@ const routes = {
       }
     }
   },
+  '/verify-premium': async (req, res, query) => {
+      const telegramId = query.telegramId;
+      
+      if (!telegramId) {
+        return { status: 400, body: { error: 'Missing telegramId parameter' } };
+      }
+
+      try {
+        const user = await User.findOne({ where: { telegramId } });
+        if (!user) {
+          return { status: 404, body: { error: 'User not found' } };
+        }
+
+        // Проверяем активные бусты
+        const activeBoosts = JSON.parse(user.activeBoosts || '[]');
+        const currentTime = Date.now();
+        const validBoosts = activeBoosts.filter(boost => boost.endTime > currentTime);
+
+        await user.update({ activeBoosts: JSON.stringify(validBoosts) });
+
+        return { 
+          status: 200, 
+          body: { 
+            activeBoosts: validBoosts
+          }
+        };
+      } catch (error) {
+        console.error('Error verifying premium:', error);
+        return { status: 500, body: { error: 'Internal server error' } };
+      }
+    },
+
+    '/activate-boost': async (req, res, query) => {
+      const { telegramId, stars, multiplier, duration } = query;
+      
+      if (!telegramId || !stars || !multiplier || !duration) {
+        return { status: 400, body: { error: 'Missing required parameters' } };
+      }
+
+      try {
+        const user = await User.findOne({ where: { telegramId } });
+        if (!user) {
+          return { status: 404, body: { error: 'User not found' } };
+        }
+
+        const currentTime = Date.now();
+        const endTime = currentTime + parseInt(duration);
+        
+        const activeBoosts = JSON.parse(user.activeBoosts || '[]');
+        activeBoosts.push({
+          stars: parseInt(stars),
+          multiplier: parseFloat(multiplier),
+          startTime: currentTime,
+          endTime: endTime
+        });
+
+        await user.update({ activeBoosts: JSON.stringify(activeBoosts) });
+
+        return { 
+          status: 200, 
+          body: { 
+            success: true,
+            boost: {
+              stars,
+              multiplier,
+              endTime
+            }
+          }
+        };
+      } catch (error) {
+        console.error('Error activating boost:', error);
+        return { status: 500, body: { error: 'Internal server error' } };
+      }
+    },
   POST: {
     '/sync-user-data': async (req, res) => {
     return new Promise((resolve, reject) => {

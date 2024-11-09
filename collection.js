@@ -17,22 +17,23 @@ function updateUpgradeButtons() {
         button.style.backgroundColor = 'var(--secondary-color)';
     });
 }
-
+const defaultUpgrades = [
+    { id: 'drinkLit', title: 'Бахнуть LITWIN', emoji: '🍺' },
+    { id: 'improveTap', title: 'Выйти на межпланетарный уровень', emoji: '🌍' },
+    { id: 'improveTap1', title: 'Войти в кондиции', emoji: '💪' },
+    { id: 'improveTap2', title: 'Аккуратный тап', emoji: '🎯' },
+    { id: 'improveTap3', title: 'Родный тап', emoji: '🏠' },
+    { id: 'farm', title: 'Построить завод LITWIN', emoji: '🏭' },
+    { id: 'hour1', title: 'Заехать в кофеманию', emoji: '☕' },
+    { id: 'hour2', title: 'Подписать нового бойца', emoji: '🥊' },
+    { id: 'hour3', title: 'Выиграть в футбол медиалиге', emoji: '⚽' },
+    { id: 'hour4', title: 'Выиграть гонку', emoji: '🏎️' },
+    { id: 'energy', title: 'Заряд энергии', emoji: '⚡' },
+    { id: 'starBoost1', title: 'Звездный буст x2', emoji: '⭐', isPremium: true, stars: 100, multiplier: 2 },
+    { id: 'starBoost2', title: 'Звездный буст x5', emoji: '🌟', isPremium: true, stars: 250, multiplier: 5 },
+    { id: 'starBoost3', title: 'Звездный буст x10', emoji: '✨', isPremium: true, stars: 500, multiplier: 10 }
+];
 function updateUpgradeElements() {
-    const defaultUpgrades = [
-        { id: 'drinkLit', title: 'Бахнуть LITWIN', emoji: '🍺' },
-        { id: 'improveTap', title: 'Выйти на межпланетарный уровень', emoji: '🌍' },
-        { id: 'improveTap1', title: 'Войти в кондиции', emoji: '💪' },
-        { id: 'improveTap2', title: 'Аккуратный тап', emoji: '🎯' },
-        { id: 'improveTap3', title: 'Родный тап', emoji: '🏠' },
-        { id: 'farm', title: 'Построить завод LITWIN', emoji: '🏭' },
-        { id: 'hour1', title: 'Заехать в кофеманию', emoji: '☕' },
-        { id: 'hour2', title: 'Подписать нового бойца', emoji: '🥊' },
-        { id: 'hour3', title: 'Выиграть в футбол медиалиге', emoji: '⚽' },
-        { id: 'hour4', title: 'Выиграть гонку', emoji: '🏎️' },
-        { id: 'energy', title: 'Заряд энергии', emoji: '⚡' }
-    ];
-
     const marketItems = document.querySelectorAll('.market-item');
     marketItems.forEach(element => {
         const header = element.querySelector('.market-item-header');
@@ -1149,8 +1150,6 @@ updateEnergyButton();
         updateCanImage(selectedCan);
     });
 
-    // ... остальной код ...
-
     // Обновляем отображение при изменении уровня
     window.addEventListener('message', function(event) {
         if (event.data.type === 'levelUp') {
@@ -1174,6 +1173,7 @@ categoryTabs.innerHTML = `
     <button class="category-tab active" data-category="tap">ТАП</button>
     <button class="category-tab" data-category="hour">ЧАС</button>
     <button class="category-tab" data-category="energy">ЭНЕРГИЯ</button>
+    <button class="category-tab" data-category="premium">⭐ PREMIUM</button>
 `;
 marketItems.insertBefore(categoryTabs, marketItems.firstChild);
 
@@ -1190,23 +1190,39 @@ const energyUpgrades = document.createElement('div');
 energyUpgrades.className = 'upgrade-category';
 energyUpgrades.id = 'energy-upgrades';
 
+const premiumUpgrades = document.createElement('div');
+premiumUpgrades.className = 'upgrade-category';
+premiumUpgrades.id = 'premium-upgrades';
+
 // Перемещаем существующие улучшения в соответствующие категории
 const existingUpgrades = marketItems.querySelectorAll('.market-item');
 existingUpgrades.forEach(upgrade => {
-    const profitText = upgrade.querySelector('.market-item-profit').textContent.toLowerCase();
-    if (profitText.includes('тап')) {
-        tapUpgrades.appendChild(upgrade);
-    } else if (profitText.includes('час')) {
-        hourUpgrades.appendChild(upgrade);
-    } else if (profitText.includes('энергии')) {
-        energyUpgrades.appendChild(upgrade);
+    // Проверяем, не является ли элемент премиум-улучшением
+    if (!upgrade.classList.contains('premium-item')) {
+        const profitText = upgrade.querySelector('.market-item-profit').textContent.toLowerCase();
+        if (profitText.includes('тап')) {
+            tapUpgrades.appendChild(upgrade);
+        } else if (profitText.includes('час')) {
+            hourUpgrades.appendChild(upgrade);
+        } else if (profitText.includes('энергии')) {
+            energyUpgrades.appendChild(upgrade);
+        }
     }
 });
 
-// Добавляем категории улучшений в маркет
+// Добавляем премиум-улучшения отдельно
+defaultUpgrades
+    .filter(upgrade => upgrade.isPremium)
+    .forEach(upgrade => {
+        premiumUpgrades.appendChild(createPremiumUpgrade(upgrade));
+    });
+
+// Добавляем все категории в маркет
 marketItems.appendChild(tapUpgrades);
 marketItems.appendChild(hourUpgrades);
 marketItems.appendChild(energyUpgrades);
+marketItems.appendChild(premiumUpgrades);
+
 // Обработчик переключения вкладк
 categoryTabs.addEventListener('click', function(event) {
     if (event.target.classList.contains('category-tab')) {
@@ -1217,11 +1233,107 @@ categoryTabs.addEventListener('click', function(event) {
         event.target.classList.add('active');
         
         // Показываем соответствующую группу улучшений
-        document.querySelectorAll('.upgrade-category').forEach(group => group.classList.remove('active'));
-        document.getElementById(`${category}-upgrades`).classList.add('active');
+        document.querySelectorAll('.upgrade-category').forEach(group => {
+            group.classList.remove('active');
+            group.style.display = 'none';
+        });
+        const targetGroup = document.getElementById(`${category}-upgrades`);
+        if (targetGroup) {
+            targetGroup.classList.add('active');
+            targetGroup.style.display = 'block';
+        }
     }
 });
 
-// Данные для новых кнопок
-
 })();
+// Функция для создания премиум-улучшения
+function createPremiumUpgrade(upgrade) {
+    const element = document.createElement('div');
+    element.className = 'market-item premium-item';
+    element.innerHTML = `
+        <div class="market-item-header">
+            <span class="market-item-emoji">${upgrade.emoji}</span>
+            <span class="market-item-title">${upgrade.title}</span>
+            <span class="market-item-profit">
+                Множитель тапа x${upgrade.multiplier} на 24 часа
+            </span>
+        </div>
+        <hr class="item-divider">
+        <div class="market-item-buy premium-buy" id="premium${upgrade.id}">
+            <span class="premium-stars">${upgrade.stars} ⭐</span>
+        </div>
+    `;
+
+    element.querySelector('.premium-buy').addEventListener('click', () => {
+        purchaseStarBoost(upgrade);
+    });
+
+    return element;
+}
+
+// Функция покупки буста за звезды
+async function purchaseStarBoost(upgrade) {
+    try {
+        const result = await window.Telegram.WebApp.showPopup({
+            title: 'Подтверждение покупки',
+            message: `Купить ${upgrade.title} за ${upgrade.stars} ⭐?`,
+            buttons: [
+                {text: 'Купить', type: 'ok'},
+                {text: 'Отмена', type: 'cancel'}
+            ]
+        });
+
+        if (result === 'ok') {
+            // Открываем окно оплаты звездами
+            const invoiceUrl = `https://t.me/fragment?stars=${upgrade.stars}&comment=${encodeURIComponent(upgrade.title)}`;
+            window.Telegram.WebApp.openLink(invoiceUrl);
+
+            // После успешной оплаты активируем буст
+            const response = await fetch(`/activate-boost?telegramId=${window.Telegram.WebApp.initDataUnsafe.user.id}&stars=${upgrade.stars}&multiplier=${upgrade.multiplier}&duration=${24 * 60 * 60 * 1000}`);
+            const data = await response.json();
+
+            if (data.success) {
+                showPopup('Успех!', 'Буст успешно активирован!');
+                updateBoostStatus();
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при покупке буста:', error);
+        showPopup('Ошибка', 'Не удалось совершить покупку');
+    }
+}
+
+// Добавляем стили
+const premiumStyles = `
+    .premium-item {
+        background: linear-gradient(45deg, rgba(255,215,0,0.1), transparent);
+        border: 1px solid #ffd700;
+    }
+
+    .premium-buy {
+        background: linear-gradient(45deg, #ffd700, #ffa500);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .premium-buy:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .premium-stars {
+        font-size: 1.2em;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .boost-timer {
+        font-size: 0.9em;
+        color: #ffd700;
+        margin-top: 4px;
+    }
+`;
+
+const styleSheet = document.createElement('style');
+styleSheet.textContent = premiumStyles;
+document.head.appendChild(styleSheet);
