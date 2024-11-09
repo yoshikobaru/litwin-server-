@@ -1274,35 +1274,22 @@ function createPremiumUpgrade(upgrade) {
 // Функция покупки буста за звезды
 async function purchaseStarBoost(upgrade) {
     try {
-        const result = await window.Telegram.WebApp.showPopup({
-            title: 'Подтверждение покупки',
-            message: `Купить ${upgrade.title} за ${upgrade.stars} ⭐?`,
-            buttons: [
-                {id: 'ok', text: 'Купить', type: 'ok'},
-                {id: 'cancel', text: 'Отмена', type: 'cancel'}
-            ]
-        });
+        // Сначала сохраняем информацию о бусте
+        const boostInfo = {
+            multiplier: upgrade.multiplier,
+            title: upgrade.title,
+            stars: upgrade.stars,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('pendingBoost', JSON.stringify(boostInfo));
+        
+        // Открываем Fragment напрямую
+        const invoiceUrl = `https://t.me/fragment?stars=${upgrade.stars}&bot=LITWIN_TAP_BOT&comment=${encodeURIComponent(upgrade.title)}`;
+        window.Telegram.WebApp.openLink(invoiceUrl);
 
-        console.log('Popup result:', result);
-
-        if (result && result.button_id === 'ok') {
-            // Сначала сохраняем информацию о бусте
-            const boostInfo = {
-                multiplier: upgrade.multiplier,
-                title: upgrade.title,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('pendingBoost', JSON.stringify(boostInfo));
-            console.log('Saved pending boost:', boostInfo);
-
-            // Добавляем небольшую задержку перед открытием Fragment
-            setTimeout(() => {
-                const invoiceUrl = `https://t.me/fragment?stars=${upgrade.stars}&comment=${encodeURIComponent(upgrade.title)}`;
-                window.Telegram.WebApp.openLink(invoiceUrl);
-            }, 100);
-        }
     } catch (error) {
         console.error('Ошибка при покупке буста:', error);
+        localStorage.removeItem('pendingBoost');
         window.Telegram.WebApp.showPopup({
             title: 'Ошибка',
             message: 'Не удалось совершить покупку'
@@ -1312,8 +1299,7 @@ async function purchaseStarBoost(upgrade) {
 
 // Проверяем статус покупки при возврате в приложение
 window.addEventListener('focus', async () => {
-    // Добавляем небольшую задержку перед проверкой
-    setTimeout(async () => {
+    try {
         const pendingBoost = localStorage.getItem('pendingBoost');
         console.log('Checking pending boost:', pendingBoost);
         
@@ -1327,8 +1313,18 @@ window.addEventListener('focus', async () => {
                 localStorage.removeItem('pendingBoost');
                 return;
             }
-            
-            try {
+
+            // Спрашиваем пользователя, завершил ли он покупку
+            const confirmResult = await window.Telegram.WebApp.showPopup({
+                title: 'Подтверждение',
+                message: `Вы завершили покупку ${boostData.title} за ${boostData.stars} ⭐?`,
+                buttons: [
+                    {id: 'yes', text: 'Да, активировать буст', type: 'ok'},
+                    {id: 'no', text: 'Нет, отменить', type: 'cancel'}
+                ]
+            });
+
+            if (confirmResult && confirmResult.button_id === 'yes') {
                 const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
                 console.log('Activating boost for user:', telegramId);
                 
@@ -1345,17 +1341,17 @@ window.addEventListener('focus', async () => {
                     // Обновляем статус буста на странице
                     checkBoosts();
                 }
-            } catch (error) {
-                console.error('Ошибка при активации буста:', error);
-                window.Telegram.WebApp.showPopup({
-                    title: 'Ошибка',
-                    message: 'Не удалось активировать буст'
-                });
-            } finally {
-                localStorage.removeItem('pendingBoost');
             }
         }
-    }, 500);
+    } catch (error) {
+        console.error('Ошибка при активации буста:', error);
+        window.Telegram.WebApp.showPopup({
+            title: 'Ошибка',
+            message: 'Не удалось активировать буст'
+        });
+    } finally {
+        localStorage.removeItem('pendingBoost');
+    }
 });
 
 // Добавляем стили
