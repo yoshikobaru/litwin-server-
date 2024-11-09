@@ -1274,19 +1274,28 @@ function createPremiumUpgrade(upgrade) {
 // Функция покупки буста за звезды
 async function purchaseStarBoost(upgrade) {
     try {
-        // Сначала сохраняем информацию о бусте
-        const boostInfo = {
-            multiplier: upgrade.multiplier,
-            title: upgrade.title,
-            stars: upgrade.stars,
-            timestamp: Date.now()
-        };
-        localStorage.setItem('pendingBoost', JSON.stringify(boostInfo));
-        
-        // Открываем Fragment напрямую
-        const invoiceUrl = `https://t.me/fragment?stars=${upgrade.stars}&bot=LITWIN_TAP_BOT&comment=${encodeURIComponent(upgrade.title)}`;
-        window.Telegram.WebApp.openLink(invoiceUrl);
+        const confirmResult = await window.Telegram.WebApp.showPopup({
+            title: 'Подтверждение покупки',
+            message: `Купить ${upgrade.title} за ${upgrade.stars} ⭐?`,
+            buttons: [
+                {id: 'ok', text: 'Купить', type: 'ok'},
+                {id: 'cancel', text: 'Отмена', type: 'cancel'}
+            ]
+        });
 
+        if (confirmResult && confirmResult.button_id === 'ok') {
+            // Сохраняем информацию о бусте
+            const boostInfo = {
+                multiplier: upgrade.multiplier,
+                title: upgrade.title,
+                stars: upgrade.stars,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('pendingBoost', JSON.stringify(boostInfo));
+            
+            // Используем встроенный метод для покупки звезд
+            window.Telegram.WebApp.requestStars(upgrade.stars, upgrade.title);
+        }
     } catch (error) {
         console.error('Ошибка при покупке буста:', error);
         localStorage.removeItem('pendingBoost');
@@ -1297,50 +1306,23 @@ async function purchaseStarBoost(upgrade) {
     }
 }
 
-// Проверяем статус покупки при возврате в приложение
-window.addEventListener('focus', async () => {
+// Обработчик успешной покупки звезд
+window.Telegram.WebApp.onStarsPurchaseSuccess = async () => {
     try {
         const pendingBoost = localStorage.getItem('pendingBoost');
-        console.log('Checking pending boost:', pendingBoost);
-        
         if (pendingBoost) {
             const boostData = JSON.parse(pendingBoost);
-            console.log('Processing boost:', boostData);
+            const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
             
-            // Проверяем, что буст не слишком старый (не более 5 минут)
-            if (Date.now() - boostData.timestamp > 5 * 60 * 1000) {
-                console.log('Boost expired, removing...');
-                localStorage.removeItem('pendingBoost');
-                return;
-            }
+            const boostResponse = await fetch(`/activate-boost?telegramId=${telegramId}&multiplier=${boostData.multiplier}&duration=${24 * 60 * 60 * 1000}`);
+            const responseData = await boostResponse.json();
 
-            // Спрашиваем пользователя, завершил ли он покупку
-            const confirmResult = await window.Telegram.WebApp.showPopup({
-                title: 'Подтверждение',
-                message: `Вы завершили покупку ${boostData.title} за ${boostData.stars} ⭐?`,
-                buttons: [
-                    {id: 'yes', text: 'Да, активировать буст', type: 'ok'},
-                    {id: 'no', text: 'Нет, отменить', type: 'cancel'}
-                ]
-            });
-
-            if (confirmResult && confirmResult.button_id === 'yes') {
-                const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
-                console.log('Activating boost for user:', telegramId);
-                
-                const boostResponse = await fetch(`/activate-boost?telegramId=${telegramId}&multiplier=${boostData.multiplier}&duration=${24 * 60 * 60 * 1000}`);
-                const responseData = await boostResponse.json();
-                console.log('Boost activation response:', responseData);
-
-                if (responseData.success) {
-                    window.Telegram.WebApp.showPopup({
-                        title: '✨ Успех!',
-                        message: `${boostData.title} успешно активирован!\nМножитель x${boostData.multiplier} действует 24 часа.`
-                    });
-
-                    // Обновляем статус буста на странице
-                    checkBoosts();
-                }
+            if (responseData.success) {
+                window.Telegram.WebApp.showPopup({
+                    title: '✨ Успех!',
+                    message: `${boostData.title} успешно активирован!\nМножитель x${boostData.multiplier} действует 24 часа.`
+                });
+                checkBoosts();
             }
         }
     } catch (error) {
@@ -1352,7 +1334,7 @@ window.addEventListener('focus', async () => {
     } finally {
         localStorage.removeItem('pendingBoost');
     }
-});
+};
 
 // Добавляем стили
 const premiumStyles = `
