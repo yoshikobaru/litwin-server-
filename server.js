@@ -289,23 +289,31 @@ const routes = {
     }
 
     try {
-        // Создаем Invoice для оплаты звездами
+        // Создаем Invoice для оплаты звездами через бота
         const invoice = await bot.telegram.createInvoice({
+            chat_id: parseInt(telegramId),
             title: `Буст x${stars}`,
             description: 'Покупка буста в LITWIN TAP',
             payload: `boost_${telegramId}_${Date.now()}`,
-            provider_token: process.env.PROVIDER_TOKEN, // Токен платежной системы
-            currency: 'STARS',
+            provider_token: '', // Пустой токен для оплаты звездами
+            currency: 'XTR', // Специальный код для звезд
             prices: [{
                 label: 'Звезды',
-                amount: parseInt(stars)
-            }]
+                amount: parseInt(stars) * 100 // Сумма в минимальных единицах (копейках)
+            }],
+            start_parameter: `boost_${stars}`,
+            photo_url: '', 
+            need_name: false,
+            need_phone_number: false,
+            need_email: false,
+            need_shipping_address: false,
+            is_flexible: false
         });
 
         return { status: 200, body: { slug: invoice.slug } };
     } catch (error) {
         console.error('Error creating stars invoice:', error);
-        return { status: 500, body: { error: 'Failed to create invoice' } };
+        return { status: 500, body: { error: 'Failed to create invoice', details: error.message } };
     }
     }
   },
