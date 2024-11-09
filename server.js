@@ -72,6 +72,64 @@ const User = sequelize.define('User', {
 sequelize.sync({ alter: true });
 // Создаем экземпляр бота с вашим токеном
 const bot = new Telegraf(process.env.BOT_TOKEN);
+bot.on('pre_checkout_query', async (ctx) => {
+  try {
+      // Всегда подтверждаем возможность платежа
+      await ctx.answerPreCheckoutQuery(true);
+  } catch (error) {
+      console.error('Error in pre_checkout_query:', error);
+  }
+});
+
+// Обработчик successful_payment
+bot.on('successful_payment', async (ctx) => {
+  try {
+      const payment = ctx.message.successful_payment;
+      const payload = payment.invoice_payload;
+      const [type, telegramId, timestamp] = payload.split('_');
+
+      if (type === 'boost') {
+          const user = await User.findOne({ where: { telegramId } });
+          if (!user) {
+              console.error('User not found:', telegramId);
+              return;
+          }
+
+          // Получаем текущие бусты
+          const activeBoosts = JSON.parse(user.activeBoosts || '[]');
+          
+          // Определяем множитель на основе количества звезд
+          const stars = payment.total_amount;
+          let multiplier;
+          if (stars === 100) multiplier = 2;
+          else if (stars === 250) multiplier = 5;
+          else if (stars === 500) multiplier = 10;
+          else {
+              console.error('Unknown stars amount:', stars);
+              return;
+          }
+
+          // Добавляем новый буст
+          const newBoost = {
+              multiplier,
+              startTime: Date.now(),
+              duration: 24 * 60 * 60 * 1000 // 24 часа
+          };
+
+          activeBoosts.push(newBoost);
+
+          // Обновляем бусты в базе
+          await user.update({
+              activeBoosts: JSON.stringify(activeBoosts)
+          });
+
+          // Отправляем сообщение пользователю
+          await ctx.reply(`🌟 Буст x${multiplier} успешно активирован на 24 часа!`);
+      }
+  } catch (error) {
+      console.error('Error in successful_payment:', error);
+  }
+});
 // WebApp URL
 const webAppUrl = 'https://litwin-tap.ru';
 
@@ -289,31 +347,30 @@ const routes = {
     }
 
     try {
-        // Создаем Invoice для оплаты звездами через бота
-        const invoice = await bot.telegram.createInvoice({
-            chat_id: parseInt(telegramId),
-            title: `Буст x${stars}`,
-            description: 'Покупка буста в LITWIN TAP',
-            payload: `boost_${telegramId}_${Date.now()}`,
-            provider_token: '', // Пустой токен для оплаты звездами
-            currency: 'XTR', // Специальный код для звезд
-            prices: [{
-                label: 'Звезды',
-                amount: parseInt(stars) * 100 // Сумма в минимальных единицах (копейках)
-            }],
-            start_parameter: `boost_${stars}`,
-            photo_url: '', 
-            need_name: false,
-            need_phone_number: false,
-            need_email: false,
-            need_shipping_address: false,
-            is_flexible: false
-        });
+        // Создаем Invoice для оплаты звездами через Telegraf
+        const invoice = await bot.telegram.sendInvoice(
+            parseInt(telegramId),
+            {
+                title: `Буст x${stars}`,
+                description: 'Покупка буста в LITWIN TAP',
+                payload: `boost_${telegramId}_${Date.now()}`,
+                provider_token: '', // Пустой для звезд
+                currency: 'XTR',
+                prices: [{
+                    label: `${stars} звезд`,
+                    amount: parseInt(stars)
+                }],
+                start_parameter: `boost_${stars}`
+            }
+        );
 
-        return { status: 200, body: { slug: invoice.slug } };
+        return { status: 200, body: { message_id: invoice.message_id } };
     } catch (error) {
         console.error('Error creating stars invoice:', error);
-        return { status: 500, body: { error: 'Failed to create invoice', details: error.message } };
+        return { status: 500, body: { 
+            error: 'Failed to create invoice', 
+            details: error.message 
+        }};
     }
     }
   },
