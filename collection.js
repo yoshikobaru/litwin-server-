@@ -1264,6 +1264,7 @@ function createPremiumUpgrade(upgrade) {
         </div>
     `;
 
+    // Добавляем обработчик клика сразу при создании
     element.querySelector('.premium-buy').addEventListener('click', () => {
         purchaseStarBoost(upgrade);
     });
@@ -1271,9 +1272,23 @@ function createPremiumUpgrade(upgrade) {
     return element;
 }
 
+// Добавляем премиум-элементы на страницу
+document.addEventListener('DOMContentLoaded', function() {
+    const premiumContainer = document.querySelector('.premium-container');
+    if (premiumContainer) {
+        defaultUpgrades
+            .filter(upgrade => upgrade.isPremium)
+            .forEach(upgrade => {
+                premiumContainer.appendChild(createPremiumUpgrade(upgrade));
+            });
+    }
+});
+
 // Функция покупки буста за звезды
 async function purchaseStarBoost(upgrade) {
     try {
+        console.log('Starting purchaseStarBoost with upgrade:', upgrade);
+        
         const confirmResult = await window.Telegram.WebApp.showPopup({
             title: 'Подтверждение покупки',
             message: `Купить ${upgrade.title} за ${upgrade.stars} ⭐?`,
@@ -1283,8 +1298,11 @@ async function purchaseStarBoost(upgrade) {
             ]
         });
 
+        console.log('Confirm result:', confirmResult);
+
         if (confirmResult?.button_id === 'ok') {
-            // Сохраняем информацию о бусте
+            console.log('User confirmed purchase');
+            
             localStorage.setItem('pendingBoost', JSON.stringify({
                 multiplier: upgrade.multiplier,
                 title: upgrade.title,
@@ -1292,11 +1310,12 @@ async function purchaseStarBoost(upgrade) {
                 timestamp: Date.now()
             }));
 
-            // Открываем окно оплаты звездами с правильным форматом slug'а
-            window.Telegram.WebApp.openInvoice(`stars_${upgrade.stars}`);
+            const slug = `stars_${upgrade.stars}`;
+            console.log('Opening invoice with slug:', slug);
+            window.Telegram.WebApp.openInvoice(slug);
         }
     } catch (error) {
-        console.error('Ошибка при покупке буста:', error);
+        console.error('Error in purchaseStarBoost:', error);
         localStorage.removeItem('pendingBoost');
         window.Telegram.WebApp.showPopup({
             title: 'Ошибка',
@@ -1336,7 +1355,6 @@ window.Telegram.WebApp.onEvent('invoiceClosed', async (data) => {
         localStorage.removeItem('pendingBoost');
     }
 });
-
 // Добавляем стили
 const premiumStyles = `
     .premium-item {
