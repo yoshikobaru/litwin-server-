@@ -1273,13 +1273,16 @@ function createPremiumUpgrade(upgrade) {
 
 // Функция покупки буста за звезды
 function purchaseStarBoost(upgrade) {
-    // Сохраняем информацию о бусте заранее
+    // Сохраняем информацию о бусте
     const boostInfo = {
         multiplier: upgrade.multiplier,
         title: upgrade.title,
         stars: upgrade.stars,
         timestamp: Date.now()
     };
+    
+    // Сохраняем в localStorage перед показом попапа
+    localStorage.setItem('pendingBoost', JSON.stringify(boostInfo));
     
     // Показываем попап подтверждения
     window.Telegram.WebApp.showPopup({
@@ -1300,8 +1303,8 @@ window.Telegram.WebApp.onEvent('popupClosed', (data) => {
     if (data?.button_id === 'ok' && pendingBoost) {
         const boostData = JSON.parse(pendingBoost);
         
-        // Открываем Fragment
-        const fragmentUrl = `https://t.me/fragment?stars=${boostData.stars}&bot=LITWIN_TAP_BOT&comment=${encodeURIComponent(boostData.title)}`;
+        // Открываем Fragment для покупки звезд
+        const fragmentUrl = `https://t.me/fragment/stars?slug=${boostData.stars}`;
         console.log('Opening Fragment URL:', fragmentUrl);
         window.Telegram.WebApp.openLink(fragmentUrl);
     } else {
