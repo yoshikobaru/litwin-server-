@@ -67,7 +67,24 @@ const User = sequelize.define('User', {
     defaultValue: '[]'
   }
 });
-
+const Payment = sequelize.define('Payment', {
+  telegramId: {
+      type: DataTypes.STRING,
+      allowNull: false
+  },
+  paymentChargeId: {
+      type: DataTypes.STRING,
+      allowNull: false
+  },
+  amount: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+  },
+  timestamp: {
+      type: DataTypes.DATE,
+      allowNull: false
+  }
+});
 // Синхронизируем модель с базой данных
 sequelize.sync({ alter: true });
 // Создаем экземпляр бота с вашим токеном
@@ -87,6 +104,9 @@ bot.on('successful_payment', async (ctx) => {
       const payment = ctx.message.successful_payment;
       const payload = payment.invoice_payload;
       const [type, telegramId, timestamp] = payload.split('_');
+      
+      // Сохраняем payment_charge_id
+      const paymentChargeId = payment.telegram_payment_charge_id;
 
       if (type === 'boost') {
           const user = await User.findOne({ where: { telegramId } });
@@ -95,15 +115,23 @@ bot.on('successful_payment', async (ctx) => {
               return;
           }
 
+          // Сохраняем информацию о платеже
+          await Payment.create({
+              telegramId,
+              paymentChargeId,
+              amount: payment.total_amount,
+              timestamp: new Date()
+          });
+
           // Получаем текущие бусты
           const activeBoosts = JSON.parse(user.activeBoosts || '[]');
           
           // Определяем множитель на основе количества звезд
           const stars = payment.total_amount;
           let multiplier;
-          if (stars === 100) multiplier = 2;
-          else if (stars === 250) multiplier = 5;
-          else if (stars === 500) multiplier = 10;
+          if (stars === 1) multiplier = 2;
+          else if (stars === 2) multiplier = 5;
+          else if (stars === 3) multiplier = 10;
           else {
               console.error('Unknown stars amount:', stars);
               return;
@@ -339,6 +367,32 @@ const routes = {
         return { status: 500, body: { error: 'Internal server error' } };
       }
     },
+'/return-stars': async (req, res, query) => {
+    const { telegramId, stars } = query;
+    
+    try {
+        // Получаем последний платеж пользователя
+        const payment = await Payment.findOne({
+            where: { telegramId },
+            order: [['timestamp', 'DESC']]
+        });
+
+        if (!payment) {
+            return { status: 404, body: { error: 'Payment not found' } };
+        }
+
+        // Используем правильный метод для возврата звезд
+        await bot.telegram.refundStarPayment(
+            parseInt(telegramId),
+            payment.paymentChargeId
+        );
+
+        return { status: 200, body: { success: true } };
+    } catch (error) {
+        console.error('Error refunding stars:', error);
+        return { status: 500, body: { error: 'Failed to refund stars' } };
+    }
+},
 '/create-stars-invoice': async (req, res, query) => {
     const { telegramId, stars } = query;
     

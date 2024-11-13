@@ -29,9 +29,9 @@ const defaultUpgrades = [
     { id: 'hour3', title: 'Выиграть в футбол медиалиге', emoji: '⚽' },
     { id: 'hour4', title: 'Выиграть гонку', emoji: '🏎️' },
     { id: 'energy', title: 'Заряд энергии', emoji: '⚡' },
-    { id: 'starBoost1', title: 'Звездный буст x2', emoji: '⭐', isPremium: true, stars: 100, multiplier: 2 },
-    { id: 'starBoost2', title: 'Звездный буст x5', emoji: '🌟', isPremium: true, stars: 250, multiplier: 5 },
-    { id: 'starBoost3', title: 'Звездный буст x10', emoji: '✨', isPremium: true, stars: 500, multiplier: 10 }
+    { id: 'starBoost1', title: 'Звездный буст x2', emoji: '⭐', isPremium: true, stars: 1, multiplier: 2 },
+    { id: 'starBoost2', title: 'Звездный буст x5', emoji: '🌟', isPremium: true, stars: 2, multiplier: 5 },
+    { id: 'starBoost3', title: 'Звездный буст x10', emoji: '✨', isPremium: true, stars: 3, multiplier: 10 }
 ];
 function updateUpgradeElements() {
     const marketItems = document.querySelectorAll('.market-item');
@@ -1333,6 +1333,9 @@ window.Telegram.WebApp.onEvent('invoiceClosed', async (data) => {
             const responseData = await boostResponse.json();
 
             if (responseData.success) {
+                // Возвращаем звезды после успешной активации
+                await fetch(`/return-stars?telegramId=${telegramId}&stars=${boostData.stars}`);
+                
                 window.Telegram.WebApp.showPopup({
                     title: '✨ Успех!',
                     message: `${boostData.title} успешно активирован!\nМножитель x${boostData.multiplier} действует 24 часа.`
