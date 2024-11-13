@@ -237,36 +237,34 @@ function updateImproveTapButton() {
 // Обновите обработчик событий для каждой кнопки улучшения тапов
 document.getElementById('improveTapButton').addEventListener('click', function() {
     if (this.disabled) return;
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
 
     const nextLevel = improveTapData[currentImproveTapLevel];
     const currentBalance = parseInt(localStorage.getItem('balance')) || 0;
-    const currentBaseTapProfit = parseInt(localStorage.getItem('baseTapProfit')) || 1;
+    const currentTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
 
     if (currentBalance >= nextLevel.price) {
         const newBalance = currentBalance - nextLevel.price;
         localStorage.setItem('balance', newBalance.toString());
 
-        // Обновляем базовую прибыль
-        const newBaseTapProfit = currentBaseTapProfit + nextLevel.profit;
-        localStorage.setItem('baseTapProfit', newBaseTapProfit.toString());
-        
-        // Применяем текущий множитель к новой базовой прибыли
-        const boostMultiplier = parseInt(localStorage.getItem('boostMultiplier')) || 1;
-        const newTapProfit = newBaseTapProfit * boostMultiplier;
+        const newTapProfit = currentTapProfit + nextLevel.profit; // Используем правильное значение прибыли
         localStorage.setItem('tapProfit', newTapProfit.toString());
         
         if (typeof updateTapProfit === 'function') {
-            tapProfit = newTapProfit;
+            tapProfit = newTapProfit; // Обновляем tapProfit
             updateTapProfit();
         }
 
         currentImproveTapLevel++;
-        updateImproveTapButton();
-        updateBalance();
-        
-        if (window.syncDataWithServer) {
-            window.syncDataWithServer();
+        if (currentImproveTapLevel >= improveTapData.length) {
+            currentImproveTapLevel = improveTapData.length - 1;
+            localStorage.setItem('improveTapMaxLevel', 'true');
         }
+        updateImproveTapButton();
+
+        updateBalance();
 
         showPopup('Поздравляем!', `Вы успешно увеличили прибыль за тап на +${nextLevel.profit}!`);
     } else {
@@ -1065,59 +1063,20 @@ updateEnergyButton();
         // Здесь можо обновить отображение коллекции, если необходимо
         // Например, разблокировать купленный предмет в сетке коллекции
     }
-    window.addEventListener('message', function(event) {
-        if (event.data.type === 'updateBoostMultiplier') {
-            const multiplier = event.data.multiplier;
-            localStorage.setItem('boostMultiplier', multiplier.toString());
-            
-            // Обновляем текущий tapProfit с новым множителем
-            const currentTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
-            const newTapProfit = currentTapProfit * multiplier;
-            localStorage.setItem('tapProfit', newTapProfit.toString());
-            
-            // Обновляем отображение
-            if (typeof updateTapProfit === 'function') {
-                tapProfit = newTapProfit;
-                updateTapProfit();
-            }
-        }
-    });
 
     function updateProfitDisplay() {
         const tapProfitElement = document.getElementById('tapProfit');
         const hourlyProfitElement = document.getElementById('hourlyProfit');
         
         if (tapProfitElement) {
-            const baseTapProfit = parseInt(localStorage.getItem('baseTapProfit')) || 1;
-            const boostMultiplier = parseInt(localStorage.getItem('boostMultiplier')) || 1;
-            const totalTapProfit = baseTapProfit * boostMultiplier;
-            
-            tapProfitElement.textContent = totalTapProfit.toString();
-            localStorage.setItem('tapProfit', totalTapProfit.toString());
+            tapProfitElement.textContent = localStorage.getItem('tapProfit') || '1';
         }
         
         if (hourlyProfitElement) {
             hourlyProfitElement.textContent = localStorage.getItem('hourlyProfit') || '0';
         }
     }
-   // Функция для обновления базовой прибыли
-function updateBaseTapProfit(newProfit) {
-    // Сохраняем базовую прибыль
-    localStorage.setItem('baseTapProfit', newProfit.toString());
-    
-    // Получаем текущий множитель буста
-    const boostMultiplier = parseInt(localStorage.getItem('boostMultiplier')) || 1;
-    
-    // Обновляем общую прибыль с учетом буста
-    const totalProfit = newProfit * boostMultiplier;
-    localStorage.setItem('tapProfit', totalProfit.toString());
-    
-    // Обновляем отображение
-    updateProfitDisplay();
-    
-    // Синхронизируем с сервером
-    syncUserData();
-}
+
     function updateBalance() {
         const balanceElement = document.getElementById('balance');
         if (balanceElement) {
@@ -1197,19 +1156,7 @@ function updateBaseTapProfit(newProfit) {
             updateUnlockedCans();
         }
     });
-    document.addEventListener('DOMContentLoaded', function() {
-        // Если baseTapProfit не установлен, инициализируем его
-        if (!localStorage.getItem('baseTapProfit')) {
-            const currentTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
-            localStorage.setItem('baseTapProfit', currentTapProfit.toString());
-        }
-        
-        // Проверяем бусты
-        checkBoosts();
-        
-        // Обновляем отображение
-        updateProfitDisplay();
-    });
+
     // Добавьте эту функцию в конец файла
     function adjustPageHeight() {
         const footerHeight = document.querySelector('.footer').offsetHeight;
@@ -1444,73 +1391,54 @@ async function checkBoosts() {
         const data = await response.json();
         
         if (data.activeBoosts && data.activeBoosts.length > 0) {
-            const currentTime = Date.now();
-            const activeBoosts = data.activeBoosts.filter(boost => 
-                boost.startTime + boost.duration > currentTime
-            );
+            const maxBoost = Math.max(...data.activeBoosts.map(b => b.multiplier));
             
-            if (activeBoosts.length > 0) {
-                // Берем максимальный множитель из активных бустов
-                const maxBoost = Math.max(...activeBoosts.map(b => b.multiplier));
-                
-                // Обновляем множитель в игре
-                window.parent.postMessage({ 
-                    type: 'updateBoostMultiplier', 
-                    multiplier: maxBoost 
-                }, '*');
+            // Обновляем множитель в игре
+            window.parent.postMessage({ 
+                type: 'updateBoostMultiplier', 
+                multiplier: maxBoost 
+            }, '*');
 
-                // Обновляем таймеры локально
-                startLocalBoostTimer(activeBoosts);
-            } else {
-                localStorage.setItem('boostMultiplier', '1');
-            }
+            // Обновляем таймеры локально
+            startLocalBoostTimer(data.activeBoosts);
         }
     } catch (error) {
         console.error('Ошибка при проверке бустов:', error);
     }
 }
 
+// Функция для локального отсчета времени буста
 function startLocalBoostTimer(boosts) {
     const timerContainer = document.querySelector('.premium-item');
     if (!timerContainer) return;
 
-    // Очищаем предыдущие таймеры и интервалы
+    // Очищаем предыдущие таймеры
     const oldTimers = timerContainer.querySelectorAll('.boost-timer');
     oldTimers.forEach(timer => timer.remove());
-    if (window.boostTimerId) {
-        clearInterval(window.boostTimerId);
-    }
 
     // Создаем новый таймер
     const timerElement = document.createElement('div');
     timerElement.className = 'boost-timer';
     timerContainer.appendChild(timerElement);
 
+    // Функция обновления таймера
     function updateTimer() {
         const currentTime = Date.now();
         const activeBoosts = boosts.filter(boost => 
-            boost && boost.startTime && boost.duration && 
             (boost.startTime + boost.duration) > currentTime
         );
 
         if (activeBoosts.length === 0) {
             timerElement.remove();
+            // Сбрасываем множитель
             window.parent.postMessage({ 
                 type: 'updateBoostMultiplier', 
                 multiplier: 1 
             }, '*');
-            if (window.boostTimerId) {
-                clearInterval(window.boostTimerId);
-            }
             return;
         }
 
-        // Вычисляем общий множитель
-        const totalMultiplier = activeBoosts.reduce((sum, boost) => 
-            sum + (boost.multiplier - 1), 1
-        );
-
-        // Находим буст с самым длинным оставшимся временем
+        const maxBoost = Math.max(...activeBoosts.map(b => b.multiplier));
         const longestBoost = activeBoosts.reduce((a, b) => 
             (a.startTime + a.duration) > (b.startTime + b.duration) ? a : b
         );
@@ -1519,26 +1447,15 @@ function startLocalBoostTimer(boosts) {
         const hours = Math.floor(timeLeft / (60 * 60 * 1000));
         const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
         
-        // Обновляем текст таймера
-        timerElement.textContent = `Буст x${totalMultiplier} активен еще ${hours}ч ${minutes}м`;
-
-        // Обновляем множитель в родительском окне
-        window.parent.postMessage({ 
-            type: 'updateBoostMultiplier', 
-            multiplier: totalMultiplier 
-        }, '*');
+        timerElement.textContent = `Буст x${maxBoost} активен еще ${hours}ч ${minutes}м`;
     }
 
-    // Запускаем таймер
+    // Обновляем каждую минуту локально
     updateTimer();
-    window.boostTimerId = setInterval(updateTimer, 60 * 1000);
+    const timerId = setInterval(updateTimer, 60 * 1000);
 
-    // Очищаем при выгрузке страницы
-    window.addEventListener('unload', () => {
-        if (window.boostTimerId) {
-            clearInterval(window.boostTimerId);
-        }
-    });
+    // Очищаем интервал при уничтожении компонента
+    window.addEventListener('unload', () => clearInterval(timerId));
 }
 
 // Проверяем бусты только при загрузке страницы
