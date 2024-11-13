@@ -34,7 +34,7 @@ const defaultUpgrades = [
         title: 'Премиум ТАП I', 
         emoji: '⚡', 
         isPremium: true,
-        stars: 1,
+        stars: 100,
         profit: 50, // В 3 раза больше чем обычное улучшение
         profitType: 'tap'
     },
@@ -43,7 +43,7 @@ const defaultUpgrades = [
         title: 'Премиум ТАП II', 
         emoji: '⚡⚡', 
         isPremium: true,
-        stars: 2,
+        stars: 250,
         profit: 150, // В 3 раза больше чем обычное улучшение
         profitType: 'tap'
     },
@@ -52,7 +52,7 @@ const defaultUpgrades = [
         title: 'Премиум ТАП III', 
         emoji: '⚡⚡⚡', 
         isPremium: true,
-        stars: 3,
+        stars: 500,
         profit: 300, // В 3 раза больше чем обычное улучшение
         profitType: 'tap'
     },
@@ -61,7 +61,7 @@ const defaultUpgrades = [
         title: 'Премиум ПРИБЫЛЬ I', 
         emoji: '💰', 
         isPremium: true,
-        stars: 1,
+        stars: 100,
         profit: 5000, // В 3 раза больше чем обычное улучшение в час
         profitType: 'hourly'
     },
@@ -70,7 +70,7 @@ const defaultUpgrades = [
         title: 'Премиум ПРИБЫЛЬ II', 
         emoji: '💰💰', 
         isPremium: true,
-        stars: 2,
+        stars: 250,
         profit: 20000, // В 3 раза больше чем обычное улучшение в час
         profitType: 'hourly'
     },
@@ -79,7 +79,7 @@ const defaultUpgrades = [
         title: 'Премиум ПРИБЫЛЬ III', 
         emoji: '💰💰💰', 
         isPremium: true,
-        stars: 3,
+        stars: 500,
         profit: 50000, // В 3 раза больше чем обычное улучшение в час
         profitType: 'hourly'
     }
@@ -1481,6 +1481,10 @@ const premiumStyles = `
         background: linear-gradient(45deg, #ffd700, #ffa500);
         cursor: pointer;
         transition: all 0.2s;
+        display: flex;          /* Добавляем flex */
+        justify-content: center; /* Центрируем по горизонтали */
+        align-items: center;    /* Центрируем по вертикали */
+        padding: 10px;          /* Добавляем отступы */
     }
 
     .premium-buy:hover {
@@ -1492,6 +1496,9 @@ const premiumStyles = `
         font-size: 1.2em;
         color: white;
         text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        display: flex;          /* Добавляем flex */
+        align-items: center;    /* Центрируем по вертикали */
+        gap: 5px;              /* Добавляем отступ между цифрой и звездой */
     }
 `;
 

@@ -402,9 +402,9 @@ const routes = {
         }
 
         const prices = [
-            { label: '⭐ Уровень 1', amount: 1 },
-            { label: '⭐⭐ Уровень 2', amount: 2 },
-            { label: '⭐⭐⭐ Уровень 3', amount: 3 }
+            { label: '⭐ Уровень 1', amount: 100 },
+            { label: '⭐⭐ Уровень 2', amount: 250 },
+            { label: '⭐⭐⭐ Уровень 3', amount: 500 }
         ];
 
         const invoice = await bot.telegram.createInvoiceLink({
