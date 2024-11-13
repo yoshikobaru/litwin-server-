@@ -367,6 +367,49 @@ const routes = {
         return { status: 500, body: { error: 'Internal server error' } };
       }
     },
+   '/activate-boost': async (req, res, query) => {
+      const { telegramId, multiplier, duration } = query;
+      
+      if (!telegramId || !multiplier || !duration) {
+        return { status: 400, body: { error: 'Missing required parameters' } };
+      }
+
+      try {
+        const user = await User.findOne({ where: { telegramId } });
+        if (!user) {
+          return { status: 404, body: { error: 'User not found' } };
+        }
+
+        // Получаем текущие бусты
+        const activeBoosts = JSON.parse(user.activeBoosts || '[]');
+        
+        // Добавляем новый буст
+        const newBoost = {
+          multiplier: parseInt(multiplier),
+          startTime: Date.now(),
+          duration: parseInt(duration)
+        };
+
+        activeBoosts.push(newBoost);
+
+        // Обновляем бусты в базе
+        await user.update({
+          activeBoosts: JSON.stringify(activeBoosts)
+        });
+
+        return { 
+          status: 200, 
+          body: { 
+            success: true,
+            message: 'Boost activated successfully'
+          } 
+        };
+
+      } catch (error) {
+        console.error('Error activating boost:', error);
+        return { status: 500, body: { error: 'Failed to activate boost' } };
+      }
+    }, 
 '/return-stars': async (req, res, query) => {
     const { telegramId, stars } = query;
     
