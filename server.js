@@ -67,24 +67,6 @@ const User = sequelize.define('User', {
     defaultValue: '[]'
   }
 });
-const Payment = sequelize.define('Payment', {
-  telegramId: {
-      type: DataTypes.STRING,
-      allowNull: false
-  },
-  paymentChargeId: {
-      type: DataTypes.STRING,
-      allowNull: false
-  },
-  amount: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-  },
-  timestamp: {
-      type: DataTypes.DATE,
-      allowNull: false
-  }
-});
 // Синхронизируем модель с базой данных
 sequelize.sync({ alter: true });
 // Создаем экземпляр бота с вашим токеном
@@ -104,59 +86,43 @@ bot.on('successful_payment', async (ctx) => {
       const payment = ctx.message.successful_payment;
       const payload = payment.invoice_payload;
       const [type, telegramId, timestamp] = payload.split('_');
-      
-      // Сохраняем payment_charge_id
-      const paymentChargeId = payment.telegram_payment_charge_id;
 
       if (type === 'boost') {
-          const user = await User.findOne({ where: { telegramId } });
-          if (!user) {
-              console.error('User not found:', telegramId);
-              return;
-          }
+        const user = await User.findOne({ where: { telegramId } });
+        if (!user) {
+            console.error('User not found:', telegramId);
+            return;
+        }
 
-          // Сохраняем информацию о платеже
-          await Payment.create({
-              telegramId,
-              paymentChargeId,
-              amount: payment.total_amount,
-              timestamp: new Date()
-          });
+        const activeBoosts = JSON.parse(user.activeBoosts || '[]');
+        
+        // Добавляем новый буст
+        const newBoost = {
+            multiplier,
+            startTime: Date.now(),
+            duration: 24 * 60 * 60 * 1000
+        };
 
-          // Получаем текущие бусты
-          const activeBoosts = JSON.parse(user.activeBoosts || '[]');
-          
-          // Определяем множитель на основе количества звезд
-          const stars = payment.total_amount;
-          let multiplier;
-          if (stars === 1) multiplier = 2;
-          else if (stars === 2) multiplier = 5;
-          else if (stars === 3) multiplier = 10;
-          else {
-              console.error('Unknown stars amount:', stars);
-              return;
-          }
+        activeBoosts.push(newBoost);
 
-          // Добавляем новый буст
-          const newBoost = {
-              multiplier,
-              startTime: Date.now(),
-              duration: 24 * 60 * 60 * 1000 // 24 часа
-          };
+        // Вычисляем общий множитель как сумму всех активных бустов
+        const currentTime = Date.now();
+        const totalMultiplier = activeBoosts
+            .filter(boost => (boost.startTime + boost.duration) > currentTime)
+            .reduce((sum, boost) => sum + (boost.multiplier - 1), 1);
 
-          activeBoosts.push(newBoost);
+        // Обновляем бусты и tapProfit
+        const baseTapProfit = parseInt(user.tapProfit) || 1;
+        await user.update({
+            activeBoosts: JSON.stringify(activeBoosts),
+            tapProfit: baseTapProfit * totalMultiplier
+        });
 
-          // Обновляем бусты в базе
-          await user.update({
-              activeBoosts: JSON.stringify(activeBoosts)
-          });
-
-          // Отправляем сообщение пользователю
-          await ctx.reply(`🌟 Буст x${multiplier} успешно активирован на 24 часа!`);
-      }
-  } catch (error) {
-      console.error('Error in successful_payment:', error);
-  }
+        await ctx.reply(`🌟 Буст x${multiplier} успешно активирован на 24 часа!\nОбщий множитель: x${totalMultiplier}`);
+    }
+} catch (error) {
+    console.error('Error in successful_payment:', error);
+}
 });
 // WebApp URL
 const webAppUrl = 'https://litwin-tap.ru';
@@ -368,74 +334,49 @@ const routes = {
       }
     },
    '/activate-boost': async (req, res, query) => {
-      const { telegramId, multiplier, duration } = query;
-      
-      if (!telegramId || !multiplier || !duration) {
+    const { telegramId, multiplier, duration } = query;
+    
+    if (!telegramId || !multiplier || !duration) {
         return { status: 400, body: { error: 'Missing required parameters' } };
-      }
+    }
 
-      try {
+    try {
         const user = await User.findOne({ where: { telegramId } });
         if (!user) {
-          return { status: 404, body: { error: 'User not found' } };
+            return { status: 404, body: { error: 'User not found' } };
         }
 
-        // Получаем текущие бусты
         const activeBoosts = JSON.parse(user.activeBoosts || '[]');
         
-        // Добавляем новый буст
         const newBoost = {
-          multiplier: parseInt(multiplier),
-          startTime: Date.now(),
-          duration: parseInt(duration)
+            multiplier: parseInt(multiplier),
+            startTime: Date.now(),
+            duration: parseInt(duration)
         };
 
         activeBoosts.push(newBoost);
 
-        // Обновляем бусты в базе
+        // Обновляем бусты и tapProfit
+        const baseTapProfit = user.tapProfit;
         await user.update({
-          activeBoosts: JSON.stringify(activeBoosts)
+            activeBoosts: JSON.stringify(activeBoosts),
+            tapProfit: baseTapProfit * parseInt(multiplier)
         });
 
         return { 
-          status: 200, 
-          body: { 
-            success: true,
-            message: 'Boost activated successfully'
-          } 
+            status: 200, 
+            body: { 
+                success: true,
+                message: 'Boost activated successfully'
+            } 
         };
 
-      } catch (error) {
+    } catch (error) {
         console.error('Error activating boost:', error);
         return { status: 500, body: { error: 'Failed to activate boost' } };
-      }
-    }, 
-'/return-stars': async (req, res, query) => {
-    const { telegramId, stars } = query;
-    
-    try {
-        // Получаем последний платеж пользователя
-        const payment = await Payment.findOne({
-            where: { telegramId },
-            order: [['timestamp', 'DESC']]
-        });
-
-        if (!payment) {
-            return { status: 404, body: { error: 'Payment not found' } };
-        }
-
-        // Используем правильный метод для возврата звезд
-        await bot.telegram.refundStarPayment(
-            parseInt(telegramId),
-            payment.paymentChargeId
-        );
-
-        return { status: 200, body: { success: true } };
-    } catch (error) {
-        console.error('Error refunding stars:', error);
-        return { status: 500, body: { error: 'Failed to refund stars' } };
     }
-},
+    }, 
+
 '/create-stars-invoice': async (req, res, query) => {
     const { telegramId, stars } = query;
     
