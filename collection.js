@@ -1350,6 +1350,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+
+
 // Функция покупки буста за звезды
 async function purchaseStarBoost(upgrade) {
     try {
@@ -1382,8 +1384,35 @@ async function purchaseStarBoost(upgrade) {
         });
     }
 }
+async function updatePremiumDisplay() {
+    const user = await fetch(`/get-user-data?telegramId=${window.Telegram.WebApp.initDataUnsafe.user.id}`)
+        .then(res => res.json());
 
-// Обработчик закрытия Invoice
+    // Обновляем отображение для каждого премиум улучшения
+    defaultUpgrades
+        .filter(upgrade => upgrade.isPremium)
+        .forEach(upgrade => {
+            const element = document.querySelector(`[data-id="${upgrade.id}"]`);
+            if (!element) return;
+
+            const currentLevel = upgrade.profitType === 'tap' ? 
+                user.premiumTapLevel : 
+                user.premiumHourlyLevel;
+
+            // Если текущий уровень меньше уровня улучшения, показываем кнопку покупки
+            if (parseInt(upgrade.id.slice(-1)) > currentLevel) {
+                element.innerHTML = `<span class="premium-stars">${upgrade.stars} ⭐</span>`;
+                element.style.display = 'block';
+            } else {
+                element.style.display = 'none'; // Скрываем купленные улучшения
+            }
+        });
+}
+
+// Вызываем при загрузке страницы и после успешной покупки
+document.addEventListener('DOMContentLoaded', updatePremiumDisplay);
+
+// Обновляем обработчик закрытия Invoice
 window.Telegram.WebApp.onEvent('invoiceClosed', async (data) => {
     console.log('Invoice closed with status:', data.status);
     
@@ -1395,18 +1424,17 @@ window.Telegram.WebApp.onEvent('invoiceClosed', async (data) => {
             const upgradeData = JSON.parse(pendingUpgrade);
             const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
             
-            // Обновляем множитель на сервере
             const response = await fetch(`/update-premium-multiplier?telegramId=${telegramId}&type=${upgradeData.type}&level=${upgradeData.level}`);
             const responseData = await response.json();
 
             if (responseData.success) {
                 window.Telegram.WebApp.showPopup({
                     title: '✨ Успех!',
-                    message: `${upgradeData.title} успешно приобретен!\nНовый множитель x${upgradeData.multiplier}`
+                    message: `${upgradeData.title} успешно приобретен!`
                 });
                 
                 // Обновляем отображение премиум улучшений
-                updatePremiumUpgrades();
+                updatePremiumDisplay();
                 
                 // Отправляем сообщение родительскому окну для обновления профита
                 window.parent.postMessage({
@@ -1424,6 +1452,7 @@ window.Telegram.WebApp.onEvent('invoiceClosed', async (data) => {
         localStorage.removeItem('pendingUpgrade');
     }
 });
+
 // Добавляем стили
 const premiumStyles = `
     .premium-item {

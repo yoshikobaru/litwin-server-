@@ -54,6 +54,10 @@ const User = sequelize.define('User', {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },
+  premiumHourlyLevel: {  // Добавляем это поле
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
   adWatchCount: {
     type: DataTypes.INTEGER,
     defaultValue: 0
@@ -112,7 +116,10 @@ bot.on('successful_payment', async (ctx) => {
                   premiumTapLevel: currentLevel + 1
               });
           } else if (upgradeType === 'hourly') {
-              currentLevel = user.premiumHourlyLevel;
+            if (!user.premiumHourlyLevel) {
+                await user.update({ premiumHourlyLevel: 0 });
+            }
+            currentLevel = user.premiumHourlyLevel;
               if (currentLevel >= 3) {
                   await ctx.reply('❌ Достигнут максимальный уровень улучшения!');
                   return;
@@ -313,7 +320,45 @@ const routes = {
         return { status: 500, body: { error: 'Internal server error' } };
       }
     },
+    '/update-premium-multiplier': async (req, res, query) => {
+      const { telegramId, type, level } = query;
+      
+      if (!telegramId || !type || !level) {
+        return { status: 400, body: { error: 'Missing required parameters' } };
+      }
 
+      try {
+        const user = await User.findOne({ where: { telegramId } });
+        if (!user) {
+          return { status: 404, body: { error: 'User not found' } };
+        }
+
+        const profits = type === 'tap' ? 
+          [50, 150, 300] : // tapProfits
+          [150, 450, 900]; // hourlyProfits
+
+        const newProfit = type === 'tap' ? 
+          user.tapProfit + profits[parseInt(level) - 1] :
+          user.hourlyProfit + profits[parseInt(level) - 1];
+
+        const updateData = type === 'tap' ? 
+          { tapProfit: newProfit, premiumTapLevel: parseInt(level) } :
+          { hourlyProfit: newProfit, premiumHourlyLevel: parseInt(level) };
+
+        await user.update(updateData);
+
+        return { 
+          status: 200, 
+          body: { 
+            success: true,
+            newProfit: newProfit
+          } 
+        };
+      } catch (error) {
+        console.error('Error updating premium multiplier:', error);
+        return { status: 500, body: { error: 'Internal server error' } };
+      }
+    },
     '/verify-premium': async (req, res, query) => {
       const telegramId = query.telegramId;
       
