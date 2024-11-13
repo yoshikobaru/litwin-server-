@@ -718,11 +718,7 @@ window.addEventListener('message', function(event) {
         const newHourlyProfit = event.data.hourlyProfit;
         updateHourlyProfit(newHourlyProfit);
     }
-    if (event.data.type === 'updateTapProfit') {
-        tapProfit = event.data.tapProfit;
-        localStorage.setItem('tapProfit', tapProfit.toString());
-        updateTapProfit();
-    }
+    // ... обработка других типов сообщений ...
 });
 
 

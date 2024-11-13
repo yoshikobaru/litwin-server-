@@ -50,6 +50,10 @@ const User = sequelize.define('User', {
     type: DataTypes.DECIMAL(30, 0),
     defaultValue: 0
   },
+  premiumTapLevel: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
   adWatchCount: {
     type: DataTypes.INTEGER,
     defaultValue: 0
@@ -61,10 +65,6 @@ const User = sequelize.define('User', {
   lastAdWatchTime: {
     type: DataTypes.DATE,
     allowNull: true
-  },
-  activeBoosts: {
-    type: DataTypes.TEXT,
-    defaultValue: '[]'
   }
 });
 // Синхронизируем модель с базой данных
@@ -85,48 +85,48 @@ bot.on('successful_payment', async (ctx) => {
   try {
       const payment = ctx.message.successful_payment;
       const payload = payment.invoice_payload;
-      const [type, telegramId, timestamp] = payload.split('_');
+      const [type, telegramId, upgradeType] = payload.split('_');
 
-      if (type === 'boost') {
+      if (type === 'premium') {
           const user = await User.findOne({ where: { telegramId } });
           if (!user) {
               console.error('User not found:', telegramId);
               return;
           }
 
-          // Определяем множитель на основе суммы платежа
           const stars = payment.total_amount;
-          let multiplier;
-          if (stars === 1) multiplier = 2;
-          else if (stars === 2) multiplier = 5;
-          else if (stars === 3) multiplier = 10;
-          else {
-              console.error('Unknown stars amount:', stars);
-              return;
+          let currentLevel;
+          let newProfit;
+
+          if (upgradeType === 'tap') {
+              currentLevel = user.premiumTapLevel;
+              if (currentLevel >= 3) {
+                  await ctx.reply('❌ Достигнут максимальный уровень улучшения!');
+                  return;
+              }
+              // Используем фиксированные значения прибыли вместо множителей
+              const tapProfits = [50, 150, 300];
+              newProfit = user.tapProfit + tapProfits[currentLevel];
+              await user.update({
+                  tapProfit: newProfit,
+                  premiumTapLevel: currentLevel + 1
+              });
+          } else if (upgradeType === 'hourly') {
+              currentLevel = user.premiumHourlyLevel;
+              if (currentLevel >= 3) {
+                  await ctx.reply('❌ Достигнут максимальный уровень улучшения!');
+                  return;
+              }
+              // Используем фиксированные значения прибыли вместо множителей
+              const hourlyProfits = [150, 450, 900];
+              newProfit = user.hourlyProfit + hourlyProfits[currentLevel];
+              await user.update({
+                  hourlyProfit: newProfit,
+                  premiumHourlyLevel: currentLevel + 1
+              });
           }
 
-          const activeBoosts = JSON.parse(user.activeBoosts || '[]');
-          
-          const newBoost = {
-              multiplier,
-              startTime: Date.now(),
-              duration: 24 * 60 * 60 * 1000
-          };
-
-          activeBoosts.push(newBoost);
-
-          // Вычисляем общий множитель
-          const currentTime = Date.now();
-          const totalMultiplier = activeBoosts
-              .filter(boost => (boost.startTime + boost.duration) > currentTime)
-              .reduce((sum, boost) => sum + (boost.multiplier - 1), 1);
-
-          await user.update({
-              activeBoosts: JSON.stringify(activeBoosts),
-              tapProfit: user.tapProfit * totalMultiplier
-          });
-
-          await ctx.reply(`🌟 Буст x${multiplier} успешно активирован на 24 часа!\nОбщий множитель: x${totalMultiplier}`);
+          await ctx.reply(`✨ Премиум улучшение успешно активировано!\nПрибыль увеличена на ${upgradeType === 'tap' ? 'тап' : 'час'}!`);
       }
   } catch (error) {
       console.error('Error in successful_payment:', error);
@@ -233,31 +233,33 @@ const routes = {
     },
 
     '/get-user-data': async (req, res, query) => {
-      const telegramId = query.telegramId;
-      
-      if (!telegramId) {
+    const telegramId = query.telegramId;
+    
+    if (!telegramId) {
         return { status: 400, body: { error: 'Missing telegramId parameter' } };
-      }
+    }
 
-      try {
+    try {
         const user = await User.findOne({ where: { telegramId } });
         if (user) {
-          return { 
-            status: 200, 
-            body: { 
-              balance: user.balance, 
-              tapProfit: user.tapProfit, 
-              hourlyProfit: user.hourlyProfit,
-              totalEarnedCoins: user.totalEarnedCoins
-            }
-          };
+            return { 
+                status: 200, 
+                body: { 
+                    balance: user.balance, 
+                    tapProfit: user.tapProfit, 
+                    hourlyProfit: user.hourlyProfit,
+                    totalEarnedCoins: user.totalEarnedCoins,
+                    premiumTapLevel: user.premiumTapLevel,
+                    premiumHourlyLevel: user.premiumHourlyLevel
+                }
+            };
         } else {
-          return { status: 404, body: { error: 'User not found' } };
+            return { status: 404, body: { error: 'User not found' } };
         }
-      } catch (error) {
+    } catch (error) {
         console.error('Error:', error);
         return { status: 500, body: { error: 'Internal server error' } };
-      }
+    }
     },
 
     '/watch-ad': async (req, res, query) => {
@@ -341,10 +343,10 @@ const routes = {
         return { status: 500, body: { error: 'Internal server error' } };
       }
     },
-   '/activate-boost': async (req, res, query) => {
-    const { telegramId, multiplier, duration } = query;
+'/create-stars-invoice': async (req, res, query) => {
+    const { telegramId, upgradeType } = query;
     
-    if (!telegramId || !multiplier || !duration) {
+    if (!telegramId || !upgradeType) {
         return { status: 400, body: { error: 'Missing required parameters' } };
     }
 
@@ -354,72 +356,34 @@ const routes = {
             return { status: 404, body: { error: 'User not found' } };
         }
 
-        const activeBoosts = JSON.parse(user.activeBoosts || '[]');
-        
-        const newBoost = {
-            multiplier: parseInt(multiplier),
-            startTime: Date.now(),
-            duration: parseInt(duration)
-        };
+        const currentLevel = upgradeType === 'tap' ? 
+            user.premiumTapLevel : user.premiumHourlyLevel;
 
-        activeBoosts.push(newBoost);
+        if (currentLevel >= 3) {
+            return { status: 400, body: { error: 'Maximum level reached' } };
+        }
 
-        // Вычисляем общий множитель
-        const currentTime = Date.now();
-        const totalMultiplier = activeBoosts
-            .filter(boost => (boost.startTime + boost.duration) > currentTime)
-            .reduce((sum, boost) => sum + (boost.multiplier - 1), 1);
+        const prices = [
+            { label: '⭐ Уровень 1', amount: 1 },
+            { label: '⭐⭐ Уровень 2', amount: 2 },
+            { label: '⭐⭐⭐ Уровень 3', amount: 3 }
+        ];
 
-        await user.update({
-            activeBoosts: JSON.stringify(activeBoosts),
-            tapProfit: user.tapProfit * totalMultiplier
-        });
-
-        return { 
-            status: 200, 
-            body: { 
-                success: true,
-                message: 'Boost activated successfully',
-                totalMultiplier
-            } 
-        };
-
-    } catch (error) {
-        console.error('Error activating boost:', error);
-        return { status: 500, body: { error: 'Failed to activate boost' } };
-    }
-    }, 
-
-'/create-stars-invoice': async (req, res, query) => {
-    const { telegramId, stars } = query;
-    
-    if (!telegramId || !stars) {
-        return { status: 400, body: { error: 'Missing required parameters' } };
-    }
-
-    try {
-        // Создаем Invoice для оплаты звездами через Telegraf
         const invoice = await bot.telegram.createInvoiceLink({
-            title: `Буст x${stars}`,
-            description: 'Покупка буста в LITWIN TAP',
-            payload: `boost_${telegramId}_${Date.now()}`,
-            provider_token: '', // Пустой для звезд
+            title: upgradeType === 'tap' ? 'Премиум ТАП' : 'Премиум ПРИБЫЛЬ',
+            description: 'Премиум улучшение в LITWIN TAP',
+            payload: `premium_${telegramId}_${upgradeType}`,
+            provider_token: "",
             currency: 'XTR',
-            prices: [{
-                label: `${stars} звезд`,
-                amount: parseInt(stars)
-            }]
+            prices: [prices[currentLevel]]
         });
 
         return { status: 200, body: { slug: invoice } };
     } catch (error) {
         console.error('Error creating stars invoice:', error);
-        return { status: 500, body: { 
-            error: 'Failed to create invoice', 
-            details: error.message 
-        }};
+        return { status: 500, body: { error: 'Failed to create invoice' } };
     }
-    }
+}
   },
 
   POST: {

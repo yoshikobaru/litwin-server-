@@ -29,9 +29,60 @@ const defaultUpgrades = [
     { id: 'hour3', title: 'Выиграть в футбол медиалиге', emoji: '⚽' },
     { id: 'hour4', title: 'Выиграть гонку', emoji: '🏎️' },
     { id: 'energy', title: 'Заряд энергии', emoji: '⚡' },
-    { id: 'starBoost1', title: 'Звездный буст x2', emoji: '⭐', isPremium: true, stars: 1, multiplier: 2 },
-    { id: 'starBoost2', title: 'Звездный буст x5', emoji: '🌟', isPremium: true, stars: 2, multiplier: 5 },
-    { id: 'starBoost3', title: 'Звездный буст x10', emoji: '✨', isPremium: true, stars: 3, multiplier: 10 }
+    { 
+        id: 'premiumTap1', 
+        title: 'Премиум ТАП I', 
+        emoji: '⚡', 
+        isPremium: true,
+        stars: 1,
+        profit: 50, // В 3 раза больше чем обычное улучшение
+        profitType: 'tap'
+    },
+    { 
+        id: 'premiumTap2', 
+        title: 'Премиум ТАП II', 
+        emoji: '⚡⚡', 
+        isPremium: true,
+        stars: 2,
+        profit: 150, // В 3 раза больше чем обычное улучшение
+        profitType: 'tap'
+    },
+    { 
+        id: 'premiumTap3', 
+        title: 'Премиум ТАП III', 
+        emoji: '⚡⚡⚡', 
+        isPremium: true,
+        stars: 3,
+        profit: 300, // В 3 раза больше чем обычное улучшение
+        profitType: 'tap'
+    },
+    { 
+        id: 'premiumHour1', 
+        title: 'Премиум ПРИБЫЛЬ I', 
+        emoji: '💰', 
+        isPremium: true,
+        stars: 1,
+        profit: 150, // В 3 раза больше чем обычное улучшение в час
+        profitType: 'hourly'
+    },
+    { 
+        id: 'premiumHour2', 
+        title: 'Премиум ПРИБЫЛЬ II', 
+        emoji: '💰💰', 
+        isPremium: true,
+        stars: 2,
+        profit: 450, // В 3 раза больше чем обычное улучшение в час
+        profitType: 'hourly'
+    },
+    { 
+        id: 'premiumHour3', 
+        title: 'Премиум ПРИБЫЛЬ III', 
+        emoji: '💰💰💰', 
+        isPremium: true,
+        stars: 3,
+        profit: 900, // В 3 раза больше чем обычное улучшение в час
+        profitType: 'hourly'
+    }
 ];
 function updateUpgradeElements() {
     const marketItems = document.querySelectorAll('.market-item');
@@ -981,15 +1032,6 @@ if (localStorage.getItem('energyMaxLevel') === 'true') {
     currentEnergyLevel = energyData.length - 1;
 }
 updateEnergyButton();
-
-// ... остальной код ...
-
-
-
-
-
-
-
     // Обновленные данные маркета с уникальными идентификаторами
     const marketData = [
         
@@ -998,20 +1040,49 @@ updateEnergyButton();
        
     ];
     
- 
+   // Обработчик событий для всех покупок
+marketItems.addEventListener('click', async function(event) {
+    const buyButton = event.target.closest('.market-item-buy');
+    if (!buyButton) return;
 
-    
-    // Обновляем обработчик событий
-    marketItems.addEventListener('click', function(event) {
-        const buyButton = event.target.closest('.market-item-buy');
-        if (buyButton) {
-            const itemId = parseInt(buyButton.dataset.id);
-            const item = marketData.find(item => item.id === itemId);
-            if (item) {
-                buyItem(item);
+    if (buyButton.classList.contains('premium-buy')) {
+        const upgradeId = buyButton.dataset.id;
+        const upgrade = defaultUpgrades.find(u => u.id === upgradeId);
+        
+        if (!upgrade) return;
+
+        const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+        
+        try {
+            const response = await fetch(`/create-stars-invoice?telegramId=${telegramId}&upgradeType=${upgrade.profitType}`);
+            const data = await response.json();
+            
+            if (data.slug) {
+                // Сохраняем информацию о покупке
+                localStorage.setItem('pendingUpgrade', JSON.stringify({
+                    type: upgrade.profitType,
+                    level: parseInt(upgrade.id.slice(-1)),
+                    title: upgrade.title,
+                    multiplier: upgrade.multiplier
+                }));
+                
+                window.Telegram.WebApp.openInvoice(data.slug);
+            } else {
+                showPopup('Ошибка', 'Не удалось создать счет');
             }
+        } catch (error) {
+            console.error('Ошибка при создании счета:', error);
+            showPopup('Ошибка', 'Произошла ошибка при создании счета');
         }
-    });
+    } else {
+        // Существующая логика для обычных покупок
+        const itemId = parseInt(buyButton.dataset.id);
+        const item = marketData.find(item => item.id === itemId);
+        if (item) {
+            buyItem(item);
+        }
+    }
+});
 
     function buyItem(item) {
         const currentBalance = parseInt(localStorage.getItem('balance')) || 0;
@@ -1156,21 +1227,7 @@ updateEnergyButton();
             updateUnlockedCans();
         }
     });
-    window.addEventListener('message', function(event) {
-        if (event.data.type === 'updateBoostMultiplier') {
-            const multiplier = event.data.multiplier;
-            // Обновляем tapProfit с учетом множителя
-            const baseTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
-            tapProfit = baseTapProfit * multiplier;
-            updateTapProfit();
-            
-            // Отправляем обновленное значение на главный экран
-            window.parent.postMessage({
-                type: 'updateTapProfit',
-                tapProfit: tapProfit
-            }, '*');
-        }
-    });
+
     // Добавьте эту функцию в конец файла
     function adjustPageHeight() {
         const footerHeight = document.querySelector('.footer').offsetHeight;
@@ -1258,9 +1315,7 @@ categoryTabs.addEventListener('click', function(event) {
         }
     }
 });
-
 })();
-// Функция для создания премиум-улучшения
 function createPremiumUpgrade(upgrade) {
     const element = document.createElement('div');
     element.className = 'market-item premium-item';
@@ -1269,19 +1324,16 @@ function createPremiumUpgrade(upgrade) {
             <span class="market-item-emoji">${upgrade.emoji}</span>
             <span class="market-item-title">${upgrade.title}</span>
             <span class="market-item-profit">
-                Множитель тапа x${upgrade.multiplier} на 24 часа
+                ${upgrade.profitType === 'tap' ? 
+                    `Прибыль за тап <img src="assets/litcoin.png" class="lit-coin-small"> +${upgrade.profit}` : 
+                    `Прибыль в час <img src="assets/litcoin.png" class="lit-coin-small"> +${upgrade.profit}`}
             </span>
         </div>
         <hr class="item-divider">
-        <div class="market-item-buy premium-buy" id="premium${upgrade.id}">
+        <div class="market-item-buy premium-buy" data-id="${upgrade.id}" data-type="${upgrade.profitType}">
             <span class="premium-stars">${upgrade.stars} ⭐</span>
         </div>
     `;
-
-    // Добавляем обработчик клика сразу при создании
-    element.querySelector('.premium-buy').addEventListener('click', () => {
-        purchaseStarBoost(upgrade);
-    });
 
     return element;
 }
@@ -1337,29 +1389,39 @@ window.Telegram.WebApp.onEvent('invoiceClosed', async (data) => {
     
     if (data.status === 'paid') {
         try {
-            const pendingBoost = localStorage.getItem('pendingBoost');
-            if (!pendingBoost) return;
+            const pendingUpgrade = localStorage.getItem('pendingUpgrade');
+            if (!pendingUpgrade) return;
 
-            const boostData = JSON.parse(pendingBoost);
+            const upgradeData = JSON.parse(pendingUpgrade);
             const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
             
-            const boostResponse = await fetch(`/activate-boost?telegramId=${telegramId}&multiplier=${boostData.multiplier}&duration=${24 * 60 * 60 * 1000}`);
-            const responseData = await boostResponse.json();
+            // Обновляем множитель на сервере
+            const response = await fetch(`/update-premium-multiplier?telegramId=${telegramId}&type=${upgradeData.type}&level=${upgradeData.level}`);
+            const responseData = await response.json();
 
             if (responseData.success) {
                 window.Telegram.WebApp.showPopup({
                     title: '✨ Успех!',
-                    message: `${boostData.title} успешно активирован!\nМножитель x${boostData.multiplier} действует 24 часа.`
+                    message: `${upgradeData.title} успешно приобретен!\nНовый множитель x${upgradeData.multiplier}`
                 });
-                checkBoosts();
+                
+                // Обновляем отображение премиум улучшений
+                updatePremiumUpgrades();
+                
+                // Отправляем сообщение родительскому окну для обновления профита
+                window.parent.postMessage({
+                    type: 'updateProfit',
+                    profit: responseData.newProfit,
+                    profitType: upgradeData.type
+                }, '*');
             }
         } catch (error) {
-            console.error('Ошибка при активации буста:', error);
+            console.error('Ошибка при активации улучшения:', error);
         } finally {
-            localStorage.removeItem('pendingBoost');
+            localStorage.removeItem('pendingUpgrade');
         }
     } else {
-        localStorage.removeItem('pendingBoost');
+        localStorage.removeItem('pendingUpgrade');
     }
 });
 // Добавляем стили
@@ -1385,104 +1447,8 @@ const premiumStyles = `
         color: white;
         text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
-
-    .boost-timer {
-        font-size: 0.9em;
-        color: #ffd700;
-        margin-top: 4px;
-        padding: 4px 8px;
-        background: rgba(0,0,0,0.2);
-        border-radius: 4px;
-        margin-bottom: 8px;
-    }
 `;
 
 const styleSheet = document.createElement('style');
 styleSheet.textContent = premiumStyles;
 document.head.appendChild(styleSheet);
-
-// Функция проверки бустов при загрузке страницы
-async function checkBoosts() {
-    try {
-        const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
-        const response = await fetch(`/verify-premium?telegramId=${telegramId}`);
-        const data = await response.json();
-        
-        if (data.activeBoosts && data.activeBoosts.length > 0) {
-            const maxBoost = Math.max(...data.activeBoosts.map(b => b.multiplier));
-            
-            // Обновляем множитель в игре
-            window.parent.postMessage({ 
-                type: 'updateBoostMultiplier', 
-                multiplier: maxBoost 
-            }, '*');
-
-            // Обновляем таймеры локально
-            startLocalBoostTimer(data.activeBoosts);
-        }
-    } catch (error) {
-        console.error('Ошибка при проверке бустов:', error);
-    }
-}
-
-// Функция для локального отсчета времени буста
-function startLocalBoostTimer(boosts) {
-    const timerContainer = document.querySelector('.premium-container');
-    if (!timerContainer) return;
-
-    // Очищаем предыдущие таймеры
-    const oldTimers = timerContainer.querySelectorAll('.boost-timer');
-    oldTimers.forEach(timer => timer.remove());
-
-    // Создаем таймер для каждого активного буста
-    boosts.forEach(boost => {
-        const timerElement = document.createElement('div');
-        timerElement.className = 'boost-timer';
-        timerContainer.appendChild(timerElement);
-
-        function updateTimer() {
-            const currentTime = Date.now();
-            const timeLeft = (boost.startTime + boost.duration) - currentTime;
-
-            if (timeLeft <= 0) {
-                timerElement.remove();
-                checkBoosts(); // Перепроверяем все бусты
-                return;
-            }
-
-            const hours = Math.floor(timeLeft / (60 * 60 * 1000));
-            const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
-            
-            timerElement.textContent = `Буст x${boost.multiplier} активен еще ${hours}ч ${minutes}м`;
-        }
-
-        // Обновляем каждую минуту
-        updateTimer();
-        const timerId = setInterval(updateTimer, 60 * 1000);
-
-        // Сохраняем ID таймера для очистки
-        timerElement.dataset.timerId = timerId;
-    });
-
-    // Обновляем общий множитель
-    const currentTime = Date.now();
-    const activeBoosts = boosts.filter(boost => 
-        (boost.startTime + boost.duration) > currentTime
-    );
-    
-    if (activeBoosts.length > 0) {
-        const totalMultiplier = activeBoosts.reduce((sum, boost) => sum + (boost.multiplier - 1), 1);
-        window.parent.postMessage({ 
-            type: 'updateBoostMultiplier', 
-            multiplier: totalMultiplier 
-        }, '*');
-    } else {
-        window.parent.postMessage({ 
-            type: 'updateBoostMultiplier', 
-            multiplier: 1 
-        }, '*');
-    }
-}
-
-// Проверяем бусты только при загрузке страницы
-document.addEventListener('DOMContentLoaded', checkBoosts);
