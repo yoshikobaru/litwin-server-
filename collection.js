@@ -237,30 +237,33 @@ function updateImproveTapButton() {
 // Обновите обработчик событий для каждой кнопки улучшения тапов
 document.getElementById('improveTapButton').addEventListener('click', function() {
     if (this.disabled) return;
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
-        window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-    }
 
     const nextLevel = improveTapData[currentImproveTapLevel];
     const currentBalance = parseInt(localStorage.getItem('balance')) || 0;
-    const currentBaseTapProfit = parseInt(localStorage.getItem('baseTapProfit')) || 1; // Изменено
+    const currentTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
 
     if (currentBalance >= nextLevel.price) {
-        // Обновляем баланс
         const newBalance = currentBalance - nextLevel.price;
         localStorage.setItem('balance', newBalance.toString());
 
-        // Обновляем базовую прибыль и все связанные значения
-        const newBaseTapProfit = currentBaseTapProfit + nextLevel.profit;
-        updateBaseTapProfit(newBaseTapProfit); // Используем новую функцию
+        // Учитываем текущий множитель при обновлении прибыли
+        const boostMultiplier = parseInt(localStorage.getItem('boostMultiplier')) || 1;
+        const newTapProfit = currentTapProfit + (nextLevel.profit * boostMultiplier);
+        localStorage.setItem('tapProfit', newTapProfit.toString());
+        
+        if (typeof updateTapProfit === 'function') {
+            tapProfit = newTapProfit;
+            updateTapProfit();
+        }
 
         currentImproveTapLevel++;
-        if (currentImproveTapLevel >= improveTapData.length) {
-            currentImproveTapLevel = improveTapData.length - 1;
-            localStorage.setItem('improveTapMaxLevel', 'true');
-        }
         updateImproveTapButton();
         updateBalance();
+        
+        // Синхронизируем с сервером
+        if (window.syncDataWithServer) {
+            window.syncDataWithServer();
+        }
 
         showPopup('Поздравляем!', `Вы успешно увеличили прибыль за тап на +${nextLevel.profit}!`);
     } else {
@@ -1059,35 +1062,36 @@ updateEnergyButton();
         // Здесь можо обновить отображение коллекции, если необходимо
         // Например, разблокировать купленный предмет в сетке коллекции
     }
-// Обработчик сообщений о бустах
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'updateBoostMultiplier') {
-        const multiplier = event.data.multiplier;
-        
-        // Сохраняем множитель
-        localStorage.setItem('boostMultiplier', multiplier.toString());
-        
-        // Получаем текущую базовую прибыль
-        const baseTapProfit = parseInt(localStorage.getItem('baseTapProfit')) || 1;
-        
-        // Обновляем общую прибыль
-        updateBaseTapProfit(baseTapProfit);
-    }
-});
-    function updateProfitDisplay() {
-        const tapProfitElement = document.getElementById('tapProfit');
-        const hourlyProfitElement = document.getElementById('hourlyProfit');
-        
-        if (tapProfitElement) {
-            const baseTapProfit = parseInt(localStorage.getItem('baseTapProfit')) || 1;
-            const boostMultiplier = parseInt(localStorage.getItem('boostMultiplier')) || 1;
-            tapProfitElement.textContent = (baseTapProfit * boostMultiplier).toString();
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'updateBoostMultiplier') {
+            const multiplier = event.data.multiplier;
+            localStorage.setItem('boostMultiplier', multiplier.toString());
+            
+            const currentTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
+            const newTapProfit = currentTapProfit * multiplier;
+            localStorage.setItem('tapProfit', newTapProfit.toString());
+            
+            updateProfitDisplay();
+            
+            // Используем глобальную функцию синхронизации
+            window.syncDataWithServer().catch(error => {
+                console.error('Ошибка при синхронизации после обновления буста:', error);
+            });
         }
-        
-        if (hourlyProfitElement) {
-            hourlyProfitElement.textContent = localStorage.getItem('hourlyProfit') || '0';
-        }
+    });
+
+function updateProfitDisplay() {
+    const tapProfitElement = document.getElementById('tapProfit');
+    const hourlyProfitElement = document.getElementById('hourlyProfit');
+    
+    if (tapProfitElement) {
+        tapProfitElement.textContent = localStorage.getItem('tapProfit') || '1';
     }
+    
+    if (hourlyProfitElement) {
+        hourlyProfitElement.textContent = localStorage.getItem('hourlyProfit') || '0';
+    }
+}
    // Функция для обновления базовой прибыли
 function updateBaseTapProfit(newProfit) {
     // Сохраняем базовую прибыль

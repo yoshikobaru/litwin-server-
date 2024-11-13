@@ -44,7 +44,7 @@ const canThemes = {
     // Добавьте темы для остальных банок здесь
 };
 
-function syncDataWithServer() {
+window.syncDataWithServer = function() {
     const telegramId = getTelegramUserId();
     const username = getTelegramUsername();
     if (!telegramId) {
@@ -61,7 +61,7 @@ function syncDataWithServer() {
         totalEarnedCoins: parseInt(localStorage.getItem('totalEarnedCoins')) || 0
     };
 
-    fetch('https://litwin-tap.ru/sync-user-data', {
+    return fetch('https://litwin-tap.ru/sync-user-data', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -71,11 +71,17 @@ function syncDataWithServer() {
     .then(response => response.json())
     .then(data => {
         console.log('Данные успешно синхронизированы с сервером:', data);
+        return data;
     })
     .catch(error => {
         console.error('Ошибка при синхронизации данных с сервером:', error);
+        throw error;
     });
-}
+};
+
+// Также делаем глобально доступными вспомогательные функции
+window.getTelegramUserId = getTelegramUserId;
+window.getTelegramUsername = getTelegramUsername;
 
 // Добавьте эту функцию, если её ещё нет
 function getTelegramUsername() {

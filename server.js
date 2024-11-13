@@ -88,41 +88,49 @@ bot.on('successful_payment', async (ctx) => {
       const [type, telegramId, timestamp] = payload.split('_');
 
       if (type === 'boost') {
-        const user = await User.findOne({ where: { telegramId } });
-        if (!user) {
-            console.error('User not found:', telegramId);
-            return;
-        }
+          const user = await User.findOne({ where: { telegramId } });
+          if (!user) {
+              console.error('User not found:', telegramId);
+              return;
+          }
 
-        const activeBoosts = JSON.parse(user.activeBoosts || '[]');
-        
-        // Добавляем новый буст
-        const newBoost = {
-            multiplier,
-            startTime: Date.now(),
-            duration: 24 * 60 * 60 * 1000
-        };
+          // Определяем множитель на основе суммы платежа
+          const stars = payment.total_amount;
+          let multiplier;
+          if (stars === 1) multiplier = 2;
+          else if (stars === 2) multiplier = 5;
+          else if (stars === 3) multiplier = 10;
+          else {
+              console.error('Unknown stars amount:', stars);
+              return;
+          }
 
-        activeBoosts.push(newBoost);
+          const activeBoosts = JSON.parse(user.activeBoosts || '[]');
+          
+          const newBoost = {
+              multiplier,
+              startTime: Date.now(),
+              duration: 24 * 60 * 60 * 1000
+          };
 
-        // Вычисляем общий множитель как сумму всех активных бустов
-        const currentTime = Date.now();
-        const totalMultiplier = activeBoosts
-            .filter(boost => (boost.startTime + boost.duration) > currentTime)
-            .reduce((sum, boost) => sum + (boost.multiplier - 1), 1);
+          activeBoosts.push(newBoost);
 
-        // Обновляем бусты и tapProfit
-        const baseTapProfit = parseInt(user.tapProfit) || 1;
-        await user.update({
-            activeBoosts: JSON.stringify(activeBoosts),
-            tapProfit: baseTapProfit * totalMultiplier
-        });
+          // Вычисляем общий множитель
+          const currentTime = Date.now();
+          const totalMultiplier = activeBoosts
+              .filter(boost => (boost.startTime + boost.duration) > currentTime)
+              .reduce((sum, boost) => sum + (boost.multiplier - 1), 1);
 
-        await ctx.reply(`🌟 Буст x${multiplier} успешно активирован на 24 часа!\nОбщий множитель: x${totalMultiplier}`);
-    }
-} catch (error) {
-    console.error('Error in successful_payment:', error);
-}
+          await user.update({
+              activeBoosts: JSON.stringify(activeBoosts),
+              tapProfit: user.tapProfit * totalMultiplier
+          });
+
+          await ctx.reply(`🌟 Буст x${multiplier} успешно активирован на 24 часа!\nОбщий множитель: x${totalMultiplier}`);
+      }
+  } catch (error) {
+      console.error('Error in successful_payment:', error);
+  }
 });
 // WebApp URL
 const webAppUrl = 'https://litwin-tap.ru';
@@ -356,18 +364,23 @@ const routes = {
 
         activeBoosts.push(newBoost);
 
-        // Обновляем бусты и tapProfit
-        const baseTapProfit = user.tapProfit;
+        // Вычисляем общий множитель
+        const currentTime = Date.now();
+        const totalMultiplier = activeBoosts
+            .filter(boost => (boost.startTime + boost.duration) > currentTime)
+            .reduce((sum, boost) => sum + (boost.multiplier - 1), 1);
+
         await user.update({
             activeBoosts: JSON.stringify(activeBoosts),
-            tapProfit: baseTapProfit * parseInt(multiplier)
+            tapProfit: user.tapProfit * totalMultiplier
         });
 
         return { 
             status: 200, 
             body: { 
                 success: true,
-                message: 'Boost activated successfully'
+                message: 'Boost activated successfully',
+                totalMultiplier
             } 
         };
 
