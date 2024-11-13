@@ -1428,6 +1428,23 @@ window.Telegram.WebApp.onEvent('invoiceClosed', async (data) => {
             const responseData = await response.json();
 
             if (responseData.success) {
+                // Обновляем локальные значения прибыли
+                if (upgradeData.type === 'tap') {
+                    const currentTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
+                    localStorage.setItem('tapProfit', responseData.newProfit.toString());
+                    if (typeof updateTapProfit === 'function') {
+                        tapProfit = responseData.newProfit;
+                        updateTapProfit();
+                    }
+                } else if (upgradeData.type === 'hourly') {
+                    const currentHourlyProfit = parseInt(localStorage.getItem('hourlyProfit')) || 0;
+                    localStorage.setItem('hourlyProfit', responseData.newProfit.toString());
+                    if (typeof updateHourlyProfit === 'function') {
+                        hourlyProfit = responseData.newProfit;
+                        updateHourlyProfit();
+                    }
+                }
+
                 window.Telegram.WebApp.showPopup({
                     title: '✨ Успех!',
                     message: `${upgradeData.title} успешно приобретен!`
