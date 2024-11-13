@@ -240,15 +240,19 @@ document.getElementById('improveTapButton').addEventListener('click', function()
 
     const nextLevel = improveTapData[currentImproveTapLevel];
     const currentBalance = parseInt(localStorage.getItem('balance')) || 0;
-    const currentTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
+    const currentBaseTapProfit = parseInt(localStorage.getItem('baseTapProfit')) || 1;
 
     if (currentBalance >= nextLevel.price) {
         const newBalance = currentBalance - nextLevel.price;
         localStorage.setItem('balance', newBalance.toString());
 
-        // Учитываем текущий множитель при обновлении прибыли
+        // Обновляем базовую прибыль
+        const newBaseTapProfit = currentBaseTapProfit + nextLevel.profit;
+        localStorage.setItem('baseTapProfit', newBaseTapProfit.toString());
+        
+        // Применяем текущий множитель к новой базовой прибыли
         const boostMultiplier = parseInt(localStorage.getItem('boostMultiplier')) || 1;
-        const newTapProfit = currentTapProfit + (nextLevel.profit * boostMultiplier);
+        const newTapProfit = newBaseTapProfit * boostMultiplier;
         localStorage.setItem('tapProfit', newTapProfit.toString());
         
         if (typeof updateTapProfit === 'function') {
@@ -260,7 +264,6 @@ document.getElementById('improveTapButton').addEventListener('click', function()
         updateImproveTapButton();
         updateBalance();
         
-        // Синхронизируем с сервером
         if (window.syncDataWithServer) {
             window.syncDataWithServer();
         }
@@ -1067,31 +1070,36 @@ updateEnergyButton();
             const multiplier = event.data.multiplier;
             localStorage.setItem('boostMultiplier', multiplier.toString());
             
+            // Обновляем текущий tapProfit с новым множителем
             const currentTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
             const newTapProfit = currentTapProfit * multiplier;
             localStorage.setItem('tapProfit', newTapProfit.toString());
             
-            updateProfitDisplay();
-            
-            // Используем глобальную функцию синхронизации
-            window.syncDataWithServer().catch(error => {
-                console.error('Ошибка при синхронизации после обновления буста:', error);
-            });
+            // Обновляем отображение
+            if (typeof updateTapProfit === 'function') {
+                tapProfit = newTapProfit;
+                updateTapProfit();
+            }
         }
     });
 
-function updateProfitDisplay() {
-    const tapProfitElement = document.getElementById('tapProfit');
-    const hourlyProfitElement = document.getElementById('hourlyProfit');
-    
-    if (tapProfitElement) {
-        tapProfitElement.textContent = localStorage.getItem('tapProfit') || '1';
+    function updateProfitDisplay() {
+        const tapProfitElement = document.getElementById('tapProfit');
+        const hourlyProfitElement = document.getElementById('hourlyProfit');
+        
+        if (tapProfitElement) {
+            const baseTapProfit = parseInt(localStorage.getItem('baseTapProfit')) || 1;
+            const boostMultiplier = parseInt(localStorage.getItem('boostMultiplier')) || 1;
+            const totalTapProfit = baseTapProfit * boostMultiplier;
+            
+            tapProfitElement.textContent = totalTapProfit.toString();
+            localStorage.setItem('tapProfit', totalTapProfit.toString());
+        }
+        
+        if (hourlyProfitElement) {
+            hourlyProfitElement.textContent = localStorage.getItem('hourlyProfit') || '0';
+        }
     }
-    
-    if (hourlyProfitElement) {
-        hourlyProfitElement.textContent = localStorage.getItem('hourlyProfit') || '0';
-    }
-}
    // Функция для обновления базовой прибыли
 function updateBaseTapProfit(newProfit) {
     // Сохраняем базовую прибыль
@@ -1189,7 +1197,19 @@ function updateBaseTapProfit(newProfit) {
             updateUnlockedCans();
         }
     });
-
+    document.addEventListener('DOMContentLoaded', function() {
+        // Если baseTapProfit не установлен, инициализируем его
+        if (!localStorage.getItem('baseTapProfit')) {
+            const currentTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
+            localStorage.setItem('baseTapProfit', currentTapProfit.toString());
+        }
+        
+        // Проверяем бусты
+        checkBoosts();
+        
+        // Обновляем отображение
+        updateProfitDisplay();
+    });
     // Добавьте эту функцию в конец файла
     function adjustPageHeight() {
         const footerHeight = document.querySelector('.footer').offsetHeight;
@@ -1424,16 +1444,26 @@ async function checkBoosts() {
         const data = await response.json();
         
         if (data.activeBoosts && data.activeBoosts.length > 0) {
-            const maxBoost = Math.max(...data.activeBoosts.map(b => b.multiplier));
+            const currentTime = Date.now();
+            const activeBoosts = data.activeBoosts.filter(boost => 
+                boost.startTime + boost.duration > currentTime
+            );
             
-            // Обновляем множитель в игре
-            window.parent.postMessage({ 
-                type: 'updateBoostMultiplier', 
-                multiplier: maxBoost 
-            }, '*');
+            if (activeBoosts.length > 0) {
+                // Берем максимальный множитель из активных бустов
+                const maxBoost = Math.max(...activeBoosts.map(b => b.multiplier));
+                
+                // Обновляем множитель в игре
+                window.parent.postMessage({ 
+                    type: 'updateBoostMultiplier', 
+                    multiplier: maxBoost 
+                }, '*');
 
-            // Обновляем таймеры локально
-            startLocalBoostTimer(data.activeBoosts);
+                // Обновляем таймеры локально
+                startLocalBoostTimer(activeBoosts);
+            } else {
+                localStorage.setItem('boostMultiplier', '1');
+            }
         }
     } catch (error) {
         console.error('Ошибка при проверке бустов:', error);
