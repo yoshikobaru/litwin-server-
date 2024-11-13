@@ -154,9 +154,6 @@ function applyTheme(theme) {
         `;
         document.body.appendChild(popup);
 
-        popup.style.backgroundColor = 'var(--tertiary-color)';
-        popup.style.color = '#fff';
-
         popup.querySelector('.closePopup').addEventListener('click', () => {
             popup.remove();
         });

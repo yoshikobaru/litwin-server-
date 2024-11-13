@@ -238,11 +238,12 @@
 }
 
 .bonus-popup-content {
-    background-color: rgb(18,131,255);
+    background-color: var(--tertiary-color); /* Было rgb(18,131,255), меняем на переменную */
     padding: 20px;
     border-radius: 10px;
     text-align: center;
     color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .bonus-popup-content h2 {

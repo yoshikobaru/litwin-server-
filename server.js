@@ -125,7 +125,7 @@ bot.on('successful_payment', async (ctx) => {
                   return;
               }
               // Используем фиксированные значения прибыли вместо множителей
-              const hourlyProfits = [150, 450, 900];
+              const hourlyProfits = [5000, 20000, 50000];
               newProfit = user.hourlyProfit + hourlyProfits[currentLevel];
               await user.update({
                   hourlyProfit: newProfit,
@@ -133,7 +133,7 @@ bot.on('successful_payment', async (ctx) => {
               });
           }
 
-          await ctx.reply(`✨ Премиум улучшение успешно активировано!\nПрибыль увеличена на ${upgradeType === 'tap' ? 'тап' : 'час'}!`);
+          await ctx.reply(`✨ Премиум улучшение успешно активировано!\nПрибыль увеличена за ${upgradeType === 'tap' ? 'тап' : 'час'}!`);
       }
   } catch (error) {
       console.error('Error in successful_payment:', error);
@@ -321,43 +321,36 @@ const routes = {
       }
     },
     '/update-premium-multiplier': async (req, res, query) => {
-      const { telegramId, type, level } = query;
-      
-      if (!telegramId || !type || !level) {
+    const { telegramId, type, level } = query;
+    
+    if (!telegramId || !type || !level) {
         return { status: 400, body: { error: 'Missing required parameters' } };
-      }
+    }
 
-      try {
+    try {
         const user = await User.findOne({ where: { telegramId } });
         if (!user) {
-          return { status: 404, body: { error: 'User not found' } };
+            return { status: 404, body: { error: 'User not found' } };
         }
 
-        const profits = type === 'tap' ? 
-          [50, 150, 300] : // tapProfits
-          [150, 450, 900]; // hourlyProfits
-
-        const newProfit = type === 'tap' ? 
-          user.tapProfit + profits[parseInt(level) - 1] :
-          user.hourlyProfit + profits[parseInt(level) - 1];
-
+        // Просто обновляем уровень, без изменения профита
         const updateData = type === 'tap' ? 
-          { tapProfit: newProfit, premiumTapLevel: parseInt(level) } :
-          { hourlyProfit: newProfit, premiumHourlyLevel: parseInt(level) };
+            { premiumTapLevel: parseInt(level) } :
+            { premiumHourlyLevel: parseInt(level) };
 
         await user.update(updateData);
 
         return { 
-          status: 200, 
-          body: { 
-            success: true,
-            newProfit: newProfit
-          } 
+            status: 200, 
+            body: { 
+                success: true,
+                newProfit: type === 'tap' ? user.tapProfit : user.hourlyProfit
+            } 
         };
-      } catch (error) {
+    } catch (error) {
         console.error('Error updating premium multiplier:', error);
         return { status: 500, body: { error: 'Internal server error' } };
-      }
+    }
     },
     '/verify-premium': async (req, res, query) => {
       const telegramId = query.telegramId;
