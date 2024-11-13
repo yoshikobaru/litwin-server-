@@ -1156,7 +1156,21 @@ updateEnergyButton();
             updateUnlockedCans();
         }
     });
-
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'updateBoostMultiplier') {
+            const multiplier = event.data.multiplier;
+            // Обновляем tapProfit с учетом множителя
+            const baseTapProfit = parseInt(localStorage.getItem('tapProfit')) || 1;
+            tapProfit = baseTapProfit * multiplier;
+            updateTapProfit();
+            
+            // Отправляем обновленное значение на главный экран
+            window.parent.postMessage({
+                type: 'updateTapProfit',
+                tapProfit: tapProfit
+            }, '*');
+        }
+    });
     // Добавьте эту функцию в конец файла
     function adjustPageHeight() {
         const footerHeight = document.querySelector('.footer').offsetHeight;
@@ -1376,6 +1390,10 @@ const premiumStyles = `
         font-size: 0.9em;
         color: #ffd700;
         margin-top: 4px;
+        padding: 4px 8px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 4px;
+        margin-bottom: 8px;
     }
 `;
 
@@ -1409,53 +1427,61 @@ async function checkBoosts() {
 
 // Функция для локального отсчета времени буста
 function startLocalBoostTimer(boosts) {
-    const timerContainer = document.querySelector('.premium-item');
+    const timerContainer = document.querySelector('.premium-container');
     if (!timerContainer) return;
 
     // Очищаем предыдущие таймеры
     const oldTimers = timerContainer.querySelectorAll('.boost-timer');
     oldTimers.forEach(timer => timer.remove());
 
-    // Создаем новый таймер
-    const timerElement = document.createElement('div');
-    timerElement.className = 'boost-timer';
-    timerContainer.appendChild(timerElement);
+    // Создаем таймер для каждого активного буста
+    boosts.forEach(boost => {
+        const timerElement = document.createElement('div');
+        timerElement.className = 'boost-timer';
+        timerContainer.appendChild(timerElement);
 
-    // Функция обновления таймера
-    function updateTimer() {
-        const currentTime = Date.now();
-        const activeBoosts = boosts.filter(boost => 
-            (boost.startTime + boost.duration) > currentTime
-        );
+        function updateTimer() {
+            const currentTime = Date.now();
+            const timeLeft = (boost.startTime + boost.duration) - currentTime;
 
-        if (activeBoosts.length === 0) {
-            timerElement.remove();
-            // Сбрасываем множитель
-            window.parent.postMessage({ 
-                type: 'updateBoostMultiplier', 
-                multiplier: 1 
-            }, '*');
-            return;
+            if (timeLeft <= 0) {
+                timerElement.remove();
+                checkBoosts(); // Перепроверяем все бусты
+                return;
+            }
+
+            const hours = Math.floor(timeLeft / (60 * 60 * 1000));
+            const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+            
+            timerElement.textContent = `Буст x${boost.multiplier} активен еще ${hours}ч ${minutes}м`;
         }
 
-        const maxBoost = Math.max(...activeBoosts.map(b => b.multiplier));
-        const longestBoost = activeBoosts.reduce((a, b) => 
-            (a.startTime + a.duration) > (b.startTime + b.duration) ? a : b
-        );
+        // Обновляем каждую минуту
+        updateTimer();
+        const timerId = setInterval(updateTimer, 60 * 1000);
 
-        const timeLeft = (longestBoost.startTime + longestBoost.duration) - currentTime;
-        const hours = Math.floor(timeLeft / (60 * 60 * 1000));
-        const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
-        
-        timerElement.textContent = `Буст x${maxBoost} активен еще ${hours}ч ${minutes}м`;
+        // Сохраняем ID таймера для очистки
+        timerElement.dataset.timerId = timerId;
+    });
+
+    // Обновляем общий множитель
+    const currentTime = Date.now();
+    const activeBoosts = boosts.filter(boost => 
+        (boost.startTime + boost.duration) > currentTime
+    );
+    
+    if (activeBoosts.length > 0) {
+        const totalMultiplier = activeBoosts.reduce((sum, boost) => sum + (boost.multiplier - 1), 1);
+        window.parent.postMessage({ 
+            type: 'updateBoostMultiplier', 
+            multiplier: totalMultiplier 
+        }, '*');
+    } else {
+        window.parent.postMessage({ 
+            type: 'updateBoostMultiplier', 
+            multiplier: 1 
+        }, '*');
     }
-
-    // Обновляем каждую минуту локально
-    updateTimer();
-    const timerId = setInterval(updateTimer, 60 * 1000);
-
-    // Очищаем интервал при уничтожении компонента
-    window.addEventListener('unload', () => clearInterval(timerId));
 }
 
 // Проверяем бусты только при загрузке страницы
