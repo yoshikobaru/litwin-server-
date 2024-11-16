@@ -937,32 +937,31 @@ async function watchAd() {
         }
         try {
             const result = await AdController.show();
-            console.log('User watched ad', result);
-            const telegramId = getTelegramUserId();
-            if (!telegramId) {
-                console.error('Telegram ID not found');
-                return;
-            }
-            const response = await fetch(`https://litwin-tap.ru/reward?userid=${telegramId}`);
-            const data = await response.json();
-            if (data.success) {
+            // Проверяем результат просмотра рекламы
+            if (result.done) {  // Пользователь досмотрел рекламу до конца
                 applyAdBonus();
                 showAdRewardPopup();
                 window.eventBus.emit('adComplete', {
                     result: 'success',
                     timestamp: new Date().toISOString()
                 });
+                
+                // Синхронизируем данные с сервером
+                const telegramId = getTelegramUserId();
+                if (telegramId) {
+                    await window.syncDataWithServer();
+                }
             }
         } catch (error) {
+            // Пользователь пропустил рекламу или произошла ошибка
             console.error('Ошибка при показе рекламы:', error);
             window.eventBus.emit('adComplete', {
                 result: 'error',
-                error: error.message
+                error: error.description || error.message
             });
         }
     }
 }
-
 function showAdConfirmation() {
     return new Promise((resolve) => {
         const popup = document.createElement('div');
