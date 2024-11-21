@@ -1210,9 +1210,9 @@ marketItems.addEventListener('click', async function(event) {
             tertiary: 'rgb(255,120,0)'
         },
         'assets/bankablueberry.png': {
-            primary: 'rgb(138,43,226)',
-            secondary: 'rgb(148,0,211)',
-            tertiary: 'rgb(128,0,128)'
+            primary: 'rgb(89,0,179)', // Более темный фиолетовый
+            secondary: 'rgb(102,0,204)', // Немного светлее для вторичного
+            tertiary: 'rgb(76,0,153)' // Самый темный для третичного
         }
     };
     function changeCan(index) {
