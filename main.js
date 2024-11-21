@@ -287,13 +287,20 @@ function updateUserProfile() {
 document.addEventListener('DOMContentLoaded', () => {
     if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.ready();
-        // Используем основной цвет приложения вместо черного
-    window.Telegram.WebApp.setHeaderColor('rgb(18,131,255)');
-    window.Telegram.WebApp.setBackgroundColor('rgb(18,131,255)');
-    
-    // Запрещаем случайное закрытие свайпом
-    window.Telegram.WebApp.expand();
-}
+       // Получаем индекс выбранной банки из localStorage
+       const selectedCanIndex = parseInt(localStorage.getItem('selectedCan')) || 0;
+       const selectedCanImage = canImages[selectedCanIndex];
+       const selectedTheme = canThemes[selectedCanImage];
+       
+       // Устанавливаем цвета Telegram WebApp в соответствии с сохраненной темой
+       if (selectedTheme) {
+           window.Telegram.WebApp.setHeaderColor(selectedTheme.primary);
+           window.Telegram.WebApp.setBackgroundColor(selectedTheme.primary);
+       }
+       
+       // Запрещаем случайное закрытие свайпом
+       window.Telegram.WebApp.expand();
+   }
     updateUserProfile();
     syncDataWithServer(); // Добавьте эту строку
     const selectedCanIndex = parseInt(localStorage.getItem('selectedCan')) || 0;
