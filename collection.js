@@ -1198,10 +1198,35 @@ marketItems.addEventListener('click', async function(event) {
             localStorage.setItem('selectedCan', index.toString());
         }
     }
-
+    const canThemes = {
+        'assets/bankaClassic.png': {
+            primary: 'rgb(18,131,255)',
+            secondary: 'rgb(0,87,255)',
+            tertiary: 'rgb(0,60,255)'
+        },
+        'assets/bankamango.png': {
+            primary: 'rgb(255,165,0)',
+            secondary: 'rgb(255,140,0)',
+            tertiary: 'rgb(255,120,0)'
+        },
+        'assets/bankablueberry.png': {
+            primary: 'rgb(138,43,226)',
+            secondary: 'rgb(148,0,211)',
+            tertiary: 'rgb(128,0,128)'
+        }
+    };
     function changeCan(index) {
         if (index >= 0 && index < canImages.length) {
+            // Существующий код
             updateCanImage(index);
+            
+            // Добавляем обновление цветов Telegram WebApp
+            const selectedTheme = canThemes[canImages[index]];
+            if (selectedTheme && window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.setHeaderColor(selectedTheme.primary);
+                window.Telegram.WebApp.setBackgroundColor(selectedTheme.primary);
+            }
+            
             showPopup('Да вы в кондициях!', 'Банка успешно изменена!');
         }
     }
