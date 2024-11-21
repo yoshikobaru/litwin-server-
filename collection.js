@@ -1201,19 +1201,19 @@ marketItems.addEventListener('click', async function(event) {
     const canThemes = {
         'assets/bankaClassic.png': {
             primary: 'rgb(18,131,255)',
-            secondary: 'rgb(0,87,255)',
-            tertiary: 'rgb(0,60,255)'
+            secondary: 'rgb(7,119,240)',
+            tertiary: 'rgb(1,43,89)'
         },
         'assets/bankamango.png': {
             primary: 'rgb(255,165,0)',
             secondary: 'rgb(255,140,0)',
-            tertiary: 'rgb(255,120,0)'
+            tertiary: 'rgb(184,134,11)'
         },
         'assets/bankablueberry.png': {
-            primary: 'rgb(89,0,179)', // Более темный фиолетовый
-            secondary: 'rgb(102,0,204)', // Немного светлее для вторичного
-            tertiary: 'rgb(76,0,153)' // Самый темный для третичного
-        }
+            primary: 'rgb(76,0,153)',      // Темно-фиолетовый
+            secondary: 'rgb(102,0,204)',   // Фиолетовый
+            tertiary: 'rgb(51,0,102)'      // Очень темный фиолетовый
+        },
     };
     function changeCan(index) {
         if (index >= 0 && index < canImages.length) {

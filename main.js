@@ -41,7 +41,6 @@ const canThemes = {
         secondary: 'rgb(102,0,204)',   // Фиолетовый
         tertiary: 'rgb(51,0,102)'      // Очень темный фиолетовый
     },
-    // Добавьте темы для остальных банок здесь
 };
 
 window.syncDataWithServer = function() {
