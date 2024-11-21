@@ -287,7 +287,13 @@ function updateUserProfile() {
 document.addEventListener('DOMContentLoaded', () => {
     if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.ready();
-    }
+        // Используем основной цвет приложения вместо черного
+    window.Telegram.WebApp.setHeaderColor('rgb(18,131,255)');
+    window.Telegram.WebApp.setBackgroundColor('rgb(18,131,255)');
+    
+    // Запрещаем случайное закрытие свайпом
+    window.Telegram.WebApp.expand();
+}
     updateUserProfile();
     syncDataWithServer(); // Добавьте эту строку
     const selectedCanIndex = parseInt(localStorage.getItem('selectedCan')) || 0;
@@ -865,6 +871,10 @@ function updateCanImage(index) {
         
         const selectedTheme = canThemes[canImages[index]];
         if (selectedTheme) {
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.setHeaderColor(selectedTheme.primary);
+                window.Telegram.WebApp.setBackgroundColor(selectedTheme.primary);
+            }
             document.documentElement.style.setProperty('--primary-color', selectedTheme.primary);
             document.documentElement.style.setProperty('--secondary-color', selectedTheme.secondary);
             document.documentElement.style.setProperty('--tertiary-color', selectedTheme.tertiary);
